@@ -1,0 +1,7 @@
+backend/tests
+backend/**/__pycache__
+backend/*.db
+backend/uploads
+node_modules
+*.log
+package-lock.json

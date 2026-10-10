@@ -1,0 +1,12 @@
+# Phase 2: Docker Compose 2.24.4+; use after docker-compose.yaml and docker-compose.yantu.yml.
+# Publish HTTPS only on the server's private/VPN IP. Replaces Plane's public 80/443 mappings.
+services:
+  proxy:
+    ports: !override
+      - target: 443
+        published: "443"
+        host_ip: ${INTERNAL_BIND_IP:?set INTERNAL_BIND_IP to an existing VPN/private IP}
+        protocol: tcp
+        mode: host
+    volumes:
+      - ./yantu/Caddyfile.vpn:/etc/caddy/Caddyfile:ro

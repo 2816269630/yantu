@@ -1,0 +1,68 @@
+# Operating system and editors
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Local configuration and secrets (keep examples)
+.env
+.env.*
+!.env.example
+!.env.*.example
+!.env.sample
+!.env.template
+*.local
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.coverage
+.coverage.*
+htmlcov/
+*.egg-info/
+
+# Node and build output
+node_modules/
+.npm/
+.next/
+.nuxt/
+.parcel-cache/
+*.tsbuildinfo
+dist/
+build/
+coverage/
+
+# Runtime data and temporary files
+*.log
+*.tmp
+*.temp
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+uploads/
+backups/
+.cache/
+
+# Local AI assistant state
+.codex/
+.claude/
+.aider*
+.chatgpt/
+
+# Generated documents, previews, and AI scratch output
+# Put disposable AI-generated files in ai-output/; source code stays trackable.
+/ai-output/
+/output/
+/.ppt-build/
+artifacts/

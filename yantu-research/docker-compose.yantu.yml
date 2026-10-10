@@ -1,0 +1,46 @@
+# Copy this file and the yantu/ directory alongside Plane's generated docker-compose.yaml.
+# Start both files together; Plane's unmodified images and persistent volumes stay intact.
+services:
+  yantu:
+    build:
+      context: ./yantu
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${YANTU_DATABASE_URL:?set YANTU_DATABASE_URL in plane.env}
+      PLANE_BASE_URL: http://api:8000
+      PLANE_API_KEY: ${PLANE_API_KEY:-}
+      PLANE_ALLOWED_PROJECTS: ${PLANE_ALLOWED_PROJECTS:-}
+      AI_BASE_URL: ${AI_BASE_URL:-http://ollama:11434}
+      AI_MODEL: ${AI_MODEL:-qwen2.5:3b}
+      UPLOAD_DIR: /app/uploads
+      ALLOW_PUBLIC_SIGNUP: "0"
+      MAX_UPLOAD_BYTES: "20971520"
+    volumes:
+      - yantu_uploads:/app/uploads
+    depends_on:
+      - plane-db
+      - api
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=3)"]
+      interval: 20s
+      timeout: 5s
+      retries: 10
+  proxy:
+    volumes:
+      - ./yantu/Caddyfile.yantu:/etc/caddy/Caddyfile:ro
+    environment:
+      YANTU_SITE_ADDRESS: ${YANTU_SITE_ADDRESS:?set YANTU_SITE_ADDRESS in plane.env}
+    depends_on:
+      - yantu
+
+  ollama:
+    image: ollama/ollama:latest
+    profiles: [ai]
+    restart: unless-stopped
+    volumes:
+      - yantu_models:/root/.ollama
+
+volumes:
+  yantu_uploads:
+  yantu_models:

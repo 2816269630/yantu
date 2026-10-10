@@ -1,0 +1,11 @@
+.venv/
+node_modules/
+.env.research
+*.db
+*.db-*
+uploads/
+__pycache__/
+.pytest_cache/
+artifacts/
+backups/
+*.log

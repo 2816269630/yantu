@@ -1,0 +1,9 @@
+{
+  "private": true,
+  "scripts": {
+    "test:ui": "node backend/tests/test_frontend.cjs"
+  },
+  "devDependencies": {
+    "jsdom": "30.1.1"
+  }
+}

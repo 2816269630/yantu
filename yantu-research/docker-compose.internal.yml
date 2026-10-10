@@ -1,0 +1,11 @@
+# Use after the Plane base file and docker-compose.yantu.yml.
+# Docker Compose 2.24.4+ is required for !override.
+# Bind the ONLY published website port to localhost (phase 1) or a VPN/private IP (phase 2).
+services:
+  proxy:
+    ports: !override
+      - target: 80
+        published: "80"
+        host_ip: ${INTERNAL_BIND_IP:?set INTERNAL_BIND_IP in plane.env}
+        protocol: tcp
+        mode: host

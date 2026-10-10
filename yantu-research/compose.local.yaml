@@ -1,0 +1,48 @@
+name: yantu-research
+services:
+  research:
+    build:
+      context: ./yantu
+      dockerfile: backend/Dockerfile
+    image: yantu-research:local
+    restart: unless-stopped
+    ports:
+      - "${RESEARCH_BIND:-127.0.0.1}:${RESEARCH_PORT:-8088}:8000"
+    environment:
+      DATABASE_URL: postgresql+psycopg://yantu:${RESEARCH_DB_PASSWORD:?Run Start-Research.ps1 first}@research-db:5432/yantu
+      UPLOAD_DIR: /app/uploads
+      PLANE_BASE_URL: ${PLANE_BASE_URL:-http://host.docker.internal}
+      PLANE_API_KEY: ${PLANE_API_KEY:-}
+      PLANE_ALLOWED_PROJECTS: ${PLANE_ALLOWED_PROJECTS:-}
+      AI_BASE_URL: ${AI_BASE_URL:-}
+      AI_MODEL: ${AI_MODEL:-}
+      ALLOW_PUBLIC_SIGNUP: "0"
+      MAX_UPLOAD_BYTES: "20971520"
+    volumes:
+      - research_uploads:/app/uploads
+    depends_on:
+      research-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+  research-db:
+    image: postgres:15.7-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: yantu
+      POSTGRES_PASSWORD: ${RESEARCH_DB_PASSWORD:?Run Start-Research.ps1 first}
+      POSTGRES_DB: yantu
+    volumes:
+      - research_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U yantu -d yantu"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+volumes:
+  research_data:
+  research_uploads:
