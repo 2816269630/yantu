@@ -819,6 +819,7 @@ def create_app(
                page: int = Query(1, ge=1), pageSize: int = Query(20, ge=1, le=100),
                user: User = Depends(current_user), db: Session = Depends(get_db)):
         _, membership = team_member(db, team_id, user)
+        from .cloud_drive import resource_visible
         term = f"%{q}%"
         result = []
         for model, kind, title_field, summary_field in (
@@ -830,7 +831,7 @@ def create_app(
             items = db.scalars(select(model).where(model.team_id == team_id,
                                                     or_(title_field.ilike(term), summary_field.ilike(term)))).all()
             result.extend({"id": r.id, "type": kind, "title": r.title,
-                           "summary": str(getattr(r, summary_field.key, ""))[:180]} for r in items)
+                           "summary": str(getattr(r, summary_field.key, ""))[:180]} for r in items if (model is not Resource or resource_visible(db,r,user)))
         visible = True if membership.role == "owner" else or_(Task.assignee_id == user.id, Task.reviewer_id == user.id)
         own_tasks = db.scalars(select(Task).where(Task.team_id == team_id, visible,
                                                    or_(Task.title.ilike(term), Task.description.ilike(term)))).all()

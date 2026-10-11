@@ -7,6 +7,8 @@
   <title>研途 · 科研工作台</title>
   <link rel="stylesheet" href="/styles.css">
   <script src="/app.js" defer></script>
+  <script src="/cloud-upload.js" defer></script>
+  <script src="/cloud-drive.js" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#content">跳至主要内容</a>
@@ -15,7 +17,7 @@
     <div id="overlay" class="overlay"></div>
     <aside id="sidebar" class="sidebar" aria-label="主导航">
       <a href="#home" class="brand"><span class="brandmark">R</span><div><strong>研途</strong><span>RESEARCHPATH</span></div></a>
-      <div class="space"><span class="spacemark" id="spaceIcon"></span><label class="team-label" for="teamSelect"><span class="space-caption">当前课题组</span><select id="teamSelect" aria-label="切换课题组"></select></label></div>
+      <div class="space"><span class="spacemark" id="spaceIcon"></span><label class="team-label" for="teamSelect"><span class="space-caption">当前课题组</span><select id="teamSelect" aria-label="切换课题组"></select></label><a class="iconbtn" href="#settings" onclick="state.settingsTab='team'" aria-label="课题组设置">⚙</a></div>
       <nav id="nav" class="nav"></nav>
       <div class="sidebottom"><div class="integration"><span class="connection-dot"></span><span>科研协作服务正常</span></div><div id="profile" class="profile"></div></div>
     </aside>

@@ -109,23 +109,7 @@ def register_features(app, context):
     def page_data(items, page, page_size):
         return {"data": {"items": items[(page-1)*page_size:page*page_size], "total": len(items)}}
 
-    def resource_visible(db, resource, user, membership=None):
-        if resource.archived:
-            return False
-        if membership is None:
-            membership = db.scalar(select(Member).where(Member.team_id == resource.team_id, Member.user_id == user.id))
-        return bool(membership and (resource.visibility == "team" or resource.owner_id == user.id or membership.role == "owner"))
-
-    def resource_for(db, resource_id, user, write=False):
-        resource = db.get(Resource, resource_id)
-        if resource is None or resource.archived:
-            raise HTTPException(404, "资料不存在")
-        _, membership = team_member(db, resource.team_id, user)
-        if not resource_visible(db, resource, user, membership):
-            raise HTTPException(403, "无权访问该资料")
-        if write and resource.owner_id != user.id and membership.role != "owner":
-            raise HTTPException(403, "只有上传者或负责人可修改资料")
-        return resource, membership
+    from .cloud_drive import resource_visible, resource_for
 
     def preview_media_type(filename):
         media_type = mimetypes.guess_type(filename or "")[0] or ""
@@ -145,7 +129,9 @@ def register_features(app, context):
                 "meetingId": resource.meeting_id, "taskId": resource.task_id,
                 "previewable": bool(preview_media_type(resource.file_name)),
                 "previewType": preview_media_type(resource.file_name),
-                "canEdit": resource.owner_id == user.id or bool(membership and membership.role == "owner")}
+                "folderId": resource.folder_id, "canEdit": resource.owner_id == user.id,
+                "permissions": {"canRead": True, "canDownload": True, "canEdit": resource.owner_id == user.id, "canShare": resource.owner_id == user.id},
+                "references": [{"id": ref.id, "targetType": ref.target_type, "targetId": ref.target_id} for ref in db.scalars(select(ResourceReference).where(ResourceReference.resource_id == resource.id))]}
 
     def task_visible(task, membership, user):
         return task.assignee_id == user.id or task.reviewer_id == user.id or membership.role == "owner"
@@ -336,6 +322,9 @@ def register_features(app, context):
             raise HTTPException(409, "不能移除负责人")
         if db.scalar(select(Task.id).where(Task.team_id == team_id, Task.status != "done", or_(Task.assignee_id == user_id, Task.reviewer_id == user_id)).limit(1)):
             raise HTTPException(409, "请先完成或交接成员的未完成任务")
+        for share in db.scalars(select(ResourceShare).where(ResourceShare.team_id == team_id, ResourceShare.active.is_(True))):
+            resource = db.get(Resource, share.resource_id)
+            if share.user_id == user_id or (resource and resource.owner_id == user_id): share.active = False
         db.delete(row)
         db.commit()
         return {"data": None}
@@ -382,13 +371,21 @@ def register_features(app, context):
             can_manage(member)
         return route
 
+    def filter_materials(db, snapshot, user):
+        value = deepcopy(snapshot)
+        if user:
+            for stage in value.get("stages", []):
+                stage["resources"] = [item for item in stage.get("resources", [])
+                    if (r := db.get(Resource, item.get("id"))) and resource_visible(db, r, user)]
+        return value
+
     def route_json(db, route, user=None):
         meta = get_meta(db, "route", route.id)
         enrollment = db.scalar(select(Enrollment).where(Enrollment.route_id == route.id, Enrollment.user_id == user.id)) if user else None
         return {"id": route.id, "teamId": route.team_id, "title": route.title, "description": route.description,
                 "authorId": route.author_id, "author": name(db, route.author_id), "version": route.version,
                 "direction": meta.get("direction", ""), "difficulty": meta.get("difficulty", "入门"),
-                "tags": meta.get("tags", []), "stages": deepcopy(route.stages),
+                "tags": meta.get("tags", []), "stages": filter_materials(db, {"stages": route.stages}, user)["stages"],
                 "enrolled": enrollment is not None, "enrollmentId": enrollment.id if enrollment else None}
 
     def route_stages(db, team_id, stages, user):
@@ -481,7 +478,7 @@ def register_features(app, context):
     def route_versions(route_id: str, user: User = Depends(current_user), db: Session = Depends(get_db)):
         route = route_for(db, route_id, user)
         rows = db.scalars(select(RouteVersion).where(RouteVersion.route_id == route_id).order_by(RouteVersion.version.desc())).all()
-        items = [{"id": r.id, "version": r.version, "snapshot": r.snapshot, "author": name(db, r.author_id), "createdAt": iso(r.created_at)} for r in rows]
+        items = [{"id": r.id, "version": r.version, "snapshot": filter_materials(db, r.snapshot, user), "author": name(db, r.author_id), "createdAt": iso(r.created_at)} for r in rows]
         if not items:
             items = [{"id": route.id, "version": route.version, "snapshot": route_json(db, route), "author": name(db, route.author_id), "createdAt": None}]
         return {"data": {"items": items, "total": len(items)}}
@@ -521,9 +518,9 @@ def register_features(app, context):
             raise HTTPException(403, "无权查看该个人计划")
         return row, route
 
-    def enrollment_json(db, row):
+    def enrollment_json(db, row, user):
         route = db.get(Route, row.route_id)
-        snapshot = deepcopy(row.snapshot or route_json(db, route))
+        snapshot = filter_materials(db, row.snapshot or route_json(db, route), user)
         tasks = db.scalars(select(Task).where(Task.enrollment_id == row.id).order_by(Task.id)).all()
         stages, completed = [], 0
         for stage in snapshot.get("stages", []):
@@ -572,18 +569,18 @@ def register_features(app, context):
         for task in tasks:
             if task.plane_sync != "linked":
                 sync_task(db, task, team)
-        return {"data": enrollment_json(db, row)}
+        return {"data": enrollment_json(db, row, user)}
 
     @app.get("/api/v1/me/enrollments")
     def my_enrollments(teamId: str, user: User = Depends(current_user), db: Session = Depends(get_db)):
         team_member(db, teamId, user)
         rows = db.scalars(select(Enrollment).join(Route).where(Route.team_id == teamId, Enrollment.user_id == user.id).order_by(Enrollment.id)).all()
-        return {"data": {"items": [enrollment_json(db, row) for row in rows], "total": len(rows)}}
+        return {"data": {"items": [enrollment_json(db, row, user) for row in rows], "total": len(rows)}}
 
     @app.get("/api/v1/enrollments/{enrollment_id}")
     def get_enrollment(enrollment_id: str, user: User = Depends(current_user), db: Session = Depends(get_db)):
         row, _ = enrollment_for(db, enrollment_id, user)
-        return {"data": enrollment_json(db, row)}
+        return {"data": enrollment_json(db, row, user)}
 
     @app.patch("/api/v1/enrollments/{enrollment_id}")
     def edit_enrollment(enrollment_id: str, payload: dict = Body(), user: User = Depends(current_user), db: Session = Depends(get_db)):
@@ -605,7 +602,7 @@ def register_features(app, context):
                 raise HTTPException(400, "目标日期格式应为 YYYY-MM-DD")
         put_meta(db, "enrollment", row.id, changes)
         db.commit()
-        return {"data": enrollment_json(db, row)}
+        return {"data": enrollment_json(db, row, user)}
 
     def validate_assignment(db, team_id, assignee_id, reviewer_id):
         members = {m.user_id: m for m in db.scalars(select(Member).where(Member.team_id == team_id)).all()}
@@ -690,6 +687,7 @@ def register_features(app, context):
         submissions = db.scalars(select(Submission).where(Submission.task_id == task.id).order_by(Submission.created_at.desc(), Submission.id)).all()
         resource_ids = get_meta(db, "task", task.id).get("resourceIds", [])
         resources = db.scalars(select(Resource).where(or_(Resource.task_id == task.id, Resource.id.in_(resource_ids)))).all()
+        resources = list({r.id:r for r in resources + referenced_resources(db, "task", task.id)}.values())
         return {**task_json(db, task), "resources": [resource_json(db, r, user) for r in resources if resource_visible(db, r, user)],
                 "submissions": [{"id": s.id, "summary": s.summary, "url": s.url, "createdAt": iso(s.created_at), "userId": s.user_id,
                     "reviews": [{"id": r.id, "decision": r.decision, "comment": r.comment, "reviewer": name(db, r.reviewer_id),
@@ -838,6 +836,7 @@ def register_features(app, context):
         row=db.get(Meeting,meeting_id)
         if not row: raise HTTPException(404,"组会不存在")
         team_member(db,row.team_id,user);questions=db.scalars(select(MeetingQuestion).where(MeetingQuestion.meeting_id==row.id).order_by(MeetingQuestion.created_at)).all();tasks=db.scalars(select(Task).where(Task.meeting_id==row.id)).all();resources=db.scalars(select(Resource).where(Resource.meeting_id==row.id)).all()
+        resources = list({r.id:r for r in resources + referenced_resources(db, "meeting", row.id)}.values())
         return {"data":{"id":row.id,"title":row.title,"startsAt":iso(row.starts_at),"location":row.location,"agenda":row.agenda,"status":row.status,"minutes":{"content":row.minutes_content,"updatedAt":iso(row.minutes_updated_at)} if row.minutes_content is not None else None,"questions":[{"id":q.id,"authorId":q.author_id,"author":name(db,q.author_id),"content":q.content,"answer":q.answer,"status":q.status,"createdAt":iso(q.created_at)} for q in questions],"tasks":[task_json(db,t) for t in tasks],"resources":[resource_json(db,r,user) for r in resources if resource_visible(db,r,user)]}}
 
     @app.post("/api/v1/meetings/{meeting_id}/questions")
@@ -910,6 +909,10 @@ def register_features(app, context):
         team_member(db,team_id,user);to_user=text_value(payload,"toUserId",maximum=36,required=True)
         if to_user==user.id or not db.scalar(select(Member.id).where(Member.team_id==team_id,Member.user_id==to_user)): raise HTTPException(400,"请选择课题组内的接收人")
         task_ids=[str(x) for x in payload.get("taskIds",[])];resource_ids=[str(x) for x in payload.get("resourceIds",[])]
+        for rid in resource_ids:
+            resource_for(db,rid,user)
+        for tid in task_ids:
+            task_for(db,tid,user)
         row=Handover(team_id=team_id,from_user_id=user.id,to_user_id=to_user,title=text_value(payload,"title",maximum=200,required=True),content=text_value(payload,"content",required=True),task_ids=task_ids,resource_ids=resource_ids)
         db.add(row);notify(db,to_user,f"收到科研交接：{row.title}",team_id,"handover",row.id);db.commit();return {"data":{"id":row.id}}
 
@@ -923,15 +926,16 @@ def register_features(app, context):
             row.status="accepted";row.accepted_at=datetime.now(timezone.utc)
             for rid in row.resource_ids or []:
                 resource=db.get(Resource,rid)
-                if resource and resource.team_id==row.team_id and resource.owner_id==row.from_user_id: resource.owner_id=user.id
+                # Ownership transfer is deliberately not inferred from a legacy handover.
+                if resource and not resource_visible(db,resource,user): raise HTTPException(403,"请先由所有者明确共享交接资料")
             db.commit()
         return {"data":{"id":row.id,"status":row.status,"acceptedAt":iso(row.accepted_at)}}
 
     @app.get("/api/v1/teams/{team_id}/export")
     def export_team(team_id:str,user:User=Depends(current_user),db:Session=Depends(get_db)):
-        team,_=team_member(db,team_id,user)
+        team,member_of_team=team_member(db,team_id,user)
         tasks=db.scalars(select(Task).where(Task.team_id==team_id)).all();meetings=db.scalars(select(Meeting).where(Meeting.team_id==team_id)).all();resources=db.scalars(select(Resource).where(Resource.team_id==team_id)).all();experiences=db.scalars(select(Experience).where(Experience.team_id==team_id)).all()
-        content={"exportedAt":iso(datetime.now(timezone.utc)),"team":{"id":team.id,"name":team.name},"tasks":[task_json(db,r) for r in tasks],"meetings":[{"id":r.id,"title":r.title,"startsAt":iso(r.starts_at),"location":r.location,"agenda":r.agenda,"status":r.status} for r in meetings],"resources":[resource_json(db,r,user) for r in resources if resource_visible(db,r,user)],"experiences":[{"id":r.id,"title":r.title,"startingPoint":r.starting_point,"content":r.content,"author":name(db,r.author_id),"createdAt":iso(r.created_at)} for r in experiences]}
+        content={"exportedAt":iso(datetime.now(timezone.utc)),"team":{"id":team.id,"name":team.name},"tasks":[task_json(db,r) for r in tasks if task_visible(r,member_of_team,user)],"meetings":[{"id":r.id,"title":r.title,"startsAt":iso(r.starts_at),"location":r.location,"agenda":r.agenda,"status":r.status} for r in meetings],"resources":[resource_json(db,r,user) for r in resources if resource_visible(db,r,user)],"experiences":[{"id":r.id,"title":r.title,"startingPoint":r.starting_point,"content":r.content,"author":name(db,r.author_id),"createdAt":iso(r.created_at)} for r in experiences]}
         return JSONResponse(content=content,headers={"Content-Disposition":f'attachment; filename="research-export-{team_id}.json"'})
 
     @app.get("/api/v1/teams/{team_id}/resources")
@@ -985,9 +989,37 @@ def register_features(app, context):
             raise HTTPException(502, str(error)) from error
         return {"data": {"items": rows, "total": len(rows)}}
 
-    # FastAPI resolves routes in registration order.  This module intentionally
-    # replaces several compatibility handlers defined in app.py, so its routes
-    # must be evaluated first; otherwise the older handler silently wins.
-    previous_ids = {id(route) for route in previous}
-    added = [route for route in app.router.routes if id(route) not in previous_ids]
-    app.router.routes[:] = added + previous
+    @app.get("/api/v1/me/dashboard")
+    def drive_dashboard(teamId: str, user: User = Depends(current_user), db: Session = Depends(get_db)):
+        _, member = team_member(db, teamId, user)
+        tasks = db.scalars(select(Task).where(Task.team_id == teamId, Task.assignee_id == user.id, Task.status != "done")).all()
+        tasks.sort(key=lambda t: (get_meta(db, "task", t.id).get("dueAt") or "9999", t.id))
+        plans = my_enrollments(teamId, user, db)["data"]["items"]
+        upcoming = db.scalar(select(Meeting).where(Meeting.team_id == teamId, Meeting.status == "scheduled", Meeting.starts_at >= utcnow()).order_by(Meeting.starts_at).limit(1))
+        reviews = review_queue(teamId, 1, 100, user, db)["data"]["total"] if member.role in ("owner", "mentor") else 0
+        return {"data": {"currentTask": task_json(db, tasks[0]) if tasks else None,
+            "progress": {"completed": sum(p["progress"]["completed"] for p in plans), "total": sum(p["progress"]["total"] for p in plans)},
+            "reviewCount": reviews, "nextMeeting": {"id": upcoming.id, "title": upcoming.title, "startsAt": iso(upcoming.starts_at), "location": upcoming.location, "status": upcoming.status} if upcoming else None}}
+
+    def referenced_resources(db, kind, ident):
+        ids = db.scalars(select(ResourceReference.resource_id).where(ResourceReference.target_type == kind, ResourceReference.target_id == ident)).all()
+        return list(db.scalars(select(Resource).where(Resource.id.in_(ids)))) if ids else []
+
+    from .cloud_drive import register_cloud_drive
+    before_drive = list(app.router.routes)
+    register_cloud_drive(app, locals())
+    drive_routes = [r for r in app.router.routes if r not in before_drive]
+    replaced = {(r.path, m) for r in drive_routes for m in r.methods}
+    app.router.routes[:] = drive_routes + [r for r in before_drive if not any((getattr(r, 'path', ''), m) in replaced for m in (getattr(r, 'methods', None) or []))]
+    # Remove superseded compatibility routes so runtime and OpenAPI agree.
+    seen, unique = set(), []
+    for route in app.router.routes:
+        keys = {(getattr(route, 'path', ''), m) for m in (getattr(route, 'methods', None) or [])}
+        # features handlers win over app.py handlers, except drive overrides above.
+        if id(route) in {id(r) for r in previous}:
+            continue
+        if not keys.intersection(seen): unique.append(route); seen.update(keys)
+    for route in previous:
+        keys = {(getattr(route, 'path', ''), m) for m in (getattr(route, 'methods', None) or [])}
+        if not keys.intersection(seen): unique.append(route); seen.update(keys)
+    app.router.routes[:] = unique

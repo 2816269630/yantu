@@ -175,10 +175,50 @@ class Review(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
+class DriveFolder(Base):
+    __tablename__ = "yt_drive_folders"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    owner_id: Mapped[str] = mapped_column(ForeignKey("yt_users.id"), index=True)
+    parent_id: Mapped[str | None] = mapped_column(ForeignKey("yt_drive_folders.id"), nullable=True)
+    name: Mapped[str] = mapped_column(String(200))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    __table_args__ = (UniqueConstraint("owner_id", "parent_id", "name"),)
+
+
+class ResourceShare(Base):
+    __tablename__ = "yt_resource_shares"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    resource_id: Mapped[str] = mapped_column(ForeignKey("yt_resources.id"), index=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("yt_users.id"), index=True)
+    team_id: Mapped[str] = mapped_column(ForeignKey("yt_teams.id"))
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    __table_args__ = (UniqueConstraint("resource_id", "user_id", "team_id"),)
+
+
+class ResourceReference(Base):
+    __tablename__ = "yt_resource_references"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    resource_id: Mapped[str] = mapped_column(ForeignKey("yt_resources.id"), index=True)
+    target_type: Mapped[str] = mapped_column(String(20))
+    target_id: Mapped[str] = mapped_column(String(36), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    __table_args__ = (UniqueConstraint("resource_id", "target_type", "target_id"),)
+
+
+class UploadReceipt(Base):
+    __tablename__ = "yt_upload_receipts"
+    key: Mapped[str] = mapped_column(String(255), primary_key=True)
+    fingerprint: Mapped[str] = mapped_column(String(64))
+    result: Mapped[dict] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
 class Resource(Base):
     __tablename__ = "yt_resources"
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
-    team_id: Mapped[str] = mapped_column(ForeignKey("yt_teams.id"), index=True)
+    team_id: Mapped[str | None] = mapped_column(ForeignKey("yt_teams.id"), index=True, nullable=True)
+    folder_id: Mapped[str | None] = mapped_column(ForeignKey("yt_drive_folders.id"), nullable=True, index=True)
     owner_id: Mapped[str] = mapped_column(ForeignKey("yt_users.id"))
     title: Mapped[str] = mapped_column(String(200))
     type: Mapped[str] = mapped_column(String(20))

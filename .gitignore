@@ -11,6 +11,10 @@ Desktop.ini
 # Local configuration and secrets (keep examples)
 .env
 .env.*
+*.env
+*.env.*
+!*.env.example
+!*.env.*.example
 !.env.example
 !.env.*.example
 !.env.sample
@@ -40,6 +44,9 @@ node_modules/
 *.tsbuildinfo
 dist/
 build/
+# PDF.js ships runtime modules in a directory named build.
+!/yantu-research/yantu/frontend/pdfjs/build/
+!/yantu-research/yantu/frontend/pdfjs/build/**
 coverage/
 
 # Runtime data and temporary files

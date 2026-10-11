@@ -228,7 +228,7 @@ def test_cross_team_lists_details_and_mutations_are_denied(lab):
               f"/me/tasks?teamId={lab['team']}", f"/me/dashboard?teamId={lab['team']}",
               f"/teams/{lab['team']}/search?q=内部"]
     for path in paths:
-        reject(client.get("/api/v1" + path, headers=outsider), 403)
+        reject(client.get("/api/v1" + path, headers=outsider), 404 if path.startswith("/resources/") else 403)
     reject(client.post(f"/api/v1/routes/{route_id}/enrollments", headers=outsider, json={}), 403)
     reject(client.post(f"/api/v1/tasks/{task_id}/submissions", headers=outsider, json={"summary": "冒领"}), 403)
     reject(client.post(f"/api/v1/teams/{lab['team']}/questions", headers=outsider, json={"question": "内部细节是什么"}), 403)
@@ -384,12 +384,13 @@ def test_upload_link_authority_download_integrity_and_rejected_upload_cleanup(la
     stored = list(lab["uploads"].iterdir())
     assert len(stored) == 1 and stored[0].name != "实验记录.txt"
     reject(client.get(f"/api/v1/resources/{resource_id}/download"), 401)
-    reject(client.get(f"/api/v1/resources/{resource_id}/download", headers=lab["outsider"]), 403)
+    reject(client.get(f"/api/v1/resources/{resource_id}/download", headers=lab["outsider"]), 404)
     monkeypatch.setenv("MAX_UPLOAD_BYTES", "3")
     reject(client.post(f"/api/v1/teams/{lab['team']}/resources", headers=lab["student"],
         data={"title": "超过限制", "type": "note"}, files={"file": ("huge.txt", b"1234", "text/plain")}), 413)
     assert set(lab["uploads"].iterdir()) == set(stored)
-    assert data(client.get(f"/api/v1/teams/{lab['team']}/resources", headers=lab["owner"]))["total"] == 1
+    assert data(client.get(f"/api/v1/teams/{lab['team']}/resources", headers=lab["owner"]))["total"] == 0
+    assert data(client.get(f"/api/v1/teams/{lab['team']}/resources", headers=lab["student"]))["total"] == 1
 
 
 def test_cross_team_task_and_meeting_links_are_rejected(lab):

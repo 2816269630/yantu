@@ -133,12 +133,15 @@ def test_complete_team_and_workflow(site, monkeypatch):
                          files={"file": ("paper.pdf", b"%PDF-test", "application/pdf")})
     assert upload.status_code == 200, upload.text
     resource_id = upload.json()["data"]["id"]
+    assert client.get(f"/api/v1/resources/{resource_id}/download", headers=student).status_code == 404
+    assert client.put(f"/api/v1/resources/{resource_id}/shares/{student_id}", headers=owner, json={"permission":"read","teamId":team_id}).status_code == 200
     download = client.get(f"/api/v1/resources/{resource_id}/download", headers=student)
     assert download.status_code == 200 and download.content == b"%PDF-test"
     notes = client.post(f"/api/v1/teams/{team_id}/resources", headers=owner,
                         data={"title": "读论文的方法", "type": "note"},
                         files={"file": ("guide.txt", "读论文时先读摘要，再看方法。".encode(), "text/plain")})
     note_id = notes.json()["data"]["id"]
+    assert client.put(f"/api/v1/resources/{note_id}/shares/{student_id}", headers=owner, json={"permission":"read","teamId":team_id}).status_code == 200
     answer = client.post(f"/api/v1/teams/{team_id}/questions", headers=student,
                          json={"question": "读论文应该先读什么？"})
     assert answer.status_code == 200, answer.text
@@ -172,7 +175,10 @@ def test_complete_team_and_workflow(site, monkeypatch):
     assert client.post(f"/api/v1/submissions/{submission_id}/reviews", headers=owner,
                        json={"decision": "approved", "comment": "重复"}).status_code == 409
     assert len(plane.comments) == 2
-    assert client.get(f"/api/v1/me/dashboard?teamId={team_id}", headers=student).json()["data"]["progress"]["completed"] == 1
+    dashboard = client.get(f"/api/v1/me/dashboard?teamId={team_id}", headers=student).json()["data"]
+    # Completing an unrelated research task does not complete the learning stage.
+    assert dashboard["progress"] == {"completed": 0, "total": 1}
+    assert dashboard["reviewCount"] == 0
     assert client.get(f"/api/v1/teams/{team_id}/search?q=论文", headers=student).status_code == 200
     assert client.post("/api/v1/auth/logout", headers=student).status_code == 200
     assert client.get("/api/v1/me", headers=student).status_code == 401
