@@ -1,6 +1,7 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const vm = require('node:vm');
 const { JSDOM } = require('jsdom');
 const root = path.resolve(__dirname, '../..');
 const until = async (predicate) => { const start=Date.now(); while(!predicate()){if(Date.now()-start>3000)throw new Error('页面未在预期时间内更新');await new Promise(r=>setTimeout(r,10));} };
@@ -26,8 +27,21 @@ async function main(){
   else {status=404;}
   return {ok:status===200,status,json:async()=>status===200?{data:value}:{message:'测试服务暂时不可用'}};
  };
- const source=['app.js','cloud-upload.js','cloud-drive.js'].map(f=>fs.readFileSync(path.join(root,'frontend',f),'utf8')).join('\n');
- w.eval(source+'\nwindow.testApp={state,navigate,refreshTeams};');
+ const modules = new Map();
+ const context = dom.getInternalVMContext();
+ const loadModule = filename => {
+  if (!modules.has(filename)) modules.set(filename, new vm.SourceTextModule(fs.readFileSync(filename,'utf8'), {context, identifier:filename}));
+  return modules.get(filename);
+ };
+ const entry = new vm.SourceTextModule(`
+  import './frontend/app.js';
+  import {state} from './frontend/core/state.js';
+  import {navigate} from './frontend/core/router.js';
+  import {refreshTeams} from './frontend/core/session.js';
+  window.testApp={state,navigate,refreshTeams};
+ `, {context,identifier:path.join(root,'test-entry.js')});
+ await entry.link((specifier, referencing) => loadModule(path.resolve(path.dirname(referencing.identifier),specifier)));
+ await entry.evaluate();
  await until(()=>w.document.querySelector('.drive-layout'));
  assert.equal(w.document.querySelectorAll('#nav .navitem').length,5);
  assert.equal(w.document.querySelector('#nav .active').textContent.trim(),'我的云盘');

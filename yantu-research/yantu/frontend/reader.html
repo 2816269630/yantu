@@ -1,1 +1,24 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>论文阅读 · 研途</title><link rel="stylesheet" href="/reader.css"></head><body><header><a href="javascript:window.close()">← 返回资料</a><strong id="title">正在打开论文…</strong><span id="status">加载中</span><button id="toggleNotes">笔记</button></header><main><iframe id="viewer" title="论文阅读器"></iframe><aside id="notes"><div class="notes-head"><strong>阅读笔记</strong><span id="noteStatus">自动保存</span></div><textarea id="noteText" placeholder="随手记录问题、方法和重要结论…"></textarea><p>当前阅读页会自动记录，再次打开将继续上次位置。</p></aside></main><script type="module" src="/reader.js"></script></body></html>
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>论文阅读 · 研途</title>
+    <link rel="stylesheet" href="/styles/pages/reader.css" />
+  </head>
+  <body>
+    <header>
+      <a href="javascript:window.close()">← 返回资料</a><strong id="title">正在打开论文…</strong
+      ><span id="status">加载中</span><button id="toggleNotes">笔记</button>
+    </header>
+    <main>
+      <iframe id="viewer" title="论文阅读器"></iframe>
+      <aside id="notes">
+        <div class="notes-head"><strong>阅读笔记</strong><span id="noteStatus">自动保存</span></div>
+        <textarea id="noteText" placeholder="随手记录问题、方法和重要结论…"></textarea>
+        <p>当前阅读页会自动记录，再次打开将继续上次位置。</p>
+      </aside>
+    </main>
+    <script type="module" src="/pages/drive/reader.js"></script>
+  </body>
+</html>

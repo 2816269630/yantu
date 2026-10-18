@@ -43,8 +43,13 @@ docker compose --env-file .env.research -f compose.local.yaml down
 
 ## 开发验证
 
+模块说明见 [模块开发指南](yantu/README.md)。测试使用独立临时数据，不访问日常业务数据库。
+
 ```powershell
-cd yantu\backend
-..\..\.venv\Scripts\python.exe -m pytest -q
-C:\Users\33518\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe --check ..\frontend\app.js
+cd yantu
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r backend/requirements-dev.txt
+.\.venv\Scripts\python.exe -m pytest -q
+npm ci
+npm run test:ui
 ```

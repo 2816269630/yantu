@@ -1,0 +1,94 @@
+.fileicon.pdf {
+  background: #fff1f0;
+  border-color: #f7dcd7;
+  color: #d46a5b;
+}
+.reading-page {
+  display: flex;
+  align-items: end;
+  gap: 8px;
+}
+.reading-page label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.reading-page .input {
+  width: 78px;
+  padding: 6px 8px;
+}
+.drive-layout {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 24px;
+}
+.drive-tree {
+  padding: 16px;
+  align-self: start;
+  max-height: 65vh;
+  overflow: auto;
+}
+.drive-tree summary {
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+.drive-tree-link {
+  display: block;
+  padding: 9px 8px;
+  overflow-wrap: anywhere;
+  border-radius: 6px;
+}
+.drive-tree-link.active {
+  background: #edf3ff;
+  color: #3370ff;
+}
+.drive-breadcrumb {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 14px;
+}
+.drive-drop {
+  border: 2px dashed #aac4f9;
+  border-radius: 12px;
+  background: #f6f9ff;
+  padding: 24px;
+  text-align: center;
+  display: block;
+  cursor: pointer;
+}
+.drive-drop input {
+  display: block;
+  margin: 16px auto 0;
+  max-width: 100%;
+}
+.drive-drop.dragging {
+  background: #e4edff;
+  border-color: #3370ff;
+}
+.upload-item {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+.upload-item > span {
+  display: block;
+  margin-top: 6px;
+}
+.drive-layout > .stack {
+  min-width: 0;
+}
+.drive-layout .toolbar {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+}
+.drive-layout .toolbar .input {
+  min-width: 0;
+  flex: 1;
+}
+.drive-layout .toolbar .btn {
+  flex-shrink: 0;
+}

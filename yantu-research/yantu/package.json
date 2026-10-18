@@ -1,9 +1,13 @@
 {
+  "name": "yantu-research",
   "private": true,
+  "type": "module",
   "scripts": {
-    "test:ui": "node backend/tests/test_frontend.cjs"
+    "test:ui": "node --experimental-vm-modules backend/tests/test_frontend.cjs",
+    "test:browser": "node backend/tests/test_browser.cjs"
   },
   "devDependencies": {
-    "jsdom": "30.1.1"
+    "jsdom": "30.1.1",
+    "playwright": "1.62.1"
   }
 }
