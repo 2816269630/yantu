@@ -1,6 +1,6 @@
 import { showAuth } from './session.js';
+import { resetSession } from './session-state.js';
 import { state } from './state.js';
-import { clearUploadQueue } from '../pages/drive/upload.js';
 
 async function api(path, method = 'GET', body, binary = false) {
   const headers =
@@ -21,11 +21,7 @@ async function api(path, method = 'GET', body, binary = false) {
     const err = new Error(result?.message || `请求未完成（${response.status}）`);
     err.status = response.status;
     if (response.status === 401 && state.user) {
-      state.user = null;
-      state.data = {};
-      state.uiViews = {};
-      state.sequence++;
-      if (typeof clearUploadQueue === 'function') clearUploadQueue();
+      resetSession();
       showAuth('login');
     }
     throw err;

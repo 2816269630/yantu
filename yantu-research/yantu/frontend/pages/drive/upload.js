@@ -5,6 +5,7 @@ import { api } from '../../core/api.js';
 import { $ } from '../../core/dom.js';
 import { bytes, esc } from '../../core/format.js';
 import { renderPage } from '../../core/router.js';
+import { registerSessionCleanup } from '../../core/session-state.js';
 import { state, typeNames } from '../../core/state.js';
 import { driveFolderOptions } from './browser.js';
 
@@ -16,6 +17,8 @@ function clearUploadQueue() {
   uploadQueue = [];
   uploadRunning = false;
 }
+
+registerSessionCleanup(clearUploadQueue);
 
 async function openCloudUpload(target = null) {
   const config = await api('/me/drive/config'),

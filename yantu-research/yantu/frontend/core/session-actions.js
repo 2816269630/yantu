@@ -1,20 +1,15 @@
 import { api } from './api.js';
 import { renderPage } from './router.js';
 import { enterApp, refreshTeams, showAuth } from './session.js';
+import { resetSession } from './session-state.js';
 import { state } from './state.js';
-import { clearUploadQueue } from '../pages/drive/upload.js';
 
 async function handleSessionAction(action, id, source) {
   if (action === 'auth-login') return showAuth('login');
   if (action === 'auth-register') return showAuth('register');
   if (action === 'logout') {
     await api('/auth/logout', 'POST', {});
-    state.user = null;
-    state.data = {};
-    state.uiViews = {};
-    state.renderedHash = null;
-    state.sequence++;
-    if (typeof clearUploadQueue === 'function') clearUploadQueue();
+    resetSession();
     showAuth('login');
     return;
   }

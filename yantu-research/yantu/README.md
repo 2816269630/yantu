@@ -2,6 +2,8 @@
 
 本目录包含科研系统的前端、后端和测试。日常开发在 `dev/hawkpp` 分支进行。
 
+不知道修改某个功能该找哪个文件时，先看 [功能导图与代码对照](docs/FUNCTION_MODULES.md)。
+
 ## 启动与更新
 
 从上一级 `yantu-research` 目录启动 Docker Desktop 后运行 `./Start-Research.ps1`。
@@ -18,6 +20,7 @@ docker compose --env-file .env.research -f compose.local.yaml up -d --build
 | --- | --- |
 | `frontend/app.js` | 加载页面模块、绑定全局事件、启动应用 |
 | `frontend/core/` | 请求、会话、共享状态、路由、动作分发 |
+| `frontend/core/session-state.js` | 退出和登录失效时统一清理会话；业务模块登记自己的资源清理函数 |
 | `frontend/components/` | 图标、表单、弹窗、导航、资料链接等公共组件 |
 | `frontend/pages/home/` | 工作台、通知、搜索 |
 | `frontend/pages/learning/` | 我的学习、学习路线、前辈经验 |
@@ -25,6 +28,7 @@ docker compose --env-file .env.research -f compose.local.yaml up -d --build
 | `frontend/pages/drive/` | 云盘、目录、共享、上传、资料详情、独立阅读器 |
 | `frontend/pages/assistant/` | 科研助手、来源选择、问答 |
 | `frontend/pages/settings/` | 个人资料、课题组、成员与邀请、交接 |
+| `frontend/pages/settings/handovers.js` | 交接列表、任务与资料多选、提交和接收；具体权限由后端复核 |
 | `frontend/styles/` | 公共样式及各页面模块样式 |
 
 前端使用浏览器原生 ES Modules，无需打包即可运行。依赖必须通过 `import` 声明；

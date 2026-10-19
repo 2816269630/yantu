@@ -15,7 +15,7 @@ from sqlalchemy import create_engine, inspect, select, text
 from sqlalchemy.orm import Session
 
 from yantu.app import create_app
-from yantu.core.models import Invitation, SessionToken
+from yantu.core.models import Handover, Invitation, Notification, Resource, SessionToken, Task
 from yantu.core.security import token_digest
 
 PASSWORD = "a-real-test-password-2026"
@@ -181,6 +181,193 @@ def lab(site):
         "outsider_id": outsider_id,
         "outsider": outsider,
     }
+
+
+def handover_request(lab, **extra):
+    return lab["client"].post(
+        f"/api/v1/teams/{lab['team']}/handovers",
+        headers=lab["student"],
+        json={
+            "title": "实验资料交接",
+            "content": "记录实验条件和下一步问题",
+            "toUserId": lab["peer_id"],
+            **extra,
+        },
+    )
+
+
+def handover_records(lab):
+    return data(lab["client"].get(f"/api/v1/teams/{lab['team']}/handovers", headers=lab["owner"]))[
+        "items"
+    ]
+
+
+def handover_resource(lab):
+    return data(
+        lab["client"].post(
+            "/api/v1/me/drive/files",
+            headers={**lab["student"], "Idempotency-Key": "handover-file"},
+            data={"type": "note"},
+            files={"file": ("实验笔记.txt", b"Handover experiment notes")},
+        ),
+        201,
+    )["id"]
+
+
+def share_handover_resource(lab, resource_id):
+    return data(
+        lab["client"].put(
+            f"/api/v1/resources/{resource_id}/shares/{lab['peer_id']}",
+            headers=lab["student"],
+            json={"permission": "read", "teamId": lab["team"]},
+        )
+    )
+
+
+def test_handover_references_notifications_and_idempotent_acceptance(lab):
+    client = lab["client"]
+    task_id = create_task(client, lab)
+    resource_id = handover_resource(lab)
+    share_handover_resource(lab, resource_id)
+    handover_id = data(
+        handover_request(lab, taskIds=[task_id, task_id], resourceIds=[resource_id, resource_id])
+    )["id"]
+    record = handover_records(lab)[0]
+    assert record["taskIds"] == [task_id] and record["resourceIds"] == [resource_id]
+    with client.app.state.session_factory() as db:
+        notification = db.scalar(select(Notification).where(Notification.target_id == handover_id))
+        assert notification.user_id == lab["peer_id"]
+        assert notification.target_type == "handover"
+    endpoint = f"/api/v1/handovers/{handover_id}/accept"
+    reject(client.post(endpoint, headers=lab["student"], json={}), 403)
+    first = data(client.post(endpoint, headers=lab["peer"], json={}))
+    second = data(client.post(endpoint, headers=lab["peer"], json={}))
+    assert first == second and first["acceptedAt"]
+    with client.app.state.session_factory() as db:
+        notices = db.scalars(
+            select(Notification).where(Notification.target_id == handover_id)
+        ).all()
+        assert len(notices) == 2
+        assert {notice.user_id for notice in notices} == {lab["student_id"], lab["peer_id"]}
+        assert db.get(Resource, resource_id).owner_id == lab["student_id"]
+        assert db.get(Task, task_id).assignee_id == lab["student_id"]
+
+
+def test_handover_failed_acceptance_keeps_pending_until_explicit_share(lab):
+    client = lab["client"]
+    resource_id = handover_resource(lab)
+    handover_id = data(handover_request(lab, resourceIds=[resource_id]))["id"]
+    endpoint = f"/api/v1/handovers/{handover_id}/accept"
+    reject(client.post(endpoint, headers=lab["peer"], json={}), 403)
+    assert handover_records(lab)[0]["status"] == "pending"
+    assert handover_records(lab)[0]["acceptedAt"] is None
+    reject(client.get(f"/api/v1/resources/{resource_id}", headers=lab["peer"]), 404)
+    with client.app.state.session_factory() as db:
+        assert (
+            len(db.scalars(select(Notification).where(Notification.target_id == handover_id)).all())
+            == 1
+        )
+    share_handover_resource(lab, resource_id)
+    assert data(client.post(endpoint, headers=lab["peer"], json={}))["status"] == "accepted"
+
+
+def test_handover_rejects_malformed_reference_arrays_without_writing(lab):
+    invalid_values = [None, "id", {}, [None], [3], [{}], [""], [" "], ["x" * 37], ["x"] * 101]
+    for key in ("taskIds", "resourceIds"):
+        for value in invalid_values:
+            reject(handover_request(lab, **{key: value}), 400)
+    assert handover_records(lab) == []
+    with lab["client"].app.state.session_factory() as db:
+        assert db.scalar(select(Notification).where(Notification.target_type == "handover")) is None
+
+
+def test_handover_rejects_cross_team_tasks_even_for_owner_of_both(lab):
+    client = lab["client"]
+    other_team = team(client, lab["owner"], "另一个课题组")
+    join(client, lab["owner"], other_team, "mentor@example.com", lab["mentor"], "mentor")
+    task_id = create_task(
+        client, {**lab, "team": other_team}, assignee=lab["owner_id"], reviewer=lab["mentor_id"]
+    )
+    reject(
+        client.post(
+            f"/api/v1/teams/{lab['team']}/handovers",
+            headers=lab["owner"],
+            json={
+                "title": "跨组夹带",
+                "content": "不能关联其他组任务",
+                "toUserId": lab["peer_id"],
+                "taskIds": [task_id],
+            },
+        ),
+        400,
+    )
+    assert handover_records(lab) == []
+
+
+def test_handover_rejects_inaccessible_tasks_resources_and_outsiders(lab):
+    client = lab["client"]
+    task_id = create_task(client, lab, assignee=lab["peer_id"])
+    reject(handover_request(lab, taskIds=[task_id]), 403)
+    resource_id = data(
+        client.post(
+            "/api/v1/me/drive/files",
+            headers=lab["owner"],
+            data={"type": "note"},
+            files={"file": ("私有.txt", b"private notes")},
+        ),
+        201,
+    )["id"]
+    reject(handover_request(lab, resourceIds=[resource_id]), 404)
+    reject(handover_request(lab, toUserId=lab["outsider_id"]), 400)
+    reject(handover_request(lab, toUserId=lab["student_id"]), 400)
+    assert handover_records(lab) == []
+
+
+def test_handover_revalidates_missing_archived_and_cross_team_references(lab):
+    client = lab["client"]
+    resource_id = handover_resource(lab)
+    share_handover_resource(lab, resource_id)
+    handover_id = data(handover_request(lab, resourceIds=[resource_id]))["id"]
+    endpoint = f"/api/v1/handovers/{handover_id}/accept"
+    # Simulate a file archived after the record was sent.
+    with client.app.state.session_factory() as db:
+        db.get(Resource, resource_id).archived = True
+        db.commit()
+    reject(client.post(endpoint, headers=lab["peer"], json={}), 403)
+    # Old records can contain stale references; they must not silently succeed.
+    with client.app.state.session_factory() as db:
+        row = db.get(Handover, handover_id)
+        row.resource_ids = ["missing-resource"]
+        db.commit()
+    reject(client.post(endpoint, headers=lab["peer"], json={}), 403)
+    other_team = team(client, lab["owner"], "历史记录校验组")
+    join(client, lab["owner"], other_team, "mentor@example.com", lab["mentor"], "mentor")
+    foreign_task = create_task(
+        client, {**lab, "team": other_team}, assignee=lab["owner_id"], reviewer=lab["mentor_id"]
+    )
+    for task_id in ["missing-task", foreign_task]:
+        with client.app.state.session_factory() as db:
+            row = db.get(Handover, handover_id)
+            row.resource_ids = []
+            row.task_ids = [task_id]
+            db.commit()
+        reject(client.post(endpoint, headers=lab["peer"], json={}), 409)
+    assert handover_records(lab)[0]["status"] == "pending"
+
+
+def test_handover_concurrent_acceptance_sends_one_confirmation(lab):
+    client = lab["client"]
+    handover_id = data(handover_request(lab))["id"]
+    responses = concurrent_requests(
+        lambda: client.post(f"/api/v1/handovers/{handover_id}/accept", headers=lab["peer"], json={})
+    )
+    records = [data(response) for response in responses]
+    assert records[0] == records[1] and records[0]["status"] == "accepted"
+    with client.app.state.session_factory() as db:
+        notices = db.scalars(
+            select(Notification).where(Notification.target_id == handover_id)
+        ).all()
+        assert len(notices) == 2
 
 
 def test_registration_normalization_password_validation_and_session_logout(site):

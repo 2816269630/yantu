@@ -1,12 +1,27 @@
 """modules.handovers.service business operations."""
 
 from __future__ import annotations
+
+from datetime import datetime, timezone
+
 from fastapi import HTTPException
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
-from datetime import datetime
-from sqlalchemy import select
-from datetime import timezone
-from ...core.models import Handover, Member, Resource, User
+
+from ...core.models import Handover, Member, Resource, Task, User
+
+MAX_REFERENCES = 100
+
+
+def _reference_ids(payload: dict, key: str) -> list[str]:
+    values = payload.get(key, [])
+    if (
+        not isinstance(values, list)
+        or len(values) > MAX_REFERENCES
+        or any(not isinstance(item, str) or not item.strip() or len(item) > 36 for item in values)
+    ):
+        raise HTTPException(400, f"{key} 必须是最多 {MAX_REFERENCES} 个有效 ID 组成的数组")
+    return list(dict.fromkeys(values))
 
 
 def list_handovers(
@@ -19,7 +34,9 @@ def list_handovers(
 
     team_member(db, team_id, user)
     rows = db.scalars(
-        select(Handover).where(Handover.team_id == team_id).order_by(Handover.created_at.desc())
+        select(Handover)
+        .where(Handover.team_id == team_id)
+        .order_by(Handover.created_at.desc(), Handover.id)
     ).all()
     items = [
         {
@@ -54,12 +71,14 @@ def create_handover(team_id: str, payload: dict = None, user: User = None, db: S
         select(Member.id).where(Member.team_id == team_id, Member.user_id == to_user)
     ):
         raise HTTPException(400, "请选择课题组内的接收人")
-    task_ids = [str(x) for x in payload.get("taskIds", [])]
-    resource_ids = [str(x) for x in payload.get("resourceIds", [])]
+    task_ids = _reference_ids(payload, "taskIds")
+    resource_ids = _reference_ids(payload, "resourceIds")
     for rid in resource_ids:
         resource_for(db, rid, user)
     for tid in task_ids:
-        task_for(db, tid, user)
+        task, _, _ = task_for(db, tid, user)
+        if task.team_id != team_id:
+            raise HTTPException(400, "关联任务必须属于当前课题组")
     row = Handover(
         team_id=team_id,
         from_user_id=user.id,
@@ -70,6 +89,7 @@ def create_handover(team_id: str, payload: dict = None, user: User = None, db: S
         resource_ids=resource_ids,
     )
     db.add(row)
+    db.flush()
     notify(db, to_user, f"收到科研交接：{row.title}", team_id, "handover", row.id)
     db.commit()
     return {"data": {"id": row.id}}
@@ -79,6 +99,7 @@ def accept_handover(handover_id: str, user: User = None, db: Session = None):
     from ...core.presentation import iso
     from ...core.permissions import team_member
     from ...modules.drive.permissions import resource_visible
+    from ...modules.notifications.service import notify
 
     row = db.get(Handover, handover_id)
     if not row:
@@ -86,12 +107,26 @@ def accept_handover(handover_id: str, user: User = None, db: Session = None):
     team_member(db, row.team_id, user)
     if row.to_user_id != user.id:
         raise HTTPException(403, "只有接收人可以确认交接")
-    if row.status != "accepted":
-        row.status = "accepted"
-        row.accepted_at = datetime.now(timezone.utc)
-        for rid in row.resource_ids or []:
-            resource = db.get(Resource, rid)
-            if resource and (not resource_visible(db, resource, user)):
-                raise HTTPException(403, "请先由所有者明确共享交接资料")
-        db.commit()
+    if row.status == "accepted":
+        return {"data": {"id": row.id, "status": row.status, "acceptedAt": iso(row.accepted_at)}}
+    if row.status != "pending":
+        raise HTTPException(409, "交接状态已变化，请刷新")
+    # Validate every reference before changing state; failed checks leave it pending.
+    for task_id in row.task_ids or []:
+        task = db.get(Task, task_id)
+        if task is None or task.team_id != row.team_id:
+            raise HTTPException(409, "关联任务已不存在或不属于此课题组，请重新发起交接")
+    for rid in row.resource_ids or []:
+        resource = db.get(Resource, rid)
+        if resource is None or not resource_visible(db, resource, user):
+            raise HTTPException(403, "交接资料已删除或尚未授权，请先由所有者明确共享资料")
+    accepted = db.execute(
+        update(Handover)
+        .where(Handover.id == row.id, Handover.status == "pending")
+        .values(status="accepted", accepted_at=datetime.now(timezone.utc))
+    )
+    if accepted.rowcount == 1:
+        notify(db, row.from_user_id, f"交接已接收：{row.title}", row.team_id, "handover", row.id)
+    db.commit()
+    db.refresh(row)
     return {"data": {"id": row.id, "status": row.status, "acceptedAt": iso(row.accepted_at)}}

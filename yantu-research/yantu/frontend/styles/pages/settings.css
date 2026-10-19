@@ -39,3 +39,51 @@
 .settings-content {
   min-height: 300px;
 }
+
+.handover-note {
+  margin: 0 24px 20px;
+}
+.handover-record {
+  padding: 24px;
+  border-bottom: 1px solid var(--line);
+}
+.handover-record:last-child {
+  border-bottom: 0;
+}
+.handover-reference-grid,
+.handover-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.handover-picker {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.handover-options {
+  display: grid;
+  gap: 4px;
+  max-height: 240px;
+  overflow: auto;
+  margin-top: 8px;
+}
+.handover-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-height: 44px;
+  padding: 10px 4px;
+  overflow-wrap: anywhere;
+}
+.handover-option input {
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+@media (max-width: 640px) {
+  .handover-reference-grid,
+  .handover-meta {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

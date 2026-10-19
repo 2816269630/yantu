@@ -6,6 +6,7 @@ import { enc, esc } from '../../core/format.js';
 import { navigate, renderPage } from '../../core/router.js';
 import { refreshTeams } from '../../core/session.js';
 import { state, teamUrl } from '../../core/state.js';
+import { acceptHandover, openHandoverForm, submitHandover } from './handovers.js';
 
 async function handleSettingsAction(action, id, source) {
   if (action === 'settings-tab') {
@@ -39,26 +40,8 @@ async function handleSettingsAction(action, id, source) {
       '生成邀请链接',
     );
   if (action === 'export') return download(teamUrl('/export'), '研途课题组导出.json');
-  if (action === 'accept-handover') {
-    await api(`/handovers/${enc(id)}/accept`, 'POST', {});
-    toast('已接收交接');
-    return renderPage();
-  }
-  if (action === 'create-handover')
-    return modalForm(
-      '发起资料交接',
-      'handover',
-      field('交接标题', 'title', '', { required: true }) +
-        field('交接说明', 'content', '', { textarea: true, required: true }) +
-        selectField(
-          '接收人',
-          'toUserId',
-          state.members
-            .filter((m) => m.id !== state.user.id)
-            .map((m) => ({ id: m.id, name: m.name })),
-        ),
-      '发起交接',
-    );
+  if (action === 'accept-handover') return acceptHandover(id);
+  if (action === 'create-handover') return openHandoverForm();
   if (action === 'member-role') {
     const m = state.members.find((x) => x.id === id);
     return modalForm(
@@ -111,11 +94,7 @@ async function submitSettingsForm(type, data, id, formElement) {
     );
   }
   if (type === 'handover') {
-    data.taskIds = [];
-    data.resourceIds = [];
-    await api(teamUrl('/handovers'), 'POST', data);
-    closeModal();
-    await renderPage();
+    return submitHandover(data, formElement);
   }
   if (type === 'member-role') {
     await api(teamUrl(`/members/${enc(id)}`), 'PATCH', data);

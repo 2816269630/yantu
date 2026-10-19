@@ -7,7 +7,9 @@ import { handleAction, handleSubmit } from './core/actions.js';
 import { $, $$ } from './core/dom.js';
 import { navigate, renderPage } from './core/router.js';
 import { boot, refreshTeams } from './core/session.js';
+import { registerSessionCleanup } from './core/session-state.js';
 import { state } from './core/state.js';
+import { initAssistantInteractions } from './pages/assistant/actions.js';
 import { meetingCards } from './pages/collaboration/meetings.js';
 import { cloudSubmit } from './pages/drive/browser.js';
 import { resourceRows } from './pages/drive/detail.js';
@@ -26,6 +28,18 @@ import './pages/learning/experiences.js';
 import './pages/learning/plans.js';
 import './pages/learning/routes.js';
 import './pages/settings/index.js';
+
+initAssistantInteractions();
+registerSessionCleanup(() => {
+  closeModal();
+  closeSidebar();
+  $('#modalBody').replaceChildren();
+  $('#modalFoot').replaceChildren();
+  $('#content').replaceChildren();
+  $('#searchInput').value = '';
+  $('#notificationsButton').innerHTML = icon('bell');
+  $('#notificationsButton').setAttribute('aria-label', '通知');
+});
 
 document.addEventListener('submit', async (event) => {
   if (!event.target.matches('form[data-form]')) return;
@@ -103,18 +117,6 @@ document.addEventListener('keydown', (event) => {
   if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
     event.preventDefault();
     $('#searchInput').focus();
-  }
-});
-document.addEventListener('input', (e) => {
-  if (e.target.id === 'assistantSourceSearch') {
-    const q = e.target.value.toLocaleLowerCase();
-    $$('.source-check').forEach((x) => (x.hidden = !x.textContent.toLocaleLowerCase().includes(q)));
-  }
-});
-document.addEventListener('change', (e) => {
-  if (e.target.matches('input[name=source]')) {
-    $('#assistantSelected').textContent =
-      `已选择 ${$$('input[name=source]:checked').length} 份；本次仅检索勾选资料，空选择检索全部当前有权且可解析的文件`;
   }
 });
 document.addEventListener('dragover', (e) => {

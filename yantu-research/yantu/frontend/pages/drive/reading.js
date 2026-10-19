@@ -1,16 +1,24 @@
 import { api } from '../../core/api.js';
 import { $ } from '../../core/dom.js';
 import { enc } from '../../core/format.js';
+import { registerSessionCleanup } from '../../core/session-state.js';
 import { state } from '../../core/state.js';
 
 let readingSaveTimer;
 
+registerSessionCleanup(() => {
+  clearTimeout(readingSaveTimer);
+  readingSaveTimer = undefined;
+});
+
 function saveReadingProgress(resourceId, values) {
   clearTimeout(readingSaveTimer);
-  readingSaveTimer = setTimeout(
-    () => api(`/resources/${enc(resourceId)}/reading-progress`, 'PATCH', values).catch(() => {}),
-    500,
-  );
+  const userId = state.user?.id;
+  if (!userId) return;
+  readingSaveTimer = setTimeout(() => {
+    if (state.user?.id !== userId) return;
+    api(`/resources/${enc(resourceId)}/reading-progress`, 'PATCH', values).catch(() => {});
+  }, 500);
 }
 
 function initReadingProgress() {
