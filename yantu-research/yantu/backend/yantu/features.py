@@ -18,6 +18,7 @@ from sqlalchemy.orm import Session
 
 from .models import *
 from .security import check_password, hash_password, new_token, token_digest
+from .version import VERSION
 from .plane_client import PlaneError
 from .research_assistant import extract_document_text, AssistantUnavailable
 
@@ -165,7 +166,8 @@ def register_features(app, context):
 
     @app.get("/api/v1/system/status")
     def system_status(db: Session = Depends(get_db)):
-        return {"data": {"initialized": bool(db.scalar(select(func.count()).select_from(User))),
+        return {"data": {"version": VERSION,
+                         "initialized": bool(db.scalar(select(func.count()).select_from(User))),
                          "registrationOpen": os.getenv("ALLOW_PUBLIC_SIGNUP", "0") == "1",
                          "planeConfigured": bool(os.getenv("PLANE_API_KEY")),
                          "assistantConfigured": bool(os.getenv("AI_BASE_URL") and os.getenv("AI_MODEL"))}}
@@ -384,6 +386,7 @@ def register_features(app, context):
         enrollment = db.scalar(select(Enrollment).where(Enrollment.route_id == route.id, Enrollment.user_id == user.id)) if user else None
         return {"id": route.id, "teamId": route.team_id, "title": route.title, "description": route.description,
                 "authorId": route.author_id, "author": name(db, route.author_id), "version": route.version,
+                "stageCount": len(route.stages or []),
                 "direction": meta.get("direction", ""), "difficulty": meta.get("difficulty", "入门"),
                 "tags": meta.get("tags", []), "stages": filter_materials(db, {"stages": route.stages}, user)["stages"],
                 "enrolled": enrollment is not None, "enrollmentId": enrollment.id if enrollment else None}

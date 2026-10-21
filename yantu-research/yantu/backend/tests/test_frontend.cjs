@@ -10,7 +10,7 @@ async function main(){
  let team=false,fail=false,folderCalls=0;const requests=[];
  const file={id:'file1',title:'科研笔记.txt',fileName:'科研笔记.txt',type:'note',ownerId:'me',owner:'本人',version:1,size:10,visibility:'private',canEdit:true,permissions:{canShare:true},kind:'file'};
  w.fetch=async (url,options={})=>{requests.push({url,options});const u=new URL(url,'http://localhost');const p=u.pathname.replace('/api/v1','');let value;let status=200;
-  if(p==='/system/status')value={initialized:true};
+  if(p==='/system/status')value={initialized:true,version:'0.1.1'};
   else if(p==='/me')value={id:'me',displayName:'测试成员',email:'test@example.com'};
   else if(p==='/me/teams')value={items:team?[{id:'t1',name:'测试组',role:'student'}]:[]};
   else if(p==='/me/notifications')value={items:[]};
@@ -20,6 +20,7 @@ async function main(){
   else if(p==='/me/drive/folders'&&options.method==='POST'){folderCalls++;await new Promise(r=>setTimeout(r,30));value={id:'folder1'};}
   else if(p==='/me/drive/available-resources')value={items:[file],total:1};
   else if(p==='/me/tasks')value={items:[],total:0};
+  else if(p==='/teams/t1/routes')value={items:[{id:'r1',title:'论文阅读',enrolled:true,stages:[]},{id:'r2',title:'论文写作',enrolled:false,stages:[]}]};
   else if(p==='/resources/file1')value={...file,canEdit:false,ownerId:'other'};
   else if(p==='/resources/file1/versions')value={items:[]};
   else if(p==='/resources/file1/reading-progress')value={};
@@ -43,12 +44,30 @@ async function main(){
  team=true;await w.testApp.refreshTeams();w.testApp.navigate('tasks');await until(()=>w.document.querySelector('#taskBoard'));
  assert.equal(w.document.querySelectorAll('.section-tabs a').length,3);
  assert.equal(requests.some(x=>x.url.includes('/me/review-queue')),false,'学生查看任务时不能被反馈权限错误阻断');
+ assert.ok(w.document.querySelector('footer').textContent.includes('v0.1.1'),'页面展示后端版本');
+ w.testApp.navigate('routes');await until(()=>w.document.querySelector('#routeCards'));
+ const routeSearch=w.document.querySelector('[data-filter=routes]');
+ routeSearch.value='论文';routeSearch.dispatchEvent(new w.Event('input',{bubbles:true}));
+ w.document.querySelector('[data-action=route-filter][data-id=mine]').click();
+ assert.equal(w.document.querySelectorAll('#routeCards a[href^="#route/"]').length,1,'搜索后分类仍生效');
+ routeSearch.value='写作';routeSearch.dispatchEvent(new w.Event('input',{bubbles:true}));
+ assert.ok(w.document.querySelector('#routeCards').textContent.includes('没有符合条件'),'分类后搜索仍生效且提示无结果');
+ w.testApp.navigate('tasks');await until(()=>w.document.querySelector('#taskBoard'));
+ w.testApp.navigate('routes');await until(()=>w.document.querySelector('#routeCards'));
+ assert.equal(w.document.querySelector('[data-filter=routes]').value,'写作','返回列表恢复关键词');
+ assert.equal(w.document.querySelector('[data-action=route-filter].active').dataset.id,'mine','返回列表恢复分类');
+ w.document.querySelector('[data-action=clear-list-filters]').click();
+ assert.equal(w.document.querySelectorAll('#routeCards a[href^="#route/"]').length,2,'一键清除筛选');
  w.testApp.navigate('assistant');await until(()=>w.document.querySelector('#assistantSourceSearch'));
  const checkbox=w.document.querySelector('input[name=source]');checkbox.checked=true;checkbox.dispatchEvent(new w.Event('change',{bubbles:true}));
  assert.ok(w.document.querySelector('#assistantSelected').textContent.includes('1 份'));
  const search=w.document.querySelector('#assistantSourceSearch');search.value='无匹配';search.dispatchEvent(new w.Event('input',{bubbles:true}));assert.ok(w.document.querySelector('.source-check').hidden);
  fail=true;w.testApp.navigate('resources');await until(()=>w.document.querySelector('#content .errorbox'));assert.equal(w.document.querySelector('#content .empty'),null,'加载错误不能伪装为空列表');
  fail=false;w.document.querySelector('#content [data-action=refresh]').click();await until(()=>w.document.querySelector('.drive-layout'));
+ w.fetch=async()=>{throw new TypeError('Failed to fetch');};
+ w.testApp.navigate('routes');await until(()=>w.document.querySelector('#content .errorbox'));
+ assert.ok(w.document.querySelector('#content .errorbox').textContent.includes('无法连接科研服务'),'断网错误可理解且可重试');
+ assert.ok(w.document.querySelector('#content [data-action=refresh]'));
  dom.window.close();console.log('前端回归通过：导航、无课题组云盘、重复提交、只读共享、学生任务、资料选择及错误重试。');
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});

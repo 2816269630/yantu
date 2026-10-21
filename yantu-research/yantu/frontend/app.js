@@ -52,7 +52,9 @@ const safeUrl = value => { try {const u = new URL(value, location.origin);return
 function toast(message, error = false) {clearTimeout(state.toastTimer);$('#toast').textContent = message;$('#toast').className = `toast visible${error ? ' error' : ''}`;state.toastTimer = setTimeout(() => $('#toast').classList.remove('visible'),4500);}
 async function api(path, method = 'GET', body, binary = false) {
   const headers = body instanceof FormData ? {} : body === undefined ? {} : {'Content-Type':'application/json'};
-  const response = await fetch('/api/v1' + path,{method,credentials:'same-origin',headers,body:body === undefined ? undefined : body instanceof FormData ? body : JSON.stringify(body)});
+  let response;
+  try {response = await fetch('/api/v1' + path,{method,credentials:'same-origin',headers,body:body === undefined ? undefined : body instanceof FormData ? body : JSON.stringify(body)});}
+  catch {throw new Error('无法连接科研服务，请检查网络或稍后重试。');}
   if (response.ok && binary) return response;
   const result = await response.json().catch(() => null);
   if (!response.ok) {const err = new Error(result?.message || `请求未完成（${response.status}）`);err.status = response.status;if (response.status === 401 && state.user) {state.user = null;state.data={};state.uiViews={};state.sequence++;if(typeof clearUploadQueue==='function')clearUploadQueue();showAuth('login');}throw err;}
@@ -94,13 +96,13 @@ let readingSaveTimer;
 function saveReadingProgress(resourceId,values) {clearTimeout(readingSaveTimer);readingSaveTimer=setTimeout(()=>api(`/resources/${enc(resourceId)}/reading-progress`,'PATCH',values).catch(()=>{}),500);}
 function initReadingProgress() {const r=state.data.resource;if(!r||state.page!=='resource')return;const progress=r.readingProgress||{},scroll=$('[data-reading-scroll]'),frame=$('[data-reading-frame]'),media=$('[data-reading-media]');if(scroll){requestAnimationFrame(()=>{scroll.scrollTop=(progress.ratio||0)*Math.max(0,scroll.scrollHeight-scroll.clientHeight)});scroll.addEventListener('scroll',()=>saveReadingProgress(r.id,{ratio:scroll.scrollTop/Math.max(1,scroll.scrollHeight-scroll.clientHeight)}));}if(frame)frame.addEventListener('load',()=>{try{const root=frame.contentDocument.scrollingElement||frame.contentDocument.documentElement;root.scrollTop=(progress.ratio||0)*Math.max(0,root.scrollHeight-root.clientHeight);frame.contentWindow.addEventListener('scroll',()=>saveReadingProgress(r.id,{ratio:root.scrollTop/Math.max(1,root.scrollHeight-root.clientHeight)}));}catch(_){}});if(media){media.addEventListener('loadedmetadata',()=>{if(progress.time&&progress.time<media.duration)media.currentTime=progress.time},{once:true});media.addEventListener('timeupdate',()=>saveReadingProgress(r.id,{time:media.currentTime}));}}
 async function renderPage() {
-  if (!state.user) return;saveListView();closeSidebar();const parts = location.hash.slice(1).split('/');const page = titles[parts[0]] ? parts[0] : 'home';state.page = page;state.detailId = parts[1] || '';const seq = ++state.sequence;
+  if (!state.user) return;saveListView();state.renderedHash=null;closeSidebar();const parts = location.hash.slice(1).split('/');const page = titles[parts[0]] ? parts[0] : 'home';state.page = page;state.detailId = parts[1] || '';const seq = ++state.sequence;
   $('#crumb').textContent = titles[page];document.title = `${titles[page]} · 研途`;
   const active = ({route:'plans',routes:'plans',plan:'plans',experiences:'plans',experience:'plans',meeting:'tasks',meetings:'tasks',progress:'tasks',resource:'resources',task:'tasks'})[page] || page;
   $$('#nav .navitem').forEach(a => {a.classList.toggle('active',a.hash === '#' + active);a.setAttribute('aria-current',a.hash === '#' + active ? 'page' : 'false');});
   $('#content').innerHTML = loading();
   if (!state.team && !['settings','notifications','resources','resource','assistant'].includes(page)) {$('#content').innerHTML = `<div class="panel empty-onboard">${empty('从一个课题组开始','创建你的科研空间，或接受负责人的邀请。',btn(icon('plus') + '创建课题组','create-team','','primary'),'people')}</div>`;return;}
-  try {const html = await pages[page](state.detailId);if (seq !== state.sequence) return;$('#content').innerHTML = sectionTabs(page) + html + '<footer><span>研途 ResearchPath · 科研入门与经验传承</span><span>让研究过程可记录、可协作、可传承</span></footer>';state.renderedHash=location.hash;restoreListView();initReadingProgress();} catch(e) {if (seq === state.sequence) $('#content').innerHTML = `<div class="errorbox" role="alert">${esc(e.message)}<br>${btn('重试','refresh')}</div>`;}
+  try {const html = await pages[page](state.detailId);if (seq !== state.sequence) return;$('#content').innerHTML = sectionTabs(page) + html + `<footer><span>研途 ResearchPath ${state.system.version ? 'v'+esc(state.system.version) : ''} · 科研入门与经验传承</span><span>让研究过程可记录、可协作、可传承</span></footer>`;restoreListView();state.renderedHash=location.hash;initReadingProgress();} catch(e) {if (seq === state.sequence) $('#content').innerHTML = `<div class="errorbox" role="alert">${esc(e.message)}<br>${btn('重试','refresh')}</div>`;}
 }
 function resourceLinks(items) {return items?.length ? `<div class="detail-list">${items.map(r => link(`${icon('file')}<span>${esc(r.title)}</span>${icon('right')}`,'resource/' + enc(r.id),'list-link')).join('')}</div>` : '<p class="small">暂无关联资料</p>';}
 function resourcePreview(r) {if(!r.previewable)return `<section class="panel padded"><h2>在线查看</h2><div class="notice mt16">该文件格式暂不支持浏览器在线预览，请使用右上角“下载文件”查看。PDF、图片、文本、音频和视频可直接在线打开。</div></section>`;const progress=r.readingProgress||{},base=`/api/v1/resources/${enc(r.id)}/preview`,type=r.previewType||"";if(type==="application/pdf")return `<section class="panel padded"><div class="between"><div><h2>论文阅读</h2><p class="section-note mt16">使用全屏阅读器，自动记录当前页，笔记会随输入自动保存。</p></div>${btn('新窗口阅读 ↗','open-reader',r.id,'primary')}</div></section>`;if(type.startsWith("image/"))return `<section class="panel padded"><div class="between mb16"><h2>在线查看</h2><a class="textbutton" href="${base}" target="_blank" rel="noopener">新窗口打开 ↗</a></div><div class="resource-preview image" data-reading-scroll><img src="${base}" alt="${esc(r.title)}"></div></section>`;if(type.startsWith("audio/"))return `<section class="panel padded"><h2 class="mb16">在线查看</h2><audio class="media-preview" src="${base}" controls data-reading-media></audio></section>`;if(type.startsWith("video/"))return `<section class="panel padded"><h2 class="mb16">在线查看</h2><video class="media-preview" src="${base}" controls data-reading-media></video></section>`;return `<section class="panel padded"><div class="between mb16"><h2>在线查看</h2><a class="textbutton" href="${base}" target="_blank" rel="noopener">新窗口打开 ↗</a></div><iframe class="resource-preview-frame" src="${base}" title="${esc(r.title)}在线预览" data-reading-frame></iframe></section>`;}
@@ -153,6 +155,12 @@ function modalForm(title,type,contents,submit='保存',id='') {openModal(title,f
 function showFormError(formElement,error) {const box=$('.form-error',formElement);if(box){box.textContent=error.message;box.hidden=false;}toast(error.message,true);}
 
 async function handleAction(action,id,source) {
+  if (action === 'clear-list-filters') {const input=$(`#content .local-search[data-filter="${id}"]`);if(input)input.value='';$$('#content .filters .filter').forEach(x=>x.classList.toggle('active',x.dataset.id==='all'));applyListFilters(id);input?.focus();return;}
+  if (action === 'meeting-filter') {applyListFilters('meetings');return;}
+  if (action === 'resource-filter') {applyListFilters('resources');return;}
+  if (action === 'experience-filter') {applyListFilters('experiences');return;}
+  if (action === 'task-tab') {saveListView();history.replaceState(null,'','#tasks/'+(id==='review'?'review':'mine'));state.renderedHash=location.hash;const items=id==='review'?state.data.reviews:state.data.tasks;$('#taskBoard').innerHTML=taskBoard(items);$$('.tabs .tab').forEach(x=>x.classList.toggle('active',x.dataset.id===id));return;}
+  if (action === 'route-filter') {applyListFilters('routes');return;}
   if (typeof cloudAction === 'function' && await cloudAction(action,id,source)) return;
   if (action === 'close') return closeModal();
   if (action === 'boot' || action === 'refresh') return action === 'boot' ? boot() : renderPage();
@@ -199,11 +207,6 @@ async function handleAction(action,id,source) {
   if (action === 'create-handover') return modalForm('发起资料交接','handover',field('交接标题','title','',{required:true})+field('交接说明','content','',{textarea:true,required:true})+selectField('接收人','toUserId',state.members.filter(m=>m.id!==state.user.id).map(m=>({id:m.id,name:m.name}))),'发起交接');
   if (action === 'member-role') {const m=state.members.find(x=>x.id===id);return modalForm('调整成员角色','member-role',selectField('角色','role',[{id:'student',name:'学生'},{id:'mentor',name:'前辈'}],m.role),'保存',id);}
   if (action === 'remove-member') {await api(teamUrl(`/members/${enc(id)}`),'DELETE');toast('成员已移出');return renderPage();}
-  if (action === 'meeting-filter') {const items=id==='all'?state.data.meetings:state.data.meetings.filter(m=>(m.status||'scheduled')===id);$('#meetingCards').innerHTML=meetingCards(items);return;}
-  if (action === 'resource-filter') {const items=id==='all'?state.data.resources:state.data.resources.filter(r=>r.type===id);$('#resourceRows').innerHTML=resourceRows(items);return;}
-  if (action === 'experience-filter') {const items=id==='bookmarked'?state.data.experiences.filter(e=>state.data.bookmarks.has(e.id)):state.data.experiences;$('#experienceCards').innerHTML=experienceCards(items);return;}
-  if (action === 'task-tab') {history.replaceState(null,'','#tasks/'+(id==='review'?'review':'mine'));const items=id==='review'?state.data.reviews:state.data.tasks;$('#taskBoard').innerHTML=taskBoard(items);$$('.tabs .tab').forEach(x=>x.classList.toggle('active',x.dataset.id===id));return;}
-  if (action === 'route-filter') {const items=id==='mine'?state.data.routes.filter(r=>r.enrolled):state.data.routes;$('#routeCards').innerHTML=routeCards(items);return;}
 }
 
 async function handleSubmit(formElement) {
@@ -246,7 +249,7 @@ async function handleSubmit(formElement) {
 
 document.addEventListener('submit',async event=>{if(!event.target.matches('form[data-form]'))return;event.preventDefault();const f=event.target;if(f.dataset.busy)return;f.dataset.busy='1';const buttons=$$('button[type=submit]',f);buttons.forEach(b=>b.disabled=true);try{if(typeof cloudSubmit==='function' && await cloudSubmit(f))return;await handleSubmit(f);}catch(e){showFormError(f,e);}finally{delete f.dataset.busy;buttons.forEach(b=>b.disabled=false);}});
 document.addEventListener('click',event=>{const target=event.target.closest('[data-action]');if(target?.matches('.filter')){target.parentElement.querySelectorAll('.filter').forEach(b=>b.classList.toggle('active',b===target));}if(target) handleAction(target.dataset.action,target.dataset.id||'',target).catch(e=>toast(e.message,true));});
-document.addEventListener('input',event=>{if(!event.target.matches('.local-search')) return;const query=event.target.value.toLowerCase(),filter=event.target.dataset.filter;const items=(state.data[filter]||[]).filter(item=>JSON.stringify(item).toLowerCase().includes(query));if(filter==='routes') $('#routeCards').innerHTML=routeCards(items);if(filter==='experiences') $('#experienceCards').innerHTML=experienceCards(items);if(filter==='resources') $('#resourceRows').innerHTML=resourceRows(items);if(filter==='meetings') $('#meetingCards').innerHTML=meetingCards(items);});
+document.addEventListener('input',event=>{if(event.target.matches('.local-search')) applyListFilters(event.target.dataset.filter);});
 window.addEventListener('hashchange',renderPage);
 $('#closeModal').addEventListener('click',closeModal);
 $('#overlay').addEventListener('click',closeSidebar);
@@ -272,6 +275,22 @@ function sectionTabs(page) {
   const items=learning.includes(page)?[['plans','我的学习'],['routes','学习路线'],['experiences','前辈经验']]:research.includes(page)?[['tasks','任务与反馈'],['progress','研究记录'],['meetings','组会']]:[];
   const active=({plan:'plans',route:'routes',experience:'experiences',task:'tasks',meeting:'meetings'})[page]||page;
   return items.length?`<nav class="section-tabs" aria-label="模块导航">${items.map(([id,label])=>link(label,id,'btn '+(id===active?'primary':''))).join('')}</nav>`:'';
+}
+
+function applyListFilters(kind) {
+  const config = {routes:['route','routeCards',routeCards],experiences:['experience','experienceCards',experienceCards],meetings:['meeting','meetingCards',meetingCards],resources:['resource','resourceRows',resourceRows]}[kind];
+  if (!config) return;
+  const [action,target,render] = config;
+  const root = $('#'+target);if (!root) return;
+  const query = ($(`#content .local-search[data-filter="${kind}"]`)?.value || '').trim().toLocaleLowerCase();
+  const category = $(`#content [data-action="${action}-filter"].active`)?.dataset.id || 'all';
+  const items = (state.data[kind] || []).filter(item => {
+    const matches = category === 'all' || (kind === 'routes' ? item.enrolled : kind === 'experiences' ? state.data.bookmarks?.has(item.id) : kind === 'meetings' ? (item.status || 'scheduled') === category : item.type === category);
+    return matches && (!query || [item.title,item.description,item.direction,item.author,item.owner,item.location,...(item.tags || [])].some(value => String(value || '').toLocaleLowerCase().includes(query)));
+  });
+  const noResults = !items.length && (query || category !== 'all');
+  const message = empty('没有符合条件的结果','调整关键词或分类后重试。',btn('清除筛选','clear-list-filters',kind),'search');
+  root.innerHTML = noResults ? kind === 'resources' ? `<tr><td colspan="6">${message}</td></tr>` : message : render(items);
 }
 
 function saveListView(){if(!state.renderedHash)return;state.uiViews||={};state.uiViews[state.renderedHash]={scroll:window.scrollY,inputs:$$('#content .local-search').map(x=>({filter:x.dataset.filter,value:x.value})),actions:$$('#content .filter.active,#content .tab.active').map(x=>({action:x.dataset.action,id:x.dataset.id}))};}

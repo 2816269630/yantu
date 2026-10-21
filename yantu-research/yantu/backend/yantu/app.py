@@ -23,6 +23,7 @@ from .plane_client import PlaneClient, PlaneError
 from .research_assistant import AssistantUnavailable, OllamaResearchAssistant, extract_document_text
 from .security import check_password, hash_password, new_token, token_digest
 from .migrations import migrate
+from .version import VERSION
 
 
 def iso(value: datetime | None) -> str | None:
@@ -153,7 +154,7 @@ def create_app(
         yield
         engine.dispose()
 
-    app = FastAPI(title="研途 API", lifespan=lifespan)
+    app = FastAPI(title="研途 API", version=VERSION, lifespan=lifespan)
     app.state.plane = plane
 
     @app.exception_handler(HTTPException)
@@ -224,7 +225,7 @@ def create_app(
 
     @app.get("/healthz")
     def health():
-        return {"status": "ok"}
+        return {"status": "ok", "version": VERSION}
 
     @app.post("/api/v1/auth/register")
     def register(payload: Registration, db: Session = Depends(get_db)):

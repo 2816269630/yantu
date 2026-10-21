@@ -267,6 +267,9 @@ def test_invitation_identity_expiry_single_use_and_concurrent_acceptance(lab, mo
 def test_route_updates_preserve_existing_plan_tasks_and_submissions(lab):
     client = lab["client"]
     route_id = create_route(client, lab)
+    routes = data(client.get(f"/api/v1/teams/{lab['team']}/routes", headers=lab["student"]))["items"]
+    route = next(item for item in routes if item["id"] == route_id)
+    assert route["stageCount"] == len(route["stages"]) == 1
     enrollment = data(client.post(f"/api/v1/routes/{route_id}/enrollments", headers=lab["student"], json={}))
     old_tasks = data(client.get(f"/api/v1/me/tasks?teamId={lab['team']}", headers=lab["student"]))
     assert old_tasks["total"] == 2
