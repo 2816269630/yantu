@@ -1,6 +1,6 @@
 # 研途 Yantu
 
-当前开发版本：`v0.1.1`，在 `lxc` 分支迭代。
+当前开发版本：`v0.2.0`，在 `lxc` 分支迭代。
 
 - [启动与部署](yantu-research/README.md)
 - [版本序列与发布规则](VERSIONS.md)

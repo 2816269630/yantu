@@ -1,6 +1,6 @@
 {
   "name": "yantu",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "test:ui": "node backend/tests/test_frontend.cjs"

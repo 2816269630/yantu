@@ -85,6 +85,9 @@ def register_cloud_drive(app, ctx):
 
     def file_json(db, row, user):
         item = resource_json(db, row, user)
+        item['createdAt'] = iso(db.scalar(select(ResourceVersion.created_at).where(
+            ResourceVersion.resource_id == row.id
+        ).order_by(ResourceVersion.version).limit(1)))
         item['folderId'] = row.folder_id
         item['location'] = breadcrumbs(db, row.folder_id, user) if row.owner_id == user.id else []
         item['permissions'] = {'canRead': True, 'canDownload': True, 'canEdit': row.owner_id == user.id, 'canShare': row.owner_id == user.id, 'canMove': row.owner_id == user.id}
@@ -105,16 +108,29 @@ def register_cloud_drive(app, ctx):
         return result({'maxUploadBytes': int(os.getenv('MAX_UPLOAD_BYTES', 20*1024*1024)), 'allowedExtensions': EXTENSIONS, 'extractableExtensions': ['.pdf', '.docx', '.txt', '.md'], 'maxQuestionResources': 100, 'maxQuestionLength': 500})
 
     @app.get('/api/v1/me/drive/folders/tree')
-    def tree(user: User = Depends(current_user), db: Session = Depends(get_db)):
+    def tree(includeShared: bool = False, user: User = Depends(current_user), db: Session = Depends(get_db)):
         rows = db.scalars(select(DriveFolder).where(DriveFolder.owner_id == user.id).order_by(DriveFolder.name)).all()
-        return result({'items': [folder_json(r) for r in rows]})
+        files = db.execute(select(Resource.id, Resource.title, Resource.folder_id).where(
+            Resource.owner_id == user.id, Resource.archived.is_(False)
+        ).order_by(Resource.title, Resource.id)).all()
+        own_files = [
+            {'id': ident, 'title': title, 'folderId': folder_id, 'kind': 'file', 'ownerId': user.id}
+            for ident, title, folder_id in files
+        ]
+        shared_files = [
+            {'id': row.id, 'title': row.title, 'folderId': None, 'kind': 'file', 'ownerId': row.owner_id}
+            for row in available_rows(db, user, 'shared', '')
+        ] if includeShared else []
+        return result({'items': [folder_json(r) for r in rows], 'files': own_files + shared_files})
 
     @app.get('/api/v1/me/drive/children')
-    def children(folderId: str = '', page: int = Query(1, ge=1), pageSize: int = Query(100, ge=1, le=100), user: User = Depends(current_user), db: Session = Depends(get_db)):
+    def children(folderId: str = '', includeShared: bool = False, page: int = Query(1, ge=1), pageSize: int = Query(100, ge=1, le=100), user: User = Depends(current_user), db: Session = Depends(get_db)):
         folder_for(db, folderId, user)
         folders = db.scalars(select(DriveFolder).where(DriveFolder.owner_id == user.id, DriveFolder.parent_id == (folderId or None)).order_by(DriveFolder.name)).all()
         files = db.scalars(select(Resource).where(Resource.owner_id == user.id, Resource.folder_id == (folderId or None), Resource.archived.is_(False)).order_by(Resource.title)).all()
         items = [{**folder_json(r), 'kind': 'folder'} for r in folders] + [{**file_json(db, r, user), 'kind': 'file'} for r in files]
+        if includeShared and not folderId:
+            items += [{**file_json(db, r, user), 'folderId': None, 'kind': 'file'} for r in available_rows(db, user, 'shared', '')]
         return result({'items': items[(page-1)*pageSize:page*pageSize], 'total': len(items), 'page': page, 'pageSize': pageSize, 'breadcrumbs': breadcrumbs(db, folderId, user)})
 
     @app.post('/api/v1/me/drive/folders', status_code=201)

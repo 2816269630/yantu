@@ -1,10 +1,10 @@
 'use strict';
 let uploadQueue = [], uploadRunning = false;
 function clearUploadQueue() {for(const item of uploadQueue)item.xhr?.abort();uploadQueue=[];uploadRunning=false;}
-async function openCloudUpload(target=null) {
+async function openCloudUpload(target=null, folderId=state.driveFolder||'') {
   const config=await api('/me/drive/config'), tree=await api('/me/drive/folders/tree');
   state.uploadTarget=target;
-  openModal('上传到我的云盘',`<p class="notice">文件默认私有。${target?'上传成功后可选择明确授权，再引用至'+(target.kind==='meeting'?'组会':'任务')+'。':''}</p><div class="form-stack mt16">${selectField('目标文件夹','uploadFolder',driveFolderOptions(tree.items),state.driveFolder||'')}${selectField('资料分类','uploadType',Object.entries(typeNames).map(([id,name])=>({id,name})))}<p class="small">每个文件最多 ${bytes(config.maxUploadBytes)}；支持 ${config.allowedExtensions.join('、')}。</p><label class="drive-drop" id="uploadDrop">点击选择或将多个文件拖到这里<input type="file" id="cloudFiles" multiple accept="${config.allowedExtensions.join(',')}"></label><div id="uploadQueue" aria-live="polite"></div><div class="form-actions">${btn('重试失败项','cloud-retry')}${btn('完成','cloud-upload-done','','primary')}</div></div>`);
+  openModal('上传到我的云盘',`<p class="notice">文件默认私有。${target?'上传成功后可选择明确授权，再引用至'+(target.kind==='meeting'?'组会':'任务')+'。':''}</p><div class="form-stack mt16">${selectField('目标文件夹','uploadFolder',driveFolderOptions(tree.items),folderId)}${selectField('资料分类','uploadType',Object.entries(typeNames).map(([id,name])=>({id,name})))}<p class="small">每个文件最多 ${bytes(config.maxUploadBytes)}；支持 ${config.allowedExtensions.join('、')}。</p><label class="drive-drop" id="uploadDrop">点击选择或将多个文件拖到这里<input type="file" id="cloudFiles" multiple accept="${config.allowedExtensions.join(',')}"></label><div id="uploadQueue" aria-live="polite"></div><div class="form-actions">${btn('重试失败项','cloud-retry')}${btn('完成','cloud-upload-done','','primary')}</div></div>`);
   $('#cloudFiles').addEventListener('change',e=>enqueueFiles(e.target.files,config));
   const drop=$('#uploadDrop');
   drop.addEventListener('dragover',e=>{e.preventDefault();drop.classList.add('dragging');});

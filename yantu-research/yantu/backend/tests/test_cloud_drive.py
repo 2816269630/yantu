@@ -52,6 +52,10 @@ def test_folders_files_isolation_and_idempotency(drive):
     assert c.post('/api/v1/me/drive/folders', headers=a, json={'name': '方法', 'parentId': folders[1]}).status_code == 409
     assert c.post('/api/v1/me/drive/folders', headers=a, json={'name': '../invalid'}).status_code == 400
     file = data(upload(c, a, parent), 201)
+    own_tree = data(c.get('/api/v1/me/drive/folders/tree', headers=a))
+    assert own_tree['files'] == [{'id': file['id'], 'title': file['title'], 'folderId': parent, 'kind': 'file', 'ownerId': actors[0][0]}]
+    assert data(c.get('/api/v1/me/drive/children', headers=a, params={'folderId': parent}))['items'][0]['createdAt']
+    assert data(c.get('/api/v1/me/drive/folders/tree', headers=b))['files'] == []
     assert data(upload(c, a, parent), 201)['id'] == file['id']
     assert upload(c, a, parent, content=b'different').status_code == 409
     assert upload(c, b, parent).status_code == 404
@@ -81,6 +85,11 @@ def test_shares_versions_references_questions_and_departure(drive):
     endpoint = '/api/v1/resources/'+rid
     data(c.put(endpoint+'/shares/'+bid, headers=a, json={'permission': 'read', 'teamId': team}))
     assert data(c.get('/api/v1/me/drive/search?scope=shared', headers=b))['items'][0]['id'] == rid
+    shared_tree = data(c.get('/api/v1/me/drive/folders/tree', headers=b, params={'includeShared': 'true'}))
+    assert shared_tree['files'][0]['id'] == rid and shared_tree['files'][0]['folderId'] is None
+    shared_root = data(c.get('/api/v1/me/drive/children', headers=b, params={'includeShared': 'true'}))
+    assert shared_root['items'][0]['id'] == rid and shared_root['items'][0]['ownerId'] == aid
+    assert data(c.get('/api/v1/me/drive/children', headers=b))['items'] == []
     for suffix in ['', '/preview', '/download', '/versions', '/reading-progress']:
         assert c.get(endpoint+suffix, headers=third).status_code == 404
         assert c.get(endpoint+suffix, headers=b).status_code == 200
@@ -101,6 +110,8 @@ def test_shares_versions_references_questions_and_departure(drive):
     assert c.post('/api/v1/me/drive/questions', headers=third, json={'question': 'Cloud research', 'resourceIds': [rid]}).status_code == 404
     data(c.delete(endpoint+'/shares/'+bid, headers=a))
     assert data(c.get('/api/v1/me/drive/search?scope=shared', headers=b))['items'] == []
+    assert data(c.get('/api/v1/me/drive/folders/tree', headers=b, params={'includeShared': 'true'}))['files'] == []
+    assert data(c.get('/api/v1/me/drive/children', headers=b, params={'includeShared': 'true'}))['items'] == []
     assert data(c.get(f'/api/v1/tasks/{task}', headers=b))['resources'] == []
     assert c.get(endpoint+'/download', headers=b).status_code == 404
     assert c.post('/api/v1/me/drive/questions', headers=b, json={'question': 'Cloud research', 'resourceIds': [rid]}).status_code == 404
