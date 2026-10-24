@@ -1,6 +1,6 @@
 'use strict';
-let uploadQueue = [], uploadRunning = false;
-function clearUploadQueue() {for(const item of uploadQueue)item.xhr?.abort();uploadQueue=[];uploadRunning=false;}
+let uploadQueue = [], uploadRunning = false, uploadEpoch = 0;
+function clearUploadQueue() {uploadEpoch++;for(const item of uploadQueue)item.xhr?.abort();uploadQueue=[];uploadRunning=false;}
 async function openCloudUpload(target=null, folderId=state.driveFolder||'') {
   const config=await api('/me/drive/config'), tree=await api('/me/drive/folders/tree');
   state.uploadTarget=target;
@@ -27,7 +27,7 @@ function uploadOne(item){return new Promise((resolve,reject)=>{const xhr=new XML
   xhr.onload=()=>{let data;try{data=JSON.parse(xhr.responseText);}catch{}if(xhr.status>=200&&xhr.status<300&&data?.data)resolve(data.data);else reject(new Error(data?.message||`上传失败（${xhr.status}）`));};xhr.onerror=()=>reject(new Error('网络错误，请重试'));xhr.ontimeout=()=>reject(new Error('上传超时，请重试'));xhr.onabort=()=>reject(new Error('上传已取消'));
   const body=new FormData();body.append('file',item.file);body.append('folderId',item.folder);body.append('type',item.category);xhr.send(body);
 });}
-async function processUploadQueue(){if(uploadRunning)return;uploadRunning=true;try{for(const item of uploadQueue){if(item.status!=='waiting'||item.owner!==state.user?.id)continue;item.status='uploading';renderUploadQueue();try{item.result=await uploadOne(item);item.status='success';item.error='';}catch(e){item.status='failed';item.error=e.message;}renderUploadQueue();}}finally{uploadRunning=false;if(state.page==='resources')renderPage();}}
+async function processUploadQueue(){if(uploadRunning)return;uploadRunning=true;const epoch=uploadEpoch;try{for(const item of uploadQueue){if(epoch!==uploadEpoch)break;if(item.status!=='waiting'||item.owner!==state.user?.id)continue;item.status='uploading';renderUploadQueue();try{item.result=await uploadOne(item);item.status='success';item.error='';}catch(e){item.status='failed';item.error=e.message;}if(epoch===uploadEpoch)renderUploadQueue();}}finally{if(epoch===uploadEpoch){uploadRunning=false;if(state.page==='resources')renderPage();}}}
 // Prevent browser navigation when a file is dropped outside the upload target.
 document.addEventListener('dragover',e=>{if(e.dataTransfer?.types.includes('Files'))e.preventDefault();});
 document.addEventListener('drop',e=>{if(e.dataTransfer?.types.includes('Files'))e.preventDefault();});

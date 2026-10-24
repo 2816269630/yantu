@@ -1,23 +1,19 @@
-name: yantu-research
+name: yantu-lxc-lab
 services:
   research:
     build:
       context: ./yantu
       dockerfile: backend/Dockerfile
-    image: yantu-research:local
+    image: yantu-lxc-lab:local
     restart: unless-stopped
     ports:
-      - "${RESEARCH_BIND:-127.0.0.1}:${RESEARCH_PORT:-8088}:8000"
+      - "${RESEARCH_BIND:-127.0.0.1}:${RESEARCH_PORT:-8089}:8000"
     environment:
       DATABASE_URL: postgresql+psycopg://yantu:${RESEARCH_DB_PASSWORD:?Run Start-Research.ps1 first}@research-db:5432/yantu
       UPLOAD_DIR: /app/uploads
-      PLANE_BASE_URL: ${PLANE_BASE_URL:-http://host.docker.internal}
-      PLANE_API_KEY: ${PLANE_API_KEY:-}
-      PLANE_ALLOWED_PROJECTS: ${PLANE_ALLOWED_PROJECTS:-}
-      AI_BASE_URL: ${AI_BASE_URL:-}
-      AI_MODEL: ${AI_MODEL:-}
-      ALLOW_PUBLIC_SIGNUP: "0"
+      ALLOW_PUBLIC_SIGNUP: "1"
       MAX_UPLOAD_BYTES: "20971520"
+      MAX_VIDEO_UPLOAD_BYTES: "1073741824"
     volumes:
       - research_uploads:/app/uploads
     depends_on:

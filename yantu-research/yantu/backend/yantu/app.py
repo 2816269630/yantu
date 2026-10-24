@@ -154,7 +154,8 @@ def create_app(
         yield
         engine.dispose()
 
-    app = FastAPI(title="研途 API", version=VERSION, lifespan=lifespan)
+    app = FastAPI(title="研途实验室 API", version=VERSION, lifespan=lifespan,
+                  docs_url=None, redoc_url=None, openapi_url=None)
     app.state.plane = plane
 
     @app.exception_handler(HTTPException)
@@ -877,6 +878,9 @@ def create_app(
     # Upgrade the original extension handlers while retaining its Plane / assistant integrations.
     from .features import register_features
     register_features(app, {**globals(), **locals()})
+
+    from .lab import register_lab
+    register_lab(app, {**globals(), **locals()})
 
     # The API routes are registered first. Browsers use the same origin for pages and requests.
     if front.is_dir():

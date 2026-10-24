@@ -1,34 +1,29 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#3370ff">
-  <meta name="description" content="研途科研系统：学习路线、课题组协作、任务反馈、组会、研究记录与科研资料。">
-  <title>研途 · 科研工作台</title>
-  <link rel="stylesheet" href="/styles.css">
-  <link rel="stylesheet" href="/refinement.css?v=0.2.0-r13">
-  <script src="/app.js?v=0.2.0-r11" defer></script>
-  <script src="/cloud-upload.js?v=0.2.0" defer></script>
-  <script src="/cloud-drive.js?v=0.2.0-r11" defer></script>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f8fafb"><meta name="description" content="研途：实验室的课题、资料、组会与任务。">
+  <title>研途 · 实验室</title>
+  <link rel="stylesheet" href="/lab.css"><link rel="stylesheet" href="/lab-cloud.css">
+  <script src="/lab-app.js" defer></script><script src="/lab-cloud.js" defer></script>
+  <script src="/cloud-upload.js" defer></script><script src="/lab-drive.js" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#content">跳至主要内容</a>
-  <div id="authRoot" class="auth-root" hidden></div>
+  <div id="authRoot" hidden></div>
   <div id="appShell" hidden>
-    <div id="overlay" class="overlay"></div>
+    <button id="overlay" class="overlay" aria-label="关闭导航" hidden></button>
     <aside id="sidebar" class="sidebar" aria-label="主导航">
-      <a href="#home" class="brand"><span class="brandmark">R</span><div><strong>研途</strong><span>RESEARCHPATH</span></div></a>
-      <div class="space"><span class="spacemark" id="spaceIcon"></span><label class="team-label" for="teamSelect"><span class="space-caption">当前课题组</span><select id="teamSelect" aria-label="切换课题组"></select></label><a class="iconbtn" href="#settings" onclick="state.settingsTab='team'" aria-label="课题组设置">⚙</a></div>
-      <nav id="nav" class="nav"></nav>
-      <div class="sidebottom"><div class="integration"><span class="connection-dot"></span><span>科研协作服务正常</span></div><div id="profile" class="profile"></div></div>
+      <a href="#home" class="brand"><span class="brandmark">研</span><span>研途<small>实验室空间</small></span></a>
+      <nav id="nav"></nav><div id="profile" class="profile"></div>
     </aside>
     <div class="main">
-      <header class="topbar"><button id="menuToggle" class="iconbtn mobile-toggle" aria-label="打开导航" aria-expanded="false"></button><div class="breadcrumb"><span>课题组空间</span><span class="slash">/</span><strong id="crumb">今日工作台</strong></div><div class="topright"><form id="globalSearch" class="searchbox" role="search"><span id="searchIcon"></span><input name="q" id="searchInput" aria-label="搜索资料、路线、任务和组会" placeholder="搜索资料、路线、组会…"><kbd class="key">Ctrl K</kbd></form><button class="iconbtn notification-button" id="notificationsButton" aria-label="查看通知"></button><button id="profileButton" class="avatar" aria-label="个人设置"></button></div></header>
-      <main class="content" id="content" tabindex="-1"><div class="loading" role="status">正在连接科研工作台…</div></main>
+      <header class="topbar"><button id="menuToggle" class="iconbtn mobile-toggle" aria-label="打开导航" aria-expanded="false">☰</button><div id="pageLabel"></div><a id="nextMeeting" class="next-meeting" href="#materials" hidden></a></header>
+      <main id="content" class="content" tabindex="-1"><div class="loading" role="status">正在连接…</div></main>
     </div>
   </div>
-  <dialog id="modal" class="modal" aria-labelledby="modalTitle"><div class="modal-head"><h2 id="modalTitle"></h2><button id="closeModal" class="iconbtn" aria-label="关闭弹窗">✕</button></div><div id="modalBody" class="modal-body"></div><div id="modalFoot" class="modal-foot"></div></dialog>
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <noscript><p class="noscript">请启用 JavaScript，以使用科研工作台。</p></noscript>
+  <dialog id="modal" aria-labelledby="modalTitle"><div class="modal-head"><h2 id="modalTitle"></h2><button id="closeModal" class="iconbtn" aria-label="关闭弹窗">×</button></div><div id="modalBody"></div></dialog>
+  <div id="toast" role="status" aria-live="polite" hidden></div>
+  <noscript>请启用 JavaScript，以使用研途。</noscript>
 </body>
 </html>

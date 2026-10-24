@@ -16,4 +16,6 @@ def test_release_version_matches_api_and_package(tmp_path):
     with TestClient(app) as client:
         assert client.get("/healthz").json()["version"] == VERSION
         assert client.get("/api/v1/system/status").json()["data"]["version"] == VERSION
-        assert client.get("/openapi.json").json()["info"]["version"] == VERSION
+        assert app.openapi()["info"]["version"] == VERSION
+        for path in ("/openapi.json", "/docs", "/redoc"):
+            assert client.get(path).status_code == 404

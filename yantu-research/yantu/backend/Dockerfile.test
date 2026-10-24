@@ -1,0 +1,8 @@
+ARG APP_IMAGE=yantu-lxc-lab:local
+FROM ${APP_IMAGE}
+USER root
+RUN pip install --no-cache-dir "pytest>=8,<10"
+COPY backend/tests /app/backend/tests
+COPY package.json package-lock.json /app/
+USER yantu
+CMD ["python", "-m", "pytest", "tests/test_lab.py", "tests/test_lab_drive.py", "tests/test_version.py", "-q", "-p", "no:cacheprovider"]

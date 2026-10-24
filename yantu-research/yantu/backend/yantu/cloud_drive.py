@@ -31,10 +31,10 @@ def valid_share(db, share, resource):
 def resource_visible(db, resource, user, membership=None):
     if resource.archived:
         return False
+    if resource.visibility == 'team':
+        return bool(member_of(db, resource.team_id, user.id))
     if resource.owner_id == user.id:
         return True
-    if resource.visibility == 'team' and member_of(db, resource.team_id, user.id):
-        return True  # Preserve the original team audience, never expand it to all accounts.
     return any(valid_share(db, s, resource) for s in db.scalars(select(ResourceShare).where(
         ResourceShare.resource_id == resource.id, ResourceShare.user_id == user.id, ResourceShare.active.is_(True))))
 
@@ -52,6 +52,12 @@ def register_cloud_drive(app, ctx):
     get_db, current_user = ctx['get_db'], ctx['current_user']
     resource_json, iso = ctx['resource_json'], ctx['iso']
     uploads, assistant = ctx['uploads'], ctx['assistant']
+
+    def personal_file(db, ident, user, write=False):
+        row, member = resource_for(db, ident, user, write)
+        if row.visibility != 'private':
+            raise HTTPException(400, '课题资料请在课题资料页面管理')
+        return row, member
 
     def result(data):
         return {'data': data}
@@ -111,7 +117,7 @@ def register_cloud_drive(app, ctx):
     def tree(includeShared: bool = False, user: User = Depends(current_user), db: Session = Depends(get_db)):
         rows = db.scalars(select(DriveFolder).where(DriveFolder.owner_id == user.id).order_by(DriveFolder.name)).all()
         files = db.execute(select(Resource.id, Resource.title, Resource.folder_id).where(
-            Resource.owner_id == user.id, Resource.archived.is_(False)
+            Resource.owner_id == user.id, Resource.visibility == 'private', Resource.archived.is_(False)
         ).order_by(Resource.title, Resource.id)).all()
         own_files = [
             {'id': ident, 'title': title, 'folderId': folder_id, 'kind': 'file', 'ownerId': user.id}
@@ -127,7 +133,7 @@ def register_cloud_drive(app, ctx):
     def children(folderId: str = '', includeShared: bool = False, page: int = Query(1, ge=1), pageSize: int = Query(100, ge=1, le=100), user: User = Depends(current_user), db: Session = Depends(get_db)):
         folder_for(db, folderId, user)
         folders = db.scalars(select(DriveFolder).where(DriveFolder.owner_id == user.id, DriveFolder.parent_id == (folderId or None)).order_by(DriveFolder.name)).all()
-        files = db.scalars(select(Resource).where(Resource.owner_id == user.id, Resource.folder_id == (folderId or None), Resource.archived.is_(False)).order_by(Resource.title)).all()
+        files = db.scalars(select(Resource).where(Resource.owner_id == user.id, Resource.visibility == 'private', Resource.folder_id == (folderId or None), Resource.archived.is_(False)).order_by(Resource.title)).all()
         items = [{**folder_json(r), 'kind': 'folder'} for r in folders] + [{**file_json(db, r, user), 'kind': 'file'} for r in files]
         if includeShared and not folderId:
             items += [{**file_json(db, r, user), 'folderId': None, 'kind': 'file'} for r in available_rows(db, user, 'shared', '')]
@@ -167,7 +173,7 @@ def register_cloud_drive(app, ctx):
     def available_rows(db, user, scope, q):
         if scope not in ('mine', 'shared', 'all'):
             raise HTTPException(400, '搜索范围无效')
-        query = select(Resource).where(Resource.archived.is_(False)).order_by(Resource.title, Resource.id)
+        query = select(Resource).where(Resource.archived.is_(False), Resource.visibility == 'private').order_by(Resource.title, Resource.id)
         if scope == 'mine':
             query = query.where(Resource.owner_id == user.id)
         elif scope == 'shared':
@@ -202,7 +208,7 @@ def register_cloud_drive(app, ctx):
 
     @app.patch('/api/v1/resources/{resource_id}')
     def edit_file(resource_id: str, payload: dict = Body(), user: User = Depends(current_user), db: Session = Depends(get_db)):
-        row, _ = resource_for(db, resource_id, user, True)
+        row, _ = personal_file(db, resource_id, user, True)
         if 'visibility' in payload and payload['visibility'] != row.visibility:
             raise HTTPException(400, '请通过指定成员共享管理授权，不能扩大旧课题组可见范围')
         if 'title' in payload: row.title = name(payload['title'])
@@ -286,20 +292,20 @@ def register_cloud_drive(app, ctx):
 
     @app.post('/api/v1/resources/{resource_id}/versions')
     async def version_upload(resource_id: str, file: UploadFile = File(), note: str = Form('', max_length=50000), idempotency_key: str = Header('', alias='Idempotency-Key', max_length=100), user: User = Depends(current_user), db: Session = Depends(get_db)):
-        row, _ = resource_for(db, resource_id, user, True)
+        row, _ = personal_file(db, resource_id, user, True)
         # A row lock also serializes version numbering on PostgreSQL.
         db.refresh(row, with_for_update=True)
         return result(await save_upload(db, user, file, row.folder_id, row.title, row.type, row.description, idempotency_key, row, note))
 
     @app.get('/api/v1/resources/{resource_id}/shares')
     def shares(resource_id: str, user: User = Depends(current_user), db: Session = Depends(get_db)):
-        row, _ = resource_for(db, resource_id, user, True)
+        row, _ = personal_file(db, resource_id, user, True)
         items = [{'id': s.id, 'userId': s.user_id, 'displayName': ctx['name'](db, s.user_id), 'teamId': s.team_id, 'permission': 'read', 'active': bool(valid_share(db, s, row)), 'createdAt': iso(s.created_at)} for s in db.scalars(select(ResourceShare).where(ResourceShare.resource_id == row.id))]
         return result({'direct': {'items': items}, 'legacyAccess': {'teamId': row.team_id, 'active': row.visibility == 'team'}})
 
     @app.put('/api/v1/resources/{resource_id}/shares/{user_id}')
     def share(resource_id: str, user_id: str, payload: dict = Body(), user: User = Depends(current_user), db: Session = Depends(get_db)):
-        row, _ = resource_for(db, resource_id, user, True)
+        row, _ = personal_file(db, resource_id, user, True)
         team_id = payload.get('teamId')
         if payload.get('permission') != 'read' or user_id == user.id or not member_of(db, team_id, user.id) or not member_of(db, team_id, user_id): raise HTTPException(400, '只能只读共享给同课题组的有效成员')
         s = db.scalar(select(ResourceShare).where(ResourceShare.resource_id == row.id, ResourceShare.user_id == user_id, ResourceShare.team_id == team_id))
@@ -310,7 +316,7 @@ def register_cloud_drive(app, ctx):
 
     @app.delete('/api/v1/resources/{resource_id}/shares/{user_id}')
     def revoke(resource_id: str, user_id: str, user: User = Depends(current_user), db: Session = Depends(get_db)):
-        row, _ = resource_for(db, resource_id, user, True)
+        row, _ = personal_file(db, resource_id, user, True)
         for s in db.scalars(select(ResourceShare).where(ResourceShare.resource_id == row.id, ResourceShare.user_id == user_id)): s.active = False
         db.commit(); return result(None)
 

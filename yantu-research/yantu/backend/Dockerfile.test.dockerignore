@@ -1,0 +1,6 @@
+**
+!backend/
+!backend/tests/
+!backend/tests/**
+!package.json
+!package-lock.json
