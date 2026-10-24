@@ -9,7 +9,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from fastapi import Body, Depends, File, Form, Header, HTTPException, Query, Request, UploadFile
-from sqlalchemy import or_, select
+from sqlalchemy import or_, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -17,7 +17,8 @@ from .models import (DriveFolder, Member, Resource, ResourceReference, ResourceS
                      ResourceVersion, UploadReceipt, User, Task, Meeting, utcnow)
 from .research_assistant import AssistantUnavailable, extract_document_text
 
-EXTENSIONS = ['.pdf', '.doc', '.docx', '.ppt', '.pptx', '.xls', '.xlsx', '.txt', '.md', '.png', '.jpg', '.jpeg', '.zip']
+EXTENSIONS = ['.pdf', '.doc', '.docx', '.ppt', '.pptx', '.xls', '.xlsx', '.txt', '.md', '.png', '.jpg', '.jpeg', '.zip', '.ytdoc', '.ytsheet', '.ytslides']
+NATIVE_FORMATS = {'document': ('.ytdoc', 'note'), 'sheet': ('.ytsheet', 'other'), 'slides': ('.ytslides', 'slides')}
 
 
 def member_of(db, team_id, user_id):
@@ -205,7 +206,29 @@ def register_cloud_drive(app, ctx):
         row, _ = resource_for(db, resource_id, user, True)
         if 'visibility' in payload and payload['visibility'] != row.visibility:
             raise HTTPException(400, '请通过指定成员共享管理授权，不能扩大旧课题组可见范围')
-        if 'title' in payload: row.title = name(payload['title'])
+        if 'expectedTitle' in payload:
+            if set(payload) != {'title', 'expectedTitle'} or not isinstance(payload['expectedTitle'], str):
+                raise HTTPException(400, '标题更新参数无效')
+            title = name(payload['title'])
+            extension = Path(row.file_name).suffix.lower()
+            values = {'title': title}
+            if extension in {suffix for suffix, _ in NATIVE_FORMATS.values()}:
+                values['file_name'] = title[:255-len(extension)] + extension
+            changed = db.execute(update(Resource).where(
+                Resource.id == row.id, Resource.owner_id == user.id,
+                Resource.title == payload['expectedTitle'], Resource.archived.is_(False)
+            ).values(**values).execution_options(synchronize_session=False)).rowcount
+            if changed != 1:
+                db.rollback()
+                raise HTTPException(409, '标题已在其他页面修改，请保留当前输入并重新加载')
+            db.commit()
+            db.refresh(row)
+            return result(file_json(db, row, user))
+        if 'title' in payload:
+            row.title = name(payload['title'])
+            extension = Path(row.file_name).suffix.lower()
+            if extension in {suffix for suffix, _ in NATIVE_FORMATS.values()}:
+                row.file_name = row.title[:255-len(extension)] + extension
         if 'description' in payload: row.description = ctx['text_value'](payload, 'description')
         if 'folderId' in payload:
             folder_for(db, payload['folderId'], user)
@@ -220,6 +243,127 @@ def register_cloud_drive(app, ctx):
         if len(content) > int(os.getenv('MAX_UPLOAD_BYTES', 20*1024*1024)): raise HTTPException(413, '文件超过上传大小限制')
         if Path(filename).suffix.lower() not in EXTENSIONS: raise HTTPException(415, '不支持的文件格式')
         return filename
+
+    def document_content(kind, content):
+        if kind in ('document', 'text'):
+            if not isinstance(content, str) or len(content) > 200000:
+                raise HTTPException(400, '文档内容最多 20 万字')
+            return content, content
+        if kind == 'sheet':
+            if not isinstance(content, list) or len(content) > 100 or any(
+                not isinstance(row, list) or len(row) > 26 or any(not isinstance(cell, str) or len(cell) > 5000 for cell in row)
+                for row in content
+            ):
+                raise HTTPException(400, '表格最多 100 行、26 列，每格最多 5000 字')
+            return content, ' '.join(cell for row in content for cell in row)
+        if kind == 'slides':
+            if not isinstance(content, list) or len(content) > 50 or any(
+                not isinstance(slide, dict) or not isinstance(slide.get('title'), str)
+                or not isinstance(slide.get('body'), str) or len(slide['title']) > 200 or len(slide['body']) > 10000
+                for slide in content
+            ):
+                raise HTTPException(400, '幻灯片最多 50 页，每页正文最多 1 万字')
+            return [{'title': slide['title'], 'body': slide['body']} for slide in content], ' '.join(
+                slide['title'] + ' ' + slide['body'] for slide in content
+            )
+        raise HTTPException(400, '不支持的文档类型')
+
+    def document_bytes(kind, content):
+        normalized, extracted = document_content(kind, content)
+        payload = normalized.encode('utf-8') if kind == 'text' else json.dumps(
+            {'kind': kind, 'content': normalized}, ensure_ascii=False, separators=(',', ':')
+        ).encode('utf-8')
+        if len(payload) > int(os.getenv('MAX_UPLOAD_BYTES', 20*1024*1024)):
+            raise HTTPException(413, '文档超过大小限制')
+        return payload, extracted
+
+    @app.post('/api/v1/me/drive/documents', status_code=201)
+    def create_document(payload: dict = Body(), user: User = Depends(current_user), db: Session = Depends(get_db)):
+        kind = payload.get('kind')
+        if kind not in NATIVE_FORMATS:
+            raise HTTPException(400, '请选择文档、表格或幻灯片')
+        folder_id = payload.get('folderId') or ''
+        folder_for(db, folder_id, user)
+        title = name(payload.get('title'))
+        extension, category = NATIVE_FORMATS[kind]
+        initial = '' if kind == 'document' else [['', '', ''] for _ in range(8)] if kind == 'sheet' else [{'title': '', 'body': ''}]
+        content, extracted = document_bytes(kind, initial)
+        base, index = title, 1
+        while db.scalar(select(Resource.id).where(Resource.owner_id == user.id, Resource.folder_id == (folder_id or None), Resource.title == title)):
+            index += 1
+            title = f'{base[:185]} ({index})'
+        storage = str(uuid4())
+        destination = uploads / storage
+        destination.write_bytes(content)
+        try:
+            row = Resource(owner_id=user.id, folder_id=folder_id or None, title=title, type=category,
+                           description='', visibility='private', file_name=title[:255-len(extension)] + extension,
+                           storage_name=storage, size=len(content), extracted_text=extracted)
+            db.add(row); db.flush()
+            db.add(ResourceVersion(resource_id=row.id, version=1, file_name=row.file_name,
+                                   storage_name=storage, size=len(content), note='新建文档', author_id=user.id))
+            db.commit()
+            return result(file_json(db, row, user))
+        except Exception:
+            db.rollback(); destination.unlink(missing_ok=True); raise
+
+    @app.get('/api/v1/resources/{resource_id}/document')
+    def get_document(resource_id: str, user: User = Depends(current_user), db: Session = Depends(get_db)):
+        row, _ = resource_for(db, resource_id, user)
+        extension = Path(row.file_name).suffix.lower()
+        kind = next((candidate for candidate, (suffix, _) in NATIVE_FORMATS.items() if suffix == extension), None)
+        if not kind and extension not in ('.txt', '.md'):
+            raise HTTPException(415, '此文件暂不支持文档工作区')
+        location = uploads / row.storage_name
+        if not location.is_file():
+            raise HTTPException(404, '文件暂时不可用')
+        try:
+            raw = location.read_bytes()
+            if kind:
+                stored = json.loads(raw.decode('utf-8'))
+                if not isinstance(stored, dict) or stored.get('kind') != kind:
+                    raise ValueError('文档类型不匹配')
+                content, _ = document_content(kind, stored['content'])
+            else:
+                content = raw.decode('utf-8-sig')
+        except (UnicodeError, ValueError, KeyError, TypeError, HTTPException):
+            raise HTTPException(415, '文件编码或文档结构无法读取')
+        modified_at = db.scalar(select(ResourceVersion.created_at).where(
+            ResourceVersion.resource_id == row.id
+        ).order_by(ResourceVersion.version.desc()).limit(1))
+        return result({'id': row.id, 'title': row.title, 'kind': kind or 'text', 'content': content,
+                       'version': row.version, 'canEdit': row.owner_id == user.id,
+                       'owner': user.display_name if row.owner_id == user.id else ctx['name'](db, row.owner_id),
+                       'modifiedAt': iso(modified_at)})
+
+    @app.put('/api/v1/resources/{resource_id}/document')
+    def save_document(resource_id: str, payload: dict = Body(), user: User = Depends(current_user), db: Session = Depends(get_db)):
+        row, _ = resource_for(db, resource_id, user, True)
+        extension = Path(row.file_name).suffix.lower()
+        kind = next((candidate for candidate, (suffix, _) in NATIVE_FORMATS.items() if suffix == extension), None)
+        if not kind and extension not in ('.txt', '.md'):
+            raise HTTPException(415, '此文件暂不支持在线编辑')
+        expected_version = payload.get('version')
+        if expected_version != row.version:
+            raise HTTPException(409, '文档已在其他页面更新，请刷新后再编辑')
+        content, extracted = document_bytes(kind or 'text', payload.get('content'))
+        storage = str(uuid4())
+        destination = uploads / storage
+        destination.write_bytes(content)
+        try:
+            changed = db.execute(update(Resource).where(
+                Resource.id == row.id, Resource.version == expected_version, Resource.archived.is_(False)
+            ).values(version=expected_version + 1, storage_name=storage,
+                     size=len(content), extracted_text=extracted).execution_options(synchronize_session=False)).rowcount
+            if changed != 1:
+                raise HTTPException(409, '文档已在其他页面更新，请刷新后再编辑')
+            version_row = ResourceVersion(resource_id=row.id, version=expected_version + 1, file_name=row.file_name,
+                                          storage_name=storage, size=len(content), note='在线编辑', author_id=user.id)
+            db.add(version_row)
+            db.commit()
+            return result({'id': row.id, 'version': expected_version + 1, 'modifiedAt': iso(version_row.created_at)})
+        except Exception:
+            db.rollback(); destination.unlink(missing_ok=True); raise
 
     async def save_upload(db, user, file, folder_id, title, category, description, key, version_resource=None, note='', legacy_team=None):
         folder_for(db, folder_id, user)
@@ -242,11 +386,17 @@ def register_cloud_drive(app, ctx):
         try:
             if version_resource:
                 row = version_resource
+                previous_version = row.version
                 if not db.scalar(select(ResourceVersion.id).where(ResourceVersion.resource_id == row.id, ResourceVersion.version == row.version)):
                     db.add(ResourceVersion(resource_id=row.id, version=row.version, file_name=row.file_name, storage_name=row.storage_name, size=row.size, note='初始版本', author_id=row.owner_id))
-                row.version += 1
-                row.file_name, row.storage_name, row.size = filename, storage, len(content)
-                row.extracted_text = extract_document_text(filename, content)
+                changed = db.execute(update(Resource).where(
+                    Resource.id == row.id, Resource.version == previous_version, Resource.archived.is_(False)
+                ).values(version=previous_version + 1, file_name=filename, storage_name=storage,
+                         size=len(content), extracted_text=extract_document_text(filename, content)
+                         ).execution_options(synchronize_session=False)).rowcount
+                if changed != 1:
+                    raise HTTPException(409, '文件已在其他页面更新，请刷新后重试')
+                db.expire(row)
             else:
                 base, index = title, 1
                 while db.scalar(select(Resource.id).where(Resource.owner_id == user.id, Resource.folder_id == (folder_id or None), Resource.title == title)):
@@ -287,8 +437,6 @@ def register_cloud_drive(app, ctx):
     @app.post('/api/v1/resources/{resource_id}/versions')
     async def version_upload(resource_id: str, file: UploadFile = File(), note: str = Form('', max_length=50000), idempotency_key: str = Header('', alias='Idempotency-Key', max_length=100), user: User = Depends(current_user), db: Session = Depends(get_db)):
         row, _ = resource_for(db, resource_id, user, True)
-        # A row lock also serializes version numbering on PostgreSQL.
-        db.refresh(row, with_for_update=True)
         return result(await save_upload(db, user, file, row.folder_id, row.title, row.type, row.description, idempotency_key, row, note))
 
     @app.get('/api/v1/resources/{resource_id}/shares')

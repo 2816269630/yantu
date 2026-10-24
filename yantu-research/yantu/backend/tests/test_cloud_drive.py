@@ -1,5 +1,7 @@
 """Real HTTP/database/filesystem acceptance for personal ownership and revocation."""
 from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor
+from threading import Barrier
 
 import pytest
 from fastapi.testclient import TestClient
@@ -125,6 +127,91 @@ def test_shares_versions_references_questions_and_departure(drive):
     legacy = data(c.post(f'/api/v1/teams/{team}/resources', headers=a, data={'title': '私密兼容资料', 'type': 'note', 'visibility': 'team'}, files={'file': ('legacy.txt', b'legacy')}))
     assert c.get('/api/v1/resources/'+legacy['id'], headers=b).status_code == 404
     assert not data(c.get(f'/api/v1/teams/{team}/search?q=私密兼容资料', headers=b))['items']
+
+
+def test_native_documents_and_text_workspace(drive):
+    c, actors, team, _ = drive
+    owner_id, owner = actors[0]
+    reader_id, reader = actors[1]
+    folder = data(c.post('/api/v1/me/drive/folders', headers=owner,
+                         json={'name': '在线文档', 'parentId': None}), 201)['id']
+    for kind, suffix, initial in [
+        ('document', '.ytdoc', ''),
+        ('sheet', '.ytsheet', [['', '', ''] for _ in range(8)]),
+        ('slides', '.ytslides', [{'title': '', 'body': ''}]),
+    ]:
+        created = data(c.post('/api/v1/me/drive/documents', headers=owner,
+                              json={'kind': kind, 'title': '未命名', 'folderId': folder}), 201)
+        assert created['fileName'].endswith(suffix)
+        assert created['folderId'] == folder
+        endpoint = '/api/v1/resources/'+created['id']+'/document'
+        opened = data(c.get(endpoint, headers=owner))
+        assert opened['kind'] == kind and opened['content'] == initial and opened['canEdit']
+        assert opened['modifiedAt']
+        content = ('# 研究问题\n这是正文' if kind == 'document' else
+                   [['数据', '42']] if kind == 'sheet' else [{'title': '第一页', 'body': '结论'}])
+        saved = data(c.put(endpoint, headers=owner, json={'version': 1, 'content': content}))
+        assert saved['version'] == 2 and saved['modifiedAt']
+        reopened = data(c.get(endpoint, headers=owner))
+        assert reopened['content'] == content and reopened['modifiedAt'] == saved['modifiedAt']
+        renamed = data(c.patch('/api/v1/resources/'+created['id'], headers=owner,
+                               json={'title': '验收'+kind}))
+        assert renamed['fileName'] == '验收'+kind+suffix
+        assert c.put(endpoint, headers=owner, json={'version': 1, 'content': content}).status_code == 409
+        assert len(data(c.get('/api/v1/resources/'+created['id']+'/versions', headers=owner))['items']) == 2
+        assert c.get(endpoint, headers=reader).status_code == 404
+        data(c.put('/api/v1/resources/'+created['id']+'/shares/'+reader_id, headers=owner,
+                   json={'permission': 'read', 'teamId': team}))
+        assert data(c.get(endpoint, headers=reader))['canEdit'] is False
+        assert c.put(endpoint, headers=reader, json={'version': 2, 'content': content}).status_code == 403
+    text_file = data(upload(c, owner, key='workspace-txt', content='初始正文'.encode('utf-8')),
+                     201)
+    text_endpoint = '/api/v1/resources/'+text_file['id']+'/document'
+    assert data(c.get(text_endpoint, headers=owner))['content'] == '初始正文'
+    assert data(c.put(text_endpoint, headers=owner,
+                      json={'version': 1, 'content': '修改后的正文'}))['version'] == 2
+    assert c.get('/api/v1/resources/'+text_file['id']+'/download', headers=owner).content == '修改后的正文'.encode('utf-8')
+    assert c.put(text_endpoint, headers=owner, json={'version': 2, 'content': 42}).status_code == 400
+    assert c.post('/api/v1/me/drive/documents', headers=owner,
+                  json={'kind': 'unknown', 'title': '无效'}).status_code == 400
+
+
+def test_simultaneous_document_saves_keep_one_version(drive):
+    c, actors, _, _ = drive
+    owner = actors[0][1]
+    created = data(c.post('/api/v1/me/drive/documents', headers=owner,
+                          json={'kind': 'document', 'title': '并发验收'}), 201)
+    endpoint = '/api/v1/resources/'+created['id']+'/document'
+    gate = Barrier(2)
+
+    def save(content):
+        gate.wait(timeout=10)
+        return c.put(endpoint, headers=owner, json={'version': 1, 'content': content})
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        first = pool.submit(save, '来自标签页 A')
+        second = pool.submit(save, '来自标签页 B')
+        responses = [first.result(timeout=30), second.result(timeout=30)]
+
+    assert sorted(response.status_code for response in responses) == [200, 409]
+    winner = '来自标签页 A' if responses[0].status_code == 200 else '来自标签页 B'
+    current = data(c.get(endpoint, headers=owner))
+    assert current['content'] == winner and current['version'] == 2
+    assert len(data(c.get('/api/v1/resources/'+created['id']+'/versions', headers=owner))['items']) == 2
+
+
+def test_document_title_rejects_stale_tab(drive):
+    c, actors, _, _ = drive
+    owner = actors[0][1]
+    created = data(c.post('/api/v1/me/drive/documents', headers=owner,
+                          json={'kind': 'document', 'title': '原标题'}), 201)
+    endpoint = '/api/v1/resources/'+created['id']
+    renamed = data(c.patch(endpoint, headers=owner,
+                           json={'title': '新的标题', 'expectedTitle': '原标题'}))
+    assert renamed['title'] == '新的标题' and renamed['fileName'] == '新的标题.ytdoc'
+    assert c.patch(endpoint, headers=owner,
+                   json={'title': '过期页面标题', 'expectedTitle': '原标题'}).status_code == 409
+    assert data(c.get(endpoint, headers=owner))['title'] == '新的标题'
 
 
 def test_legacy_sqlite_upgrade_is_repeatable_and_preserves_content(tmp_path):

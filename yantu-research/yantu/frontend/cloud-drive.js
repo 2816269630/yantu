@@ -3,6 +3,7 @@ async function allDriveFiles(scope='all',extra='') {let page=1,items=[],data;do{
 function driveFolderOptions(items){const byId=new Map(items.map(x=>[x.id,x]));return [{id:'',name:'我的文件 / 根目录'},...items.map(x=>{const names=[x.name];let p=byId.get(x.parentId),seen=new Set([x.id]);while(p&&!seen.has(p.id)){seen.add(p.id);names.unshift(p.name);p=byId.get(p.parentId);}return {id:x.id,name:'我的文件 / '+names.join(' / ')};}).sort((a,b)=>a.name.localeCompare(b.name,'zh-CN'))];}
 function driveUrl(scope='mine',folder='',q='',page=1,file=''){return 'resources/'+enc(JSON.stringify({scope,folder,q,page,...(file?{file}:{})}));}
 function driveFileUrl(file){return 'resource/'+enc(file.id);}
+function driveFileLink(label,file,cls='filename'){return `<a class="${cls}" href="#${driveFileUrl(file)}" target="_blank" rel="noopener">${label}</a>`;}
 function driveIsShared(item){return !!item?.ownerId&&item.ownerId!==state.user?.id;}
 function driveSourceBadge(item){return driveIsShared(item)?`<span class="drive-source-badge" title="来自共享" aria-label="来自共享">${icon('cloud')}</span>`:'';}
 function driveTreeIcon(item,kind){return `<span class="drive-tree-icon">${driveSourceBadge(item)}${icon(kind)}</span>`;}
@@ -19,7 +20,7 @@ function driveTreeMarkup(folders,files,view){
       const next=new Set(ancestors);next.add(folder.id);
       return `<div class="drive-tree-node" data-drive-id="${esc(folder.id)}"><div class="drive-tree-row">${toggle}${link(driveTreeIcon(folder,'folder')+'<span>'+esc(folder.name)+'</span>',driveUrl('mine',folder.id),'drive-tree-link '+(view.folder===folder.id?'active':''))}</div>${hasChildren?`<div class="drive-tree-children" ${expanded?'':'hidden'}>${renderChildren(folder.id,next)}</div>`:''}</div>`;
     }),
-    ...(documents.get(parent)||[]).map(file=>`<div class="drive-tree-node drive-tree-file-node" data-drive-id="${esc(file.id)}"><div class="drive-tree-row"><span class="drive-tree-spacer" aria-hidden="true"></span>${link(driveTreeIcon(file,'file')+'<span>'+esc(file.title)+'</span>',driveUrl('mine',file.folderId||'','',1,file.id),'drive-tree-link drive-tree-file '+(view.file===file.id?'active':''))}</div></div>`)
+    ...(documents.get(parent)||[]).map(file=>`<div class="drive-tree-node drive-tree-file-node" data-drive-id="${esc(file.id)}"><div class="drive-tree-row"><span class="drive-tree-spacer" aria-hidden="true"></span>${driveFileLink(driveTreeIcon(file,'file')+'<span>'+esc(file.title)+'</span>',file,'drive-tree-link drive-tree-file')}</div></div>`)
   ].join('');
   const expanded=!collapsed.has('root');
   return `<div class="drive-tree-node drive-tree-root"><div class="drive-tree-row"><button type="button" class="drive-tree-toggle" data-action="cloud-tree-toggle" data-id="root" aria-label="${expanded?'收起':'展开'}我的文件" aria-expanded="${expanded}"></button>${link(driveTreeIcon(null,'folder')+'<span>我的文件</span>',driveUrl('mine'),'drive-tree-link '+(!view.folder&&!view.file?'active':''))}</div><div class="drive-tree-children" ${expanded?'':'hidden'}>${renderChildren('',new Set())}</div></div>`;
@@ -51,7 +52,7 @@ pages.resources = async raw => {
   const pagination=data.total>50?`<div class="drive-list-foot"><span>第 ${view.page} 页 · 共 ${data.total} 项</span><div>${view.page>1?link('上一页',driveUrl(view.scope,view.folder,view.q,view.page-1),'btn sm'):''}${view.page*50<data.total?link('下一页',driveUrl(view.scope,view.folder,view.q,view.page+1),'btn sm'):''}</div></div>`:'';
   const folder=tree.items.find(x=>x.id===view.folder);
   const inspector=`<aside class="drive-inspector" aria-label="当前目录信息"><h2>${esc(folder?.name||'我的文件')}</h2><div class="drive-inspector-art">${icon('folder')}</div><div class="drive-inspector-facts"><div><span>类型</span><strong>文件夹</strong></div><div><span>所有者</span><strong>我</strong></div><div><span>内容</span><strong>${data.total} 项</strong></div>${folder?.createdAt?`<div><span>创建时间</span><strong>${date(folder.createdAt)}</strong></div>`:''}</div></aside>`;
-  return `<div class="drive-page"><div class="drive-layout panel"><details class="drive-tree" open><summary>文件目录 <span>${tree.items.length+(tree.files||[]).length} 项</span></summary><nav id="driveTreeItems" aria-label="我的文件目录">${folders}</nav></details><section class="drive-workspace"><div class="drive-workspace-top">${breadcrumbs}${search}</div><div class="drive-actionbar">${btn(icon('plus')+'新建文件夹','cloud-new','','drive-action')}${btn(icon('upload')+'上传文件','upload-resource','','drive-action')}</div><div class="drive-main-grid"><section class="drive-content">${view.q?`<div class="drive-search-state"><strong>搜索结果</strong><span class="drive-query">${icon('search')}<span>${esc(view.q)}</span><a class="drive-query-clear" href="#${driveUrl(view.scope,view.folder)}" aria-label="清除搜索">×</a></span></div>`:''}<div class="drive-list-panel"><div class="tablewrap drive-table-wrap"><table class="drive-table"><thead><tr><th>名称</th><th>添加时间</th><th><span class="sr-only">操作</span></th></tr></thead><tbody>${rows}</tbody></table></div>${pagination}</div></section>${inspector}</div></section></div></div>`;
+  return `<div class="drive-page"><div class="drive-layout panel"><details class="drive-tree" open><summary>文件目录 <span>${tree.items.length+(tree.files||[]).length} 项</span></summary><nav id="driveTreeItems" aria-label="我的文件目录">${folders}</nav></details><section class="drive-workspace"><div class="drive-workspace-top">${breadcrumbs}${search}</div><div class="drive-actionbar">${btn(icon('plus')+'新建 '+icon('right'),'cloud-create-menu','','drive-action')}${btn(icon('upload')+'上传文件','upload-resource','','drive-action')}</div><div class="drive-main-grid"><section class="drive-content">${view.q?`<div class="drive-search-state"><strong>搜索结果</strong><span class="drive-query">${icon('search')}<span>${esc(view.q)}</span><a class="drive-query-clear" href="#${driveUrl(view.scope,view.folder)}" aria-label="清除搜索">×</a></span></div>`:''}<div class="drive-list-panel"><div class="tablewrap drive-table-wrap"><table class="drive-table"><thead><tr><th>名称</th><th>添加时间</th><th><span class="sr-only">操作</span></th></tr></thead><tbody>${rows}</tbody></table></div>${pagination}</div></section>${inspector}</div></section></div></div>`;
 };
 function drivePreview(r,versions,view){
   const canEdit=r.canEdit??r.ownerId===state.user.id;
@@ -64,7 +65,7 @@ function driveRow(x,view){
   const title=folder?x.name:x.title;
   const to=folder?driveUrl('mine',x.id):driveFileUrl(x,view);
   const type=folder?'文件夹':typeNames[x.type]||x.type||'文件';
-  return `<tr class="drive-row" data-drive-id="${esc(x.id)}" tabindex="0" aria-label="${esc(title)}，按 Shift+F10 打开操作菜单"><td><div class="drive-name"><span class="drive-file-icon ${folder?'is-folder':'is-file'}">${driveSourceBadge(x)}${icon(folder?'folder':'file')}</span><div class="drive-name-main">${link(esc(title),to,'filename')}<span class="drive-mobile-meta">${esc(type)}${folder?'':' · '+bytes(x.size)}</span></div></div></td><td class="drive-row-date">${x.createdAt?date(x.createdAt,{hour:'2-digit',minute:'2-digit'}):'—'}</td><td class="drive-row-actions"><button type="button" class="drive-more" data-action="cloud-menu" data-id="${esc(x.id)}" aria-label="${esc(title)}的更多操作" aria-haspopup="menu">···</button></td></tr>`;
+  return `<tr class="drive-row" data-drive-id="${esc(x.id)}" tabindex="0" aria-label="${esc(title)}，按 Shift+F10 打开操作菜单"><td><div class="drive-name"><span class="drive-file-icon ${folder?'is-folder':'is-file'}">${driveSourceBadge(x)}${icon(folder?'folder':'file')}</span><div class="drive-name-main">${folder?link(esc(title),to,'filename'):driveFileLink(esc(title),x)}<span class="drive-mobile-meta">${esc(type)}${folder?'':' · '+bytes(x.size)}</span></div></div></td><td class="drive-row-date">${x.createdAt?date(x.createdAt,{hour:'2-digit',minute:'2-digit'}):'—'}</td><td class="drive-row-actions"><button type="button" class="drive-more" data-action="cloud-menu" data-id="${esc(x.id)}" aria-label="${esc(title)}的更多操作" aria-haspopup="menu">···</button></td></tr>`;
 }
 function driveItem(id){return state.data.driveItems?.find(x=>x.id===id)||state.data.driveTree?.find(x=>x.id===id)||state.data.driveTreeFiles?.find(x=>x.id===id);}
 function driveMenuEntries(item){
@@ -113,7 +114,7 @@ document.addEventListener('contextmenu',event=>{
   if(!row&&event.target.closest('input,button,a,select,textarea'))return;
   event.preventDefault();showDriveMenu(row?driveItem(row.dataset.driveId):null,{x:event.clientX,y:event.clientY});
 });
-document.addEventListener('click',event=>{if(!event.target.closest('#driveContextMenu,[data-action="cloud-menu"],[data-action="cloud-resource-more"]'))closeDriveMenu();if(!event.target.closest('.drive-search-wrap'))closeDriveSearch();});
+document.addEventListener('click',event=>{if(!event.target.closest('#driveContextMenu,[data-action="cloud-menu"],[data-action="cloud-resource-more"],[data-action="cloud-create-menu"]'))closeDriveMenu();if(!event.target.closest('.drive-search-wrap'))closeDriveSearch();});
 document.addEventListener('keydown',event=>{
   const menu=document.querySelector('#driveContextMenu');
   if(menu){if(event.key==='Escape'){event.preventDefault();closeDriveMenu();return;}if(['ArrowDown','ArrowUp'].includes(event.key)){event.preventDefault();const items=[...menu.querySelectorAll('button')],i=items.indexOf(document.activeElement);items[(i+(event.key==='ArrowDown'?1:-1)+items.length)%items.length]?.focus();return;}}
@@ -146,7 +147,17 @@ async function cloudAction(action,id,source){
   }
   const item=driveItem(id),folder=item&&(item.kind==='folder'||('name' in item&&!('title' in item)));
   if(action==='cloud-menu'){const rect=source.getBoundingClientRect();showDriveMenu(item,{x:rect.right,y:rect.bottom+4},source);return true;}
-  if(action==='cloud-open'){navigate(folder?driveUrl('mine',id):driveFileUrl(item,state.driveView));return true;}
+  if(action==='cloud-open'){if(folder)navigate(driveUrl('mine',id));else window.open('#'+driveFileUrl(item),'_blank','noopener');return true;}
+  if(action==='cloud-create-menu'){
+    const rect=source.getBoundingClientRect();
+    showDriveMenu(null,{x:rect.left,y:rect.bottom+4},source,[['cloud-create-document','文档','file'],['cloud-create-sheet','表格','file'],['cloud-create-slides','幻灯片','file'],['cloud-new','文件夹','folder']]);
+    return true;
+  }
+  if(['cloud-create-document','cloud-create-sheet','cloud-create-slides'].includes(action)){
+    const kind=action.slice('cloud-create-'.length);
+    window.open('#newdocument/'+enc(JSON.stringify({kind,folderId:state.driveFolder||''})),'_blank','noopener');
+    return true;
+  }
   if(action==='cloud-my-files'){navigate(driveUrl('mine'));return true;}
   if(action==='cloud-new'){state.driveCreationParent=id||state.driveFolder||'';modalForm('新建文件夹','cloud-folder',field('名称','name','',{required:true,max:200}),'创建');}
   if(action==='cloud-upload-here'){await openCloudUpload(null,id);return true;}
