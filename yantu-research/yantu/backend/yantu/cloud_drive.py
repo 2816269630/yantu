@@ -351,6 +351,8 @@ def register_cloud_drive(app, ctx):
         if not kind and extension not in ('.txt', '.md'):
             raise HTTPException(415, '此文件暂不支持在线编辑')
         expected_version = payload.get('version')
+        if type(expected_version) is not int or expected_version < 1:
+            raise HTTPException(400, '文档版本号无效')
         if expected_version != row.version:
             raise HTTPException(409, '文档已在其他页面更新，请刷新后再编辑')
         content, extracted = document_bytes(kind or 'text', payload.get('content'))

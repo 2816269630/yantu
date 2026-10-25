@@ -43066,6 +43066,21 @@ Please report this to https://github.com/markedjs/marked.`, e) {
   var draftKey = (id) => `yantu:document-draft:${id}:${tabId}`;
   var snapshot = (value) => JSON.stringify(value);
   var blockTypes = /* @__PURE__ */ new Set(["paragraph", "heading", "bulletList", "orderedList", "listItem", "blockquote", "codeBlock", "horizontalRule", "blockMath", "table", "tableRow", "tableCell", "tableHeader"]);
+  var safeCellColor = (value) => typeof value === "string" && /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(value) ? value : null;
+  var cellBackground = {
+    default: null,
+    parseHTML: (element) => safeCellColor(element.getAttribute("data-background")),
+    renderHTML: (attributes) => {
+      const color = safeCellColor(attributes.background);
+      return color ? { "data-background": color, style: `background-color: ${color}` } : {};
+    }
+  };
+  var BackgroundTableCell = TableCell.extend({ addAttributes() {
+    return { ...this.parent?.(), background: cellBackground };
+  } });
+  var BackgroundTableHeader = TableHeader.extend({ addAttributes() {
+    return { ...this.parent?.(), background: cellBackground };
+  } });
   var randomBlockId = () => crypto.randomUUID?.() || "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (letter) => {
     const value = Math.floor(Math.random() * 16);
     return (letter === "x" ? value : value & 3 | 8).toString(16);
@@ -43079,7 +43094,11 @@ Please report this to https://github.com/markedjs/marked.`, e) {
     }
   };
   var content = (workspace = current) => workspace?.editor ? { schemaVersion: 2, ...workspace.editor.getJSON() } : null;
-  var title = () => document.querySelector("#documentTitle")?.value.trim() || current?.resource.title || "";
+  var untitledTitle = "\u672A\u547D\u540D\u6587\u6863";
+  var title = () => {
+    const input = document.querySelector("#documentTitle");
+    return input ? input.value.trim() || untitledTitle : current?.resource.title?.trim() || untitledTitle;
+  };
   function repairBlockIds(editor) {
     const seen = /* @__PURE__ */ new Set();
     const transaction = editor.state.tr;
@@ -43139,19 +43158,25 @@ Please report this to https://github.com/markedjs/marked.`, e) {
     if (!root) return;
     const headings = [];
     current.editor.state.doc.descendants((node, pos) => {
-      if (node.type.name === "heading") headings.push({ pos, level: node.attrs.level, text: node.textContent || "\u65E0\u6807\u9898" });
+      if (node.type.name === "heading" && node.textContent.trim()) {
+        headings.push({ pos, level: node.attrs.level, text: node.textContent });
+      }
     });
-    root.innerHTML = `<li class="document-outline-root"><button type="button" class="document-outline-link" data-outline-top>${esc(title())}</button></li>` + headings.map((item) => `<li class="document-outline-item" style="padding-left:${Math.min(item.level - 1, 5) * 13}px"><button type="button" class="document-outline-link" data-outline-pos="${item.pos}">${esc(item.text)}</button></li>`).join("");
+    const visibleTitle = document.querySelector(".document-paper-title input")?.value.trim();
+    const rootRow = visibleTitle && visibleTitle !== untitledTitle ? `<li class="document-outline-root"><button type="button" class="document-outline-link" data-outline-top>${esc(visibleTitle)}</button></li>` : "";
+    root.innerHTML = rootRow + headings.map((item) => `<li class="document-outline-item" style="padding-left:${Math.min(item.level - 1, 5) * 13}px"><button type="button" class="document-outline-link" data-outline-pos="${item.pos}">${esc(item.text)}</button></li>`).join("");
   }
   function syncTitle(value, origin) {
+    const effective = value.trim() || untitledTitle;
     document.querySelectorAll("[data-document-title]").forEach((input) => {
-      if (input !== origin) input.value = value;
+      if (input === origin) return;
+      input.value = input.id === "documentTitle" ? effective : effective === untitledTitle ? "" : value;
     });
-    const root = document.querySelector("[data-outline-top]");
-    if (root) root.textContent = value;
+    outlineRows();
   }
   function queueTitle() {
     if (!current?.doc.canEdit) return;
+    current.pendingTitle = title();
     current.titleDirty = true;
     status("\u672A\u4FDD\u5B58");
     persistDraft();
@@ -43165,23 +43190,20 @@ Please report this to https://github.com/markedjs/marked.`, e) {
   }
   async function saveTitle(workspace = current, queuedTitle = null) {
     if (!workspace?.titleDirty || workspace.conflict) return;
-    const next = queuedTitle ?? (current === workspace ? title() : workspace.pendingTitle);
+    const next = (queuedTitle ?? (current === workspace ? title() : workspace.pendingTitle))?.trim() || untitledTitle;
     if (workspace.titleSaving) {
       if (queuedTitle !== null || !workspace.pendingTitle) workspace.pendingTitle = next;
       return;
     }
     clearTimeout(workspace.titleTimer);
-    if (!next) {
-      if (current === workspace) {
-        syncTitle(workspace.resource.title);
-        status("\u6807\u9898\u4E0D\u80FD\u4E3A\u7A7A", true);
-      }
-      workspace.titleDirty = false;
-      return;
-    }
     if (next === workspace.resource.title) {
       workspace.titleDirty = false;
-      if (current === workspace) clearDraft();
+      workspace.pendingTitle = null;
+      if (current === workspace) {
+        syncTitle(next);
+        clearDraft();
+        if (!workspace.dirty) status("\u5DF2\u4FDD\u5B58\u5230\u4E91\u7AEF");
+      }
       return;
     }
     workspace.titleSaving = true;
@@ -43197,6 +43219,7 @@ Please report this to https://github.com/markedjs/marked.`, e) {
         if (title() === next) {
           syncTitle(next);
           workspace.titleDirty = false;
+          workspace.pendingTitle = null;
         } else {
           workspace.titleDirty = true;
           workspace.pendingTitle = title();
@@ -43205,7 +43228,7 @@ Please report this to https://github.com/markedjs/marked.`, e) {
         if (!workspace.dirty && !workspace.titleDirty) status("\u5DF2\u4FDD\u5B58\u5230\u4E91\u7AEF");
         clearDraft();
       } else {
-        workspace.titleDirty = Boolean(workspace.pendingTitle && workspace.pendingTitle !== workspace.resource.title);
+        workspace.titleDirty = typeof workspace.pendingTitle === "string" && workspace.pendingTitle !== workspace.resource.title;
       }
     } catch (error) {
       if (current === workspace) {
@@ -43218,7 +43241,7 @@ Please report this to https://github.com/markedjs/marked.`, e) {
       if (saved && workspace.titleDirty && !workspace.conflict) {
         const pendingTitle = workspace.pendingTitle;
         workspace.pendingTitle = null;
-        if (pendingTitle && pendingTitle !== workspace.resource.title) {
+        if (typeof pendingTitle === "string" && pendingTitle !== workspace.resource.title) {
           saveTitle(workspace, pendingTitle).catch((error) => {
             if (current === workspace && !workspace.conflict) status(error.message, true);
           });
@@ -43432,7 +43455,7 @@ Please report this to https://github.com/markedjs/marked.`, e) {
     if (current?.editor) {
       if (current.dirty && !current.saving && !current.conflict) save(current).catch(() => {
       });
-      if (current.titleDirty && !current.titleSaving && !current.conflict) saveTitle(current, title()).catch(() => {
+      if (current.titleDirty && !current.titleSaving && !current.conflict) saveTitle(current, current.pendingTitle).catch(() => {
       });
       current.editor.destroy();
       clearTimeout(current.timer);
@@ -43472,7 +43495,9 @@ Please report this to https://github.com/markedjs/marked.`, e) {
       extensions: [
         src_default.configure({ heading: { levels: [1, 2, 3, 4, 5, 6] } }),
         UniqueID.configure({ types: ["paragraph", "heading", "bulletList", "orderedList", "listItem", "blockquote", "codeBlock", "horizontalRule", "blockMath", "table", "tableRow", "tableCell", "tableHeader"], updateDocument: doc3.canEdit }),
-        TableKit,
+        TableKit.configure({ tableCell: false, tableHeader: false }),
+        BackgroundTableCell,
+        BackgroundTableHeader,
         Mathematics.configure({
           katexOptions: { throwOnError: false, trust: false, maxExpand: 1e3, maxSize: 20 },
           inlineOptions: { onClick: (node, pos) => formulaDialog(node, pos) },
@@ -43546,9 +43571,10 @@ Please report this to https://github.com/markedjs/marked.`, e) {
     document.body.classList.add("document-mode");
     document.title = `${resource.title} \xB7 \u7814\u9014`;
     const editable = doc3.canEdit;
+    const paperTitle = editable && resource.title === untitledTitle ? "" : resource.title;
     const owner = doc3.owner || resource.owner || "\u672A\u77E5\u4F5C\u8005";
     const back = state.driveReturn || "resources";
-    return `<div class="document-workspace structured-workspace"><header class="document-topbar"><div class="document-top-left"><a class="document-home" href="#${esc(back)}" aria-label="\u8FD4\u56DE\u6211\u7684\u4E91\u76D8">${icon("back")}</a><span class="document-mark">${icon("file")}</span><div class="document-heading"><div class="document-title-top"><input id="documentTitle" data-document-title value="${esc(resource.title)}" maxlength="200" aria-label="\u6587\u6863\u6807\u9898" ${editable ? "" : "readonly"}></div><span id="documentSaveStatus">${editable ? "\u5DF2\u4FDD\u5B58\u5230\u4E91\u7AEF" : "\u53EA\u8BFB\u6587\u6863"}</span></div></div><div class="document-top-actions">${editable ? btn("\u5206\u4EAB", "cloud-shares", resource.id, "primary") : ""}<button type="button" class="btn document-more" data-action="cloud-resource-more" data-id="${esc(resource.id)}" aria-haspopup="menu">\xB7\xB7\xB7</button></div></header><div class="document-toolbar"><span>\u6587\u6863</span><a href="/api/v1/resources/${enc(resource.id)}/download">\u4E0B\u8F7D\u539F\u6587\u4EF6</a></div><div class="document-recovery" id="structuredRecovery" hidden><strong>\u672C\u5730\u8BB0\u5F55</strong><span></span><button type="button" class="btn" data-structured-action="view-draft">\u67E5\u770B</button><button type="button" class="btn" data-structured-action="restore-draft">\u6062\u590D</button><button type="button" class="btn" data-structured-action="discard-draft">\u820D\u5F03</button></div><div class="document-conflict" id="documentConflict" hidden><strong>\u4E91\u7AEF\u5DF2\u6709\u66F4\u65B0</strong><span>\u81EA\u52A8\u4FDD\u5B58\u5DF2\u6682\u505C\uFF0C\u672C\u5730\u8BB0\u5F55\u5DF2\u4FDD\u7559\u3002</span><button type="button" class="btn" data-structured-action="download-draft">\u4E0B\u8F7D\u672C\u5730\u8BB0\u5F55</button><button type="button" class="btn" data-structured-action="reload-cloud">\u91CD\u65B0\u8BFB\u53D6\u4E91\u7AEF</button></div><div class="document-body"><aside class="document-outline" id="documentOutlinePanel"><div class="document-outline-header"><h2>\u76EE\u5F55</h2><button type="button" class="document-outline-collapse" data-structured-action="outline" aria-label="\u6536\u8D77\u76EE\u5F55">\xAB</button></div><ul id="documentOutline"></ul></aside><main class="document-stage"><div class="document-paper"><h1 class="document-paper-title"><input data-document-title value="${esc(resource.title)}" maxlength="200" aria-label="\u6587\u6863\u6807\u9898" ${editable ? "" : "readonly"}></h1><div class="document-paper-byline"><span class="document-author-avatar" aria-hidden="true">${esc(Array.from(owner)[0] || "?")}</span><span class="document-author-name">${esc(owner)}</span><span class="document-byline-divider"></span><time id="documentModifiedAt" datetime="${esc(doc3.modifiedAt || "")}">${workspaceModifiedLabel(doc3.modifiedAt)}</time></div><div id="structuredEditor" class="document-rendered" aria-label="\u6587\u6863\u6B63\u6587"></div></div></main></div><div id="structuredSelectionTools" class="document-selection-tools" hidden><button type="button" data-editor-command="bold" title="\u52A0\u7C97 Ctrl+B"><b>B</b></button><button type="button" data-editor-command="h1">H1</button><button type="button" data-editor-command="h2">H2</button></div><div id="structuredSlashMenu" class="document-slash-menu" hidden><div class="document-slash-heading">\u5E38\u7528</div><button type="button" data-editor-command="formula" data-alias="gs eq formula"><span>\u{1D453}\u{1D465}</span>\u516C\u5F0F</button><button type="button" data-editor-command="h1" data-alias="h1 title"><span>H\u2081</span>\u4E00\u7EA7\u6807\u9898</button><button type="button" data-editor-command="h2" data-alias="h2 subtitle"><span>H\u2082</span>\u4E8C\u7EA7\u6807\u9898</button><button type="button" data-editor-command="bullet" data-alias="list bullet"><span>\u2261</span>\u9879\u76EE\u7B26\u53F7</button><button type="button" data-editor-command="quote" data-alias="quote"><span>\u275D</span>\u5F15\u7528</button></div><dialog id="structuredFormulaDialog" class="document-equation-dialog"><div class="document-equation-head"><strong>\u516C\u5F0F</strong><button type="button" data-structured-action="cancel-formula" aria-label="\u5173\u95ED">\xD7</button></div><div class="document-equation-kinds"><label><input type="radio" name="mathKind" value="inline" checked>\u884C\u5185\u516C\u5F0F</label><label><input type="radio" name="mathKind" value="block">\u72EC\u7ACB\u516C\u5F0F</label></div><textarea aria-label="LaTeX \u516C\u5F0F\u6E90\u7801" placeholder="\u4F8B\u5982 \\frac{a}{b}+x^2" spellcheck="false"></textarea><div class="document-equation-actions"><button type="button" class="btn" data-structured-action="cancel-formula">\u53D6\u6D88</button><button type="button" class="btn primary" data-structured-action="save-formula">\u5B8C\u6210</button></div></dialog><dialog id="structuredDraftDialog" class="document-local-dialog"><div class="document-local-head"><strong>\u672C\u5730\u8BB0\u5F55</strong><button type="button" data-structured-action="close-draft" aria-label="\u5173\u95ED">\xD7</button></div><textarea readonly aria-label="\u672C\u5730\u8BB0\u5F55\u5185\u5BB9"></textarea><div class="document-local-actions"><button type="button" class="btn" data-structured-action="download-draft">\u4E0B\u8F7D\u8BB0\u5F55</button></div></dialog></div>`;
+    return `<div class="document-workspace structured-workspace"><header class="document-topbar"><div class="document-top-left"><a class="document-home" href="#${esc(back)}" aria-label="\u8FD4\u56DE\u6211\u7684\u4E91\u76D8">${icon("back")}</a><span class="document-mark">${icon("file")}</span><div class="document-heading"><div class="document-title-top"><input id="documentTitle" data-document-title value="${esc(resource.title)}" maxlength="200" aria-label="\u6587\u6863\u6807\u9898" ${editable ? "" : "readonly"}></div><span id="documentSaveStatus">${editable ? "\u5DF2\u4FDD\u5B58\u5230\u4E91\u7AEF" : "\u53EA\u8BFB\u6587\u6863"}</span></div></div><div class="document-top-actions">${editable ? btn("\u5206\u4EAB", "cloud-shares", resource.id, "primary") : ""}<button type="button" class="btn document-more" data-action="cloud-resource-more" data-id="${esc(resource.id)}" aria-haspopup="menu">\xB7\xB7\xB7</button></div></header><div class="document-toolbar"><span>\u6587\u6863</span><a href="/api/v1/resources/${enc(resource.id)}/download">\u4E0B\u8F7D\u539F\u6587\u4EF6</a></div><div class="document-recovery" id="structuredRecovery" hidden><strong>\u672C\u5730\u8BB0\u5F55</strong><span></span><button type="button" class="btn" data-structured-action="view-draft">\u67E5\u770B</button><button type="button" class="btn" data-structured-action="restore-draft">\u6062\u590D</button><button type="button" class="btn" data-structured-action="discard-draft">\u820D\u5F03</button></div><div class="document-conflict" id="documentConflict" hidden><strong>\u4E91\u7AEF\u5DF2\u6709\u66F4\u65B0</strong><span>\u81EA\u52A8\u4FDD\u5B58\u5DF2\u6682\u505C\uFF0C\u672C\u5730\u8BB0\u5F55\u5DF2\u4FDD\u7559\u3002</span><button type="button" class="btn" data-structured-action="download-draft">\u4E0B\u8F7D\u672C\u5730\u8BB0\u5F55</button><button type="button" class="btn" data-structured-action="reload-cloud">\u91CD\u65B0\u8BFB\u53D6\u4E91\u7AEF</button></div><div class="document-body"><aside class="document-outline" id="documentOutlinePanel"><div class="document-outline-header"><h2>\u76EE\u5F55</h2><button type="button" class="document-outline-collapse" data-structured-action="outline" aria-label="\u6536\u8D77\u76EE\u5F55">\xAB</button></div><ul id="documentOutline"></ul></aside><main class="document-stage"><div class="document-paper"><h1 class="document-paper-title"><input data-document-title value="${esc(paperTitle)}" placeholder="${editable ? "\u8BF7\u8F93\u5165\u6807\u9898" : ""}" maxlength="200" aria-label="\u6587\u6863\u6807\u9898" ${editable ? "" : "readonly"}></h1><div class="document-paper-byline"><span class="document-author-avatar" aria-hidden="true">${esc(Array.from(owner)[0] || "?")}</span><span class="document-author-name">${esc(owner)}</span><span class="document-byline-divider"></span><time id="documentModifiedAt" datetime="${esc(doc3.modifiedAt || "")}">${workspaceModifiedLabel(doc3.modifiedAt)}</time></div><div id="structuredEditor" class="document-rendered" aria-label="\u6587\u6863\u6B63\u6587"></div></div></main></div><div id="structuredSelectionTools" class="document-selection-tools" hidden><button type="button" data-editor-command="bold" title="\u52A0\u7C97 Ctrl+B"><b>B</b></button><button type="button" data-editor-command="h1">H1</button><button type="button" data-editor-command="h2">H2</button></div><div id="structuredSlashMenu" class="document-slash-menu" hidden><div class="document-slash-heading">\u5E38\u7528</div><button type="button" data-editor-command="formula" data-alias="gs eq formula"><span>\u{1D453}\u{1D465}</span>\u516C\u5F0F</button><button type="button" data-editor-command="h1" data-alias="h1 title"><span>H\u2081</span>\u4E00\u7EA7\u6807\u9898</button><button type="button" data-editor-command="h2" data-alias="h2 subtitle"><span>H\u2082</span>\u4E8C\u7EA7\u6807\u9898</button><button type="button" data-editor-command="bullet" data-alias="list bullet"><span>\u2261</span>\u9879\u76EE\u7B26\u53F7</button><button type="button" data-editor-command="quote" data-alias="quote"><span>\u275D</span>\u5F15\u7528</button></div><dialog id="structuredFormulaDialog" class="document-equation-dialog"><div class="document-equation-head"><strong>\u516C\u5F0F</strong><button type="button" data-structured-action="cancel-formula" aria-label="\u5173\u95ED">\xD7</button></div><div class="document-equation-kinds"><label><input type="radio" name="mathKind" value="inline" checked>\u884C\u5185\u516C\u5F0F</label><label><input type="radio" name="mathKind" value="block">\u72EC\u7ACB\u516C\u5F0F</label></div><textarea aria-label="LaTeX \u516C\u5F0F\u6E90\u7801" placeholder="\u4F8B\u5982 \\frac{a}{b}+x^2" spellcheck="false"></textarea><div class="document-equation-actions"><button type="button" class="btn" data-structured-action="cancel-formula">\u53D6\u6D88</button><button type="button" class="btn primary" data-structured-action="save-formula">\u5B8C\u6210</button></div></dialog><dialog id="structuredDraftDialog" class="document-local-dialog"><div class="document-local-head"><strong>\u672C\u5730\u8BB0\u5F55</strong><button type="button" data-structured-action="close-draft" aria-label="\u5173\u95ED">\xD7</button></div><textarea readonly aria-label="\u672C\u5730\u8BB0\u5F55\u5185\u5BB9"></textarea><div class="document-local-actions"><button type="button" class="btn" data-structured-action="download-draft">\u4E0B\u8F7D\u8BB0\u5F55</button></div></dialog></div>`;
   }
   document.addEventListener("mousedown", (event) => {
     if (event.target.closest("#structuredSelectionTools button,#structuredSlashMenu button")) event.preventDefault();
@@ -43664,7 +43690,7 @@ Please report this to https://github.com/markedjs/marked.`, e) {
     }
   });
   window.addEventListener("hashchange", () => {
-    if (current?.titleDirty) saveTitle().catch(() => {
+    if (current?.titleDirty) saveTitle(current, current.pendingTitle).catch(() => {
     });
     if (current?.dirty) save().catch(() => {
     });

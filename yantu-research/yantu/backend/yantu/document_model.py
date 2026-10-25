@@ -73,6 +73,33 @@ def _safe_link(href):
     return parsed.scheme == 'mailto' and bool(parsed.path)
 
 
+def _validate_table_grid(rows):
+    """Reject gaps and overlaps that the editor would silently repair on load."""
+    occupied = [set() for _ in rows]
+    width = None
+    for row_index, row in enumerate(rows):
+        column = 0
+        for cell in row['content']:
+            attrs = cell.get('attrs', {})
+            colspan = attrs.get('colspan', 1)
+            rowspan = attrs.get('rowspan', 1)
+            while column in occupied[row_index]:
+                column += 1
+            if column + colspan > 20 or row_index + rowspan > len(rows):
+                _invalid('表格结构无效')
+            for target_row in range(row_index, row_index + rowspan):
+                for target_column in range(column, column + colspan):
+                    if target_column in occupied[target_row]:
+                        _invalid('表格结构无效')
+                    occupied[target_row].add(target_column)
+            column += colspan
+        row_width = max(occupied[row_index], default=-1) + 1
+        if width is None:
+            width = row_width
+        if row_width != width or len(occupied[row_index]) != width:
+            _invalid('表格各行的列数必须一致')
+
+
 def validate_document(content, *, for_write=False):
     """Return the unchanged JSON and searchable text after structural checks."""
     if not isinstance(content, dict) or content.get('type') != 'doc':
@@ -185,6 +212,7 @@ def validate_document(content, *, for_write=False):
                     _invalid('表格单元格无效')
             widths = attrs.get('colwidth')
             if widths is not None and (not isinstance(widths, list) or len(widths) > 20 or
+                                       (for_write and len(widths) != attrs.get('colspan', 1)) or
                                        any(type(width) is not int or not 1 <= width <= 4000 for width in widths)):
                 _invalid('表格列宽无效')
         if kind == 'orderedList' and (type(attrs.get('start', 1)) is not int or attrs.get('start', 1) < 1):
@@ -208,6 +236,8 @@ def validate_document(content, *, for_write=False):
             _invalid('表格对齐方式无效')
         for child in children:
             visit(child, kind, depth + 1)
+        if kind == 'table' and for_write:
+            _validate_table_grid(children)
         count += 1
         if count > 200000:
             _invalid('文档内容最多 20 万字')

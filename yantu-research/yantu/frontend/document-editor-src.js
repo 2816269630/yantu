@@ -2,7 +2,7 @@ import { Editor } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import { Mathematics } from '@tiptap/extension-mathematics';
 import { Markdown } from '@tiptap/markdown';
-import { TableKit } from '@tiptap/extension-table';
+import { TableKit, TableCell, TableHeader } from '@tiptap/extension-table';
 import { UniqueID } from '@tiptap/extension-unique-id';
 
 // The editor state is the document. The DOM is only its view; no rendered block is
@@ -22,6 +22,17 @@ const tabId = (() => {
 const draftKey = id => `yantu:document-draft:${id}:${tabId}`;
 const snapshot = value => JSON.stringify(value);
 const blockTypes = new Set(['paragraph', 'heading', 'bulletList', 'orderedList', 'listItem', 'blockquote', 'codeBlock', 'horizontalRule', 'blockMath', 'table', 'tableRow', 'tableCell', 'tableHeader']);
+const safeCellColor = value => typeof value === 'string' && /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(value) ? value : null;
+const cellBackground = {
+  default: null,
+  parseHTML: element => safeCellColor(element.getAttribute('data-background')),
+  renderHTML: attributes => {
+    const color = safeCellColor(attributes.background);
+    return color ? { 'data-background': color, style: `background-color: ${color}` } : {};
+  },
+};
+const BackgroundTableCell = TableCell.extend({ addAttributes() { return { ...this.parent?.(), background: cellBackground }; } });
+const BackgroundTableHeader = TableHeader.extend({ addAttributes() { return { ...this.parent?.(), background: cellBackground }; } });
 const randomBlockId = () => crypto.randomUUID?.() || 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, letter => {
   const value = Math.floor(Math.random() * 16);
   return (letter === 'x' ? value : (value & 3) | 8).toString(16);
@@ -32,7 +43,11 @@ const status = (message, error = false) => {
   if (node) { node.textContent = message; node.classList.toggle('is-error', error); }
 };
 const content = (workspace = current) => workspace?.editor ? { schemaVersion: 2, ...workspace.editor.getJSON() } : null;
-const title = () => document.querySelector('#documentTitle')?.value.trim() || current?.resource.title || '';
+const untitledTitle = '未命名文档';
+const title = () => {
+  const input = document.querySelector('#documentTitle');
+  return input ? input.value.trim() || untitledTitle : current?.resource.title?.trim() || untitledTitle;
+};
 
 function repairBlockIds(editor) {
   const seen = new Set();
@@ -83,18 +98,26 @@ function outlineRows() {
   if (!root) return;
   const headings = [];
   current.editor.state.doc.descendants((node, pos) => {
-    if (node.type.name === 'heading') headings.push({ pos, level: node.attrs.level, text: node.textContent || '无标题' });
+    if (node.type.name === 'heading' && node.textContent.trim()) {
+      headings.push({ pos, level: node.attrs.level, text: node.textContent });
+    }
   });
-  root.innerHTML = `<li class="document-outline-root"><button type="button" class="document-outline-link" data-outline-top>${esc(title())}</button></li>`
-    + headings.map(item => `<li class="document-outline-item" style="padding-left:${Math.min(item.level - 1, 5) * 13}px"><button type="button" class="document-outline-link" data-outline-pos="${item.pos}">${esc(item.text)}</button></li>`).join('');
+  const visibleTitle = document.querySelector('.document-paper-title input')?.value.trim();
+  const rootRow = visibleTitle && visibleTitle !== untitledTitle
+    ? `<li class="document-outline-root"><button type="button" class="document-outline-link" data-outline-top>${esc(visibleTitle)}</button></li>` : '';
+  root.innerHTML = rootRow + headings.map(item => `<li class="document-outline-item" style="padding-left:${Math.min(item.level - 1, 5) * 13}px"><button type="button" class="document-outline-link" data-outline-pos="${item.pos}">${esc(item.text)}</button></li>`).join('');
 }
 function syncTitle(value, origin) {
-  document.querySelectorAll('[data-document-title]').forEach(input => { if (input !== origin) input.value = value; });
-  const root = document.querySelector('[data-outline-top]');
-  if (root) root.textContent = value;
+  const effective = value.trim() || untitledTitle;
+  document.querySelectorAll('[data-document-title]').forEach(input => {
+    if (input === origin) return;
+    input.value = input.id === 'documentTitle' ? effective : effective === untitledTitle ? '' : value;
+  });
+  outlineRows();
 }
 function queueTitle() {
   if (!current?.doc.canEdit) return;
+  current.pendingTitle = title();
   current.titleDirty = true; status('未保存'); persistDraft();
   clearTimeout(current.titleTimer);
   if (current.conflict) return;
@@ -103,20 +126,16 @@ function queueTitle() {
 }
 async function saveTitle(workspace = current, queuedTitle = null) {
   if (!workspace?.titleDirty || workspace.conflict) return;
-  const next = queuedTitle ?? (current === workspace ? title() : workspace.pendingTitle);
+  const next = (queuedTitle ?? (current === workspace ? title() : workspace.pendingTitle))?.trim() || untitledTitle;
   if (workspace.titleSaving) {
     if (queuedTitle !== null || !workspace.pendingTitle) workspace.pendingTitle = next;
     return;
   }
   clearTimeout(workspace.titleTimer);
-  if (!next) {
-    if (current === workspace) { syncTitle(workspace.resource.title); status('标题不能为空', true); }
-    workspace.titleDirty = false;
-    return;
-  }
   if (next === workspace.resource.title) {
     workspace.titleDirty = false;
-    if (current === workspace) clearDraft();
+    workspace.pendingTitle = null;
+    if (current === workspace) { syncTitle(next); clearDraft(); if (!workspace.dirty) status('已保存到云端'); }
     return;
   }
   workspace.titleSaving = true;
@@ -128,12 +147,12 @@ async function saveTitle(workspace = current, queuedTitle = null) {
     workspace.resource.title = updated.title; workspace.resource.fileName = updated.fileName;
     if (current === workspace) {
       document.title = `${updated.title} · 研途`;
-      if (title() === next) { syncTitle(next); workspace.titleDirty = false; }
+      if (title() === next) { syncTitle(next); workspace.titleDirty = false; workspace.pendingTitle = null; }
       else { workspace.titleDirty = true; workspace.pendingTitle = title(); persistDraft(); }
       if (!workspace.dirty && !workspace.titleDirty) status('已保存到云端');
       clearDraft();
     } else {
-      workspace.titleDirty = Boolean(workspace.pendingTitle && workspace.pendingTitle !== workspace.resource.title);
+      workspace.titleDirty = typeof workspace.pendingTitle === 'string' && workspace.pendingTitle !== workspace.resource.title;
     }
   } catch (error) {
     if (current === workspace) {
@@ -146,7 +165,7 @@ async function saveTitle(workspace = current, queuedTitle = null) {
     if (saved && workspace.titleDirty && !workspace.conflict) {
       const pendingTitle = workspace.pendingTitle;
       workspace.pendingTitle = null;
-      if (pendingTitle && pendingTitle !== workspace.resource.title) {
+      if (typeof pendingTitle === 'string' && pendingTitle !== workspace.resource.title) {
         saveTitle(workspace, pendingTitle).catch(error => {
           if (current === workspace && !workspace.conflict) status(error.message, true);
         });
@@ -319,7 +338,7 @@ function runCommand(command, slash = false) {
 function mount() {
   if (current?.editor) {
     if (current.dirty && !current.saving && !current.conflict) save(current).catch(() => {});
-    if (current.titleDirty && !current.titleSaving && !current.conflict) saveTitle(current, title()).catch(() => {});
+    if (current.titleDirty && !current.titleSaving && !current.conflict) saveTitle(current, current.pendingTitle).catch(() => {});
     current.editor.destroy(); clearTimeout(current.timer); clearTimeout(current.titleTimer);
   }
   current = null;
@@ -346,7 +365,8 @@ function mount() {
     },
     extensions: [StarterKit.configure({ heading: { levels: [1, 2, 3, 4, 5, 6] } }),
       UniqueID.configure({ types: ['paragraph', 'heading', 'bulletList', 'orderedList', 'listItem', 'blockquote', 'codeBlock', 'horizontalRule', 'blockMath', 'table', 'tableRow', 'tableCell', 'tableHeader'], updateDocument: doc.canEdit }),
-      TableKit, Mathematics.configure({
+      TableKit.configure({ tableCell: false, tableHeader: false }), BackgroundTableCell, BackgroundTableHeader,
+      Mathematics.configure({
       katexOptions: { throwOnError: false, trust: false, maxExpand: 1000, maxSize: 20 },
       inlineOptions: { onClick: (node, pos) => formulaDialog(node, pos) },
       blockOptions: { onClick: (node, pos) => formulaDialog(node, pos) },
@@ -398,9 +418,10 @@ function page(resource, doc) {
   document.body.classList.add('document-mode');
   document.title = `${resource.title} · 研途`;
   const editable = doc.canEdit;
+  const paperTitle = editable && resource.title === untitledTitle ? '' : resource.title;
   const owner = doc.owner || resource.owner || '未知作者';
   const back = state.driveReturn || 'resources';
-  return `<div class="document-workspace structured-workspace"><header class="document-topbar"><div class="document-top-left"><a class="document-home" href="#${esc(back)}" aria-label="返回我的云盘">${icon('back')}</a><span class="document-mark">${icon('file')}</span><div class="document-heading"><div class="document-title-top"><input id="documentTitle" data-document-title value="${esc(resource.title)}" maxlength="200" aria-label="文档标题" ${editable ? '' : 'readonly'}></div><span id="documentSaveStatus">${editable ? '已保存到云端' : '只读文档'}</span></div></div><div class="document-top-actions">${editable ? btn('分享', 'cloud-shares', resource.id, 'primary') : ''}<button type="button" class="btn document-more" data-action="cloud-resource-more" data-id="${esc(resource.id)}" aria-haspopup="menu">···</button></div></header><div class="document-toolbar"><span>文档</span><a href="/api/v1/resources/${enc(resource.id)}/download">下载原文件</a></div><div class="document-recovery" id="structuredRecovery" hidden><strong>本地记录</strong><span></span><button type="button" class="btn" data-structured-action="view-draft">查看</button><button type="button" class="btn" data-structured-action="restore-draft">恢复</button><button type="button" class="btn" data-structured-action="discard-draft">舍弃</button></div><div class="document-conflict" id="documentConflict" hidden><strong>云端已有更新</strong><span>自动保存已暂停，本地记录已保留。</span><button type="button" class="btn" data-structured-action="download-draft">下载本地记录</button><button type="button" class="btn" data-structured-action="reload-cloud">重新读取云端</button></div><div class="document-body"><aside class="document-outline" id="documentOutlinePanel"><div class="document-outline-header"><h2>目录</h2><button type="button" class="document-outline-collapse" data-structured-action="outline" aria-label="收起目录">«</button></div><ul id="documentOutline"></ul></aside><main class="document-stage"><div class="document-paper"><h1 class="document-paper-title"><input data-document-title value="${esc(resource.title)}" maxlength="200" aria-label="文档标题" ${editable ? '' : 'readonly'}></h1><div class="document-paper-byline"><span class="document-author-avatar" aria-hidden="true">${esc(Array.from(owner)[0] || '?')}</span><span class="document-author-name">${esc(owner)}</span><span class="document-byline-divider"></span><time id="documentModifiedAt" datetime="${esc(doc.modifiedAt || '')}">${workspaceModifiedLabel(doc.modifiedAt)}</time></div><div id="structuredEditor" class="document-rendered" aria-label="文档正文"></div></div></main></div><div id="structuredSelectionTools" class="document-selection-tools" hidden><button type="button" data-editor-command="bold" title="加粗 Ctrl+B"><b>B</b></button><button type="button" data-editor-command="h1">H1</button><button type="button" data-editor-command="h2">H2</button></div><div id="structuredSlashMenu" class="document-slash-menu" hidden><div class="document-slash-heading">常用</div><button type="button" data-editor-command="formula" data-alias="gs eq formula"><span>𝑓𝑥</span>公式</button><button type="button" data-editor-command="h1" data-alias="h1 title"><span>H₁</span>一级标题</button><button type="button" data-editor-command="h2" data-alias="h2 subtitle"><span>H₂</span>二级标题</button><button type="button" data-editor-command="bullet" data-alias="list bullet"><span>≡</span>项目符号</button><button type="button" data-editor-command="quote" data-alias="quote"><span>❝</span>引用</button></div><dialog id="structuredFormulaDialog" class="document-equation-dialog"><div class="document-equation-head"><strong>公式</strong><button type="button" data-structured-action="cancel-formula" aria-label="关闭">×</button></div><div class="document-equation-kinds"><label><input type="radio" name="mathKind" value="inline" checked>行内公式</label><label><input type="radio" name="mathKind" value="block">独立公式</label></div><textarea aria-label="LaTeX 公式源码" placeholder="例如 \\frac{a}{b}+x^2" spellcheck="false"></textarea><div class="document-equation-actions"><button type="button" class="btn" data-structured-action="cancel-formula">取消</button><button type="button" class="btn primary" data-structured-action="save-formula">完成</button></div></dialog><dialog id="structuredDraftDialog" class="document-local-dialog"><div class="document-local-head"><strong>本地记录</strong><button type="button" data-structured-action="close-draft" aria-label="关闭">×</button></div><textarea readonly aria-label="本地记录内容"></textarea><div class="document-local-actions"><button type="button" class="btn" data-structured-action="download-draft">下载记录</button></div></dialog></div>`;
+  return `<div class="document-workspace structured-workspace"><header class="document-topbar"><div class="document-top-left"><a class="document-home" href="#${esc(back)}" aria-label="返回我的云盘">${icon('back')}</a><span class="document-mark">${icon('file')}</span><div class="document-heading"><div class="document-title-top"><input id="documentTitle" data-document-title value="${esc(resource.title)}" maxlength="200" aria-label="文档标题" ${editable ? '' : 'readonly'}></div><span id="documentSaveStatus">${editable ? '已保存到云端' : '只读文档'}</span></div></div><div class="document-top-actions">${editable ? btn('分享', 'cloud-shares', resource.id, 'primary') : ''}<button type="button" class="btn document-more" data-action="cloud-resource-more" data-id="${esc(resource.id)}" aria-haspopup="menu">···</button></div></header><div class="document-toolbar"><span>文档</span><a href="/api/v1/resources/${enc(resource.id)}/download">下载原文件</a></div><div class="document-recovery" id="structuredRecovery" hidden><strong>本地记录</strong><span></span><button type="button" class="btn" data-structured-action="view-draft">查看</button><button type="button" class="btn" data-structured-action="restore-draft">恢复</button><button type="button" class="btn" data-structured-action="discard-draft">舍弃</button></div><div class="document-conflict" id="documentConflict" hidden><strong>云端已有更新</strong><span>自动保存已暂停，本地记录已保留。</span><button type="button" class="btn" data-structured-action="download-draft">下载本地记录</button><button type="button" class="btn" data-structured-action="reload-cloud">重新读取云端</button></div><div class="document-body"><aside class="document-outline" id="documentOutlinePanel"><div class="document-outline-header"><h2>目录</h2><button type="button" class="document-outline-collapse" data-structured-action="outline" aria-label="收起目录">«</button></div><ul id="documentOutline"></ul></aside><main class="document-stage"><div class="document-paper"><h1 class="document-paper-title"><input data-document-title value="${esc(paperTitle)}" placeholder="${editable ? '请输入标题' : ''}" maxlength="200" aria-label="文档标题" ${editable ? '' : 'readonly'}></h1><div class="document-paper-byline"><span class="document-author-avatar" aria-hidden="true">${esc(Array.from(owner)[0] || '?')}</span><span class="document-author-name">${esc(owner)}</span><span class="document-byline-divider"></span><time id="documentModifiedAt" datetime="${esc(doc.modifiedAt || '')}">${workspaceModifiedLabel(doc.modifiedAt)}</time></div><div id="structuredEditor" class="document-rendered" aria-label="文档正文"></div></div></main></div><div id="structuredSelectionTools" class="document-selection-tools" hidden><button type="button" data-editor-command="bold" title="加粗 Ctrl+B"><b>B</b></button><button type="button" data-editor-command="h1">H1</button><button type="button" data-editor-command="h2">H2</button></div><div id="structuredSlashMenu" class="document-slash-menu" hidden><div class="document-slash-heading">常用</div><button type="button" data-editor-command="formula" data-alias="gs eq formula"><span>𝑓𝑥</span>公式</button><button type="button" data-editor-command="h1" data-alias="h1 title"><span>H₁</span>一级标题</button><button type="button" data-editor-command="h2" data-alias="h2 subtitle"><span>H₂</span>二级标题</button><button type="button" data-editor-command="bullet" data-alias="list bullet"><span>≡</span>项目符号</button><button type="button" data-editor-command="quote" data-alias="quote"><span>❝</span>引用</button></div><dialog id="structuredFormulaDialog" class="document-equation-dialog"><div class="document-equation-head"><strong>公式</strong><button type="button" data-structured-action="cancel-formula" aria-label="关闭">×</button></div><div class="document-equation-kinds"><label><input type="radio" name="mathKind" value="inline" checked>行内公式</label><label><input type="radio" name="mathKind" value="block">独立公式</label></div><textarea aria-label="LaTeX 公式源码" placeholder="例如 \\frac{a}{b}+x^2" spellcheck="false"></textarea><div class="document-equation-actions"><button type="button" class="btn" data-structured-action="cancel-formula">取消</button><button type="button" class="btn primary" data-structured-action="save-formula">完成</button></div></dialog><dialog id="structuredDraftDialog" class="document-local-dialog"><div class="document-local-head"><strong>本地记录</strong><button type="button" data-structured-action="close-draft" aria-label="关闭">×</button></div><textarea readonly aria-label="本地记录内容"></textarea><div class="document-local-actions"><button type="button" class="btn" data-structured-action="download-draft">下载记录</button></div></dialog></div>`;
 }
 
 document.addEventListener('mousedown', event => {
@@ -477,7 +498,7 @@ window.addEventListener('beforeunload', event => {
   if (current?.dirty || current?.titleDirty) { event.preventDefault(); event.returnValue = ''; }
 });
 window.addEventListener('hashchange', () => {
-  if (current?.titleDirty) saveTitle().catch(() => {});
+  if (current?.titleDirty) saveTitle(current, current.pendingTitle).catch(() => {});
   if (current?.dirty) save().catch(() => {});
 });
 window.structuredDocumentPage = page;

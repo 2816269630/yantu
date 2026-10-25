@@ -164,6 +164,8 @@ def test_native_documents_and_text_workspace(drive):
                    [['数据', '42']] if kind == 'sheet' else [{'title': '第一页', 'body': '结论'}])
         saved = data(c.put(endpoint, headers=owner, json={'version': 1, 'content': content}))
         assert saved['version'] == 2 and saved['modifiedAt']
+        assert c.put(endpoint, headers=owner, json={'version': True, 'content': content}).status_code == 400
+        assert c.put(endpoint, headers=owner, json={'version': 2.0, 'content': content}).status_code == 400
         reopened = data(c.get(endpoint, headers=owner))
         assert reopened['content'] == content and reopened['modifiedAt'] == saved['modifiedAt']
         renamed = data(c.patch('/api/v1/resources/'+created['id'], headers=owner,
@@ -265,6 +267,19 @@ def test_document_model_v2_tables_ids_links_and_v1_read_compatibility(drive):
     invalid_alignment = json.loads(json.dumps(upgraded, ensure_ascii=False))
     invalid_alignment['content'][1]['content'][0]['content'][0]['attrs']['align'] = 'expression(alert(1))'
     assert c.put(endpoint, headers=owner, json={'version': 2, 'content': invalid_alignment}).status_code == 400
+    invalid_widths = json.loads(json.dumps(upgraded, ensure_ascii=False))
+    invalid_widths['content'][1]['content'][0]['content'][0]['attrs']['colwidth'] = [120, 160]
+    assert c.put(endpoint, headers=owner, json={'version': 2, 'content': invalid_widths}).status_code == 400
+    missing_cell = json.loads(json.dumps(upgraded, ensure_ascii=False))
+    missing_cell['content'][1]['content'][1]['content'].pop()
+    assert c.put(endpoint, headers=owner, json={'version': 2, 'content': missing_cell}).status_code == 400
+    old_irregular = data(upload(c, owner, key='legacy-irregular-table',
+                                content=json.dumps({'kind': 'document', 'content': missing_cell}, ensure_ascii=False).encode('utf-8'),
+                                filename='旧表格.ytdoc'), 201)
+    assert data(c.get('/api/v1/resources/'+old_irregular['id']+'/document', headers=owner))['content'] == missing_cell
+    merged_cell = json.loads(json.dumps(missing_cell, ensure_ascii=False))
+    merged_cell['content'][1]['content'][0]['content'][0]['attrs']['rowspan'] = 2
+    assert validate_document(merged_cell, for_write=True)[0] == merged_cell
     broken = json.loads(json.dumps(upgraded, ensure_ascii=False))
     broken['content'][1]['content'][0]['content'][0]['content'] = [{'type': 'text', 'text': '非法嵌套'}]
     assert c.put(endpoint, headers=owner, json={'version': 2, 'content': broken}).status_code == 400
