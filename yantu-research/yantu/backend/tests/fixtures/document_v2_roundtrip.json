@@ -1,0 +1,335 @@
+{
+  "schemaVersion": 2,
+  "type": "doc",
+  "content": [
+    {
+      "type": "heading",
+      "attrs": {
+        "id": "00000000-0000-4000-8000-000000000005",
+        "level": 2
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "内容模型"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "attrs": {
+        "id": "00000000-0000-4000-8000-000000000006"
+      },
+      "content": [
+        {
+          "type": "text",
+          "marks": [
+            {
+              "type": "bold"
+            }
+          ],
+          "text": "粗体"
+        },
+        {
+          "type": "hardBreak",
+          "marks": [{ "type": "bold" }]
+        },
+        {
+          "type": "text",
+          "marks": [
+            {
+              "type": "link",
+              "attrs": {
+                "href": "https://example.org",
+                "target": "_blank",
+                "rel": "noopener noreferrer nofollow",
+                "class": null,
+                "title": null
+              }
+            }
+          ],
+          "text": "链接"
+        },
+        {
+          "type": "text",
+          "marks": [{ "type": "italic" }],
+          "text": "斜体"
+        },
+        {
+          "type": "text",
+          "marks": [{ "type": "strike" }],
+          "text": "删除线"
+        },
+        {
+          "type": "text",
+          "marks": [{ "type": "underline" }],
+          "text": "下划线"
+        },
+        {
+          "type": "text",
+          "marks": [{ "type": "code" }],
+          "text": "代码"
+        },
+        {
+          "type": "inlineMath",
+          "attrs": {
+            "latex": "x^2+1"
+          },
+          "marks": [{ "type": "italic" }]
+        }
+      ]
+    },
+    {
+      "type": "bulletList",
+      "attrs": {
+        "id": "00000000-0000-4000-8000-000000000007"
+      },
+      "content": [
+        {
+          "type": "listItem",
+          "attrs": {
+            "id": "00000000-0000-4000-8000-000000000008"
+          },
+          "content": [
+            {
+              "type": "paragraph",
+              "attrs": {
+                "id": "00000000-0000-4000-8000-000000000009"
+              },
+              "content": [
+                {
+                  "type": "text",
+                  "text": "列表项"
+                }
+              ]
+            },
+            {
+              "type": "heading",
+              "attrs": {
+                "id": "00000000-0000-4000-8000-00000000000a",
+                "level": 3
+              },
+              "content": [
+                {
+                  "type": "text",
+                  "text": "列表内标题"
+                }
+              ]
+            },
+            {
+              "type": "blockMath",
+              "attrs": {
+                "id": "00000000-0000-4000-8000-00000000000b",
+                "latex": "\\frac{a}{b}"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "orderedList",
+      "attrs": {
+        "id": "00000000-0000-4000-8000-00000000000c",
+        "start": 3,
+        "type": null
+      },
+      "content": [
+        {
+          "type": "listItem",
+          "attrs": {
+            "id": "00000000-0000-4000-8000-00000000000d"
+          },
+          "content": [
+            {
+              "type": "paragraph",
+              "attrs": {
+                "id": "00000000-0000-4000-8000-00000000000e"
+              },
+              "content": [
+                {
+                  "type": "text",
+                  "text": "有序项"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "blockquote",
+      "attrs": {
+        "id": "00000000-0000-4000-8000-00000000000f"
+      },
+      "content": [
+        {
+          "type": "paragraph",
+          "attrs": {
+            "id": "00000000-0000-4000-8000-000000000010"
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "引用"
+            }
+          ]
+        },
+        {
+          "type": "blockquote",
+          "attrs": {
+            "id": "00000000-0000-4000-8000-000000000011"
+          },
+          "content": [
+            {
+              "type": "paragraph",
+              "attrs": {
+                "id": "00000000-0000-4000-8000-000000000012"
+              },
+              "content": [
+                {
+                  "type": "text",
+                  "text": "嵌套引用"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "attrs": {
+        "id": "00000000-0000-4000-8000-000000000013",
+        "language": "python"
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "print(1)"
+        }
+      ]
+    },
+    {
+      "type": "horizontalRule",
+      "attrs": {
+        "id": "00000000-0000-4000-8000-000000000014"
+      }
+    },
+    {
+      "type": "table",
+      "attrs": {
+        "id": "00000000-0000-4000-8000-000000000015"
+      },
+      "content": [
+        {
+          "type": "tableRow",
+          "attrs": {
+            "id": "00000000-0000-4000-8000-000000000016"
+          },
+          "content": [
+            {
+              "type": "tableHeader",
+              "attrs": {
+                "id": "00000000-0000-4000-8000-000000000017",
+                "colspan": 1,
+                "rowspan": 1,
+                "colwidth": null,
+                "align": "center",
+                "background": "#eef1ff"
+              },
+              "content": [
+                {
+                  "type": "paragraph",
+                  "attrs": {
+                    "id": "00000000-0000-4000-8000-000000000018"
+                  },
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "项目"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "tableRow",
+          "attrs": {
+            "id": "00000000-0000-4000-8000-000000000019"
+          },
+          "content": [
+            {
+              "type": "tableCell",
+              "attrs": {
+                "id": "00000000-0000-4000-8000-00000000001a",
+                "colspan": 1,
+                "rowspan": 1,
+                "colwidth": null,
+                "align": null,
+                "background": null
+              },
+              "content": [
+                {
+                  "type": "paragraph",
+                  "attrs": {
+                    "id": "00000000-0000-4000-8000-00000000001b"
+                  },
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "外层"
+                    }
+                  ]
+                },
+                {
+                  "type": "table",
+                  "attrs": {
+                    "id": "00000000-0000-4000-8000-000000000001"
+                  },
+                  "content": [
+                    {
+                      "type": "tableRow",
+                      "attrs": {
+                        "id": "00000000-0000-4000-8000-000000000002"
+                      },
+                      "content": [
+                        {
+                          "type": "tableCell",
+                          "attrs": {
+                            "id": "00000000-0000-4000-8000-000000000003",
+                            "colspan": 1,
+                            "rowspan": 1,
+                            "colwidth": null,
+                            "align": null,
+                            "background": null
+                          },
+                          "content": [
+                            {
+                              "type": "paragraph",
+                              "attrs": {
+                                "id": "00000000-0000-4000-8000-000000000004"
+                              },
+                              "content": [
+                                {
+                                  "type": "text",
+                                  "text": "内层单元格"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

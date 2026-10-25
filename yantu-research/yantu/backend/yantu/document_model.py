@@ -18,23 +18,21 @@ BLOCK_TYPES = {
     'table', 'tableRow', 'tableCell', 'tableHeader',
 }
 INLINE_TYPES = {'text', 'hardBreak', 'inlineMath'}
+CONTENT_BLOCKS = {'paragraph', 'heading', 'bulletList', 'orderedList', 'blockquote',
+                  'codeBlock', 'horizontalRule', 'blockMath', 'table'}
 CHILDREN = {
-    'doc': {'paragraph', 'heading', 'bulletList', 'orderedList', 'blockquote',
-            'codeBlock', 'horizontalRule', 'blockMath', 'table'},
+    'doc': CONTENT_BLOCKS,
     'paragraph': INLINE_TYPES,
     'heading': INLINE_TYPES,
     'bulletList': {'listItem'},
     'orderedList': {'listItem'},
-    'listItem': {'paragraph', 'bulletList', 'orderedList', 'blockquote', 'codeBlock', 'table'},
-    'blockquote': {'paragraph', 'heading', 'bulletList', 'orderedList', 'codeBlock',
-                   'horizontalRule', 'blockMath', 'table'},
+    'listItem': CONTENT_BLOCKS,
+    'blockquote': CONTENT_BLOCKS,
     'codeBlock': {'text'},
     'table': {'tableRow'},
     'tableRow': {'tableCell', 'tableHeader'},
-    'tableCell': {'paragraph', 'heading', 'bulletList', 'orderedList', 'blockquote',
-                  'codeBlock', 'horizontalRule', 'blockMath'},
-    'tableHeader': {'paragraph', 'heading', 'bulletList', 'orderedList', 'blockquote',
-                    'codeBlock', 'horizontalRule', 'blockMath'},
+    'tableCell': CONTENT_BLOCKS,
+    'tableHeader': CONTENT_BLOCKS,
     'text': set(), 'hardBreak': set(), 'inlineMath': set(),
     'horizontalRule': set(), 'blockMath': set(),
 }
@@ -100,8 +98,8 @@ def _validate_table_grid(rows):
             _invalid('表格各行的列数必须一致')
 
 
-def validate_document(content, *, for_write=False):
-    """Return the unchanged JSON and searchable text after structural checks."""
+def validate_document(content, *, for_write=False, for_editor=False):
+    """Return unchanged JSON and text; strict checks guard editor round trips."""
     if not isinstance(content, dict) or content.get('type') != 'doc':
         _invalid()
     version = content.get('schemaVersion')
@@ -109,6 +107,7 @@ def validate_document(content, *, for_write=False):
         _invalid('不支持的文档结构版本')
     if for_write and version != 2:
         _invalid('请先升级文档内容格式')
+    strict = for_write or for_editor
     if set(content) != {'schemaVersion', 'type', 'content'}:
         _invalid()
 
@@ -133,10 +132,16 @@ def validate_document(content, *, for_write=False):
         attrs = node.get('attrs', {})
         if not isinstance(attrs, dict):
             _invalid('文档属性无效')
-        if version == 2:
+        if version == 2 or for_editor:
             if not set(attrs) <= NODE_ATTRS[kind]:
                 _invalid('文档属性无效')
-            if kind in BLOCK_TYPES:
+            if version == 2 and strict:
+                required_attrs = NODE_ATTRS[kind]
+                if (required_attrs and ('attrs' not in node or set(attrs) != required_attrs)) or (
+                    not required_attrs and 'attrs' in node
+                ):
+                    _invalid('文档属性与编辑器结构不一致')
+            if version == 2 and kind in BLOCK_TYPES:
                 identifier = attrs.get('id')
                 if not isinstance(identifier, str):
                     _invalid('文档块缺少标识')
@@ -148,7 +153,7 @@ def validate_document(content, *, for_write=False):
                 if identifier in seen_ids:
                     _invalid('文档块标识重复')
                 seen_ids.add(identifier)
-            elif 'id' in attrs:
+            elif kind not in BLOCK_TYPES and 'id' in attrs:
                 _invalid('文档属性无效')
         if kind == 'heading' and (type(attrs.get('level')) is not int or not 1 <= attrs['level'] <= 6):
             _invalid('标题级别无效')
@@ -162,11 +167,20 @@ def validate_document(content, *, for_write=False):
             value = node.get('text')
             if not isinstance(value, str):
                 _invalid('文档文本无效')
+            if strict and not value:
+                _invalid('文档不能包含空文本节点')
             text_parts.append(value)
             count += len(value)
+        elif 'text' in node:
+            _invalid()
+        if kind in INLINE_TYPES:
             marks = node.get('marks', [])
             if not isinstance(marks, list):
                 _invalid('文档格式无效')
+            if strict and not marks and 'marks' in node:
+                _invalid('文档格式无效')
+            if parent == 'codeBlock' and marks:
+                _invalid('代码块不能包含文字格式')
             for mark in marks:
                 if not isinstance(mark, dict) or not isinstance(mark.get('type'), str) or mark['type'] not in MARKS:
                     _invalid('文档格式无效')
@@ -175,23 +189,33 @@ def validate_document(content, *, for_write=False):
                     if (not isinstance(link_attrs, dict) or not set(link_attrs) <= {'href', 'target', 'rel', 'class', 'title'}
                             or not _safe_link(link_attrs.get('href'))):
                         _invalid('链接地址无效')
+                    if strict and (set(mark) != {'type', 'attrs'} or
+                                   set(link_attrs) != {'href', 'target', 'rel', 'class', 'title'}):
+                        _invalid('链接属性与编辑器结构不一致')
                     if any(value is not None and not isinstance(value, str) for value in link_attrs.values()):
                         _invalid('链接地址无效')
                     if link_attrs.get('target') not in (None, '_blank', '_self') or any(
                         len(value) > 200 for key, value in link_attrs.items() if key != 'href' and isinstance(value, str)
                     ):
                         _invalid('链接地址无效')
-                elif version == 2 and set(mark) != {'type'}:
+                elif strict and set(mark) != {'type'}:
                     _invalid('文档格式无效')
-        elif 'text' in node or 'marks' in node:
+        elif 'marks' in node:
             _invalid()
         children = node.get('content', [])
         if not isinstance(children, list) or len(children) > 10000:
             _invalid()
+        if version == 2 and strict and not children and 'content' in node:
+            _invalid('空内容节点与编辑器结构不一致')
         if kind in ('text', 'hardBreak', 'inlineMath', 'horizontalRule', 'blockMath') and children:
             _invalid()
         if kind in ('doc', 'bulletList', 'orderedList', 'listItem', 'table', 'tableRow', 'tableCell', 'tableHeader') and not children:
             _invalid()
+        if strict and kind == 'blockquote' and not children:
+            _invalid('引用块不能为空')
+        if strict and kind == 'listItem' and (not children or not isinstance(children[0], dict)
+                                               or children[0].get('type') != 'paragraph'):
+            _invalid('列表项必须以段落开头')
         if kind == 'table' and (len(children) > 100 or not all(row.get('type') == 'tableRow' for row in children if isinstance(row, dict))):
             _invalid('表格最多 100 行')
         if kind == 'tableRow':
@@ -212,7 +236,7 @@ def validate_document(content, *, for_write=False):
                     _invalid('表格单元格无效')
             widths = attrs.get('colwidth')
             if widths is not None and (not isinstance(widths, list) or len(widths) > 20 or
-                                       (for_write and len(widths) != attrs.get('colspan', 1)) or
+                                       (strict and len(widths) != attrs.get('colspan', 1)) or
                                        any(type(width) is not int or not 1 <= width <= 4000 for width in widths)):
                 _invalid('表格列宽无效')
         if kind == 'orderedList' and (type(attrs.get('start', 1)) is not int or attrs.get('start', 1) < 1):
@@ -236,7 +260,7 @@ def validate_document(content, *, for_write=False):
             _invalid('表格对齐方式无效')
         for child in children:
             visit(child, kind, depth + 1)
-        if kind == 'table' and for_write:
+        if kind == 'table' and strict:
             _validate_table_grid(children)
         count += 1
         if count > 200000:

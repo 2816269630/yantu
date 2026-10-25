@@ -1,9 +1,5 @@
 import { Editor } from '@tiptap/core';
-import StarterKit from '@tiptap/starter-kit';
-import { Mathematics } from '@tiptap/extension-mathematics';
-import { Markdown } from '@tiptap/markdown';
-import { TableKit, TableCell, TableHeader } from '@tiptap/extension-table';
-import { UniqueID } from '@tiptap/extension-unique-id';
+import { createDocumentExtensions, documentBlockTypes } from './document-schema.mjs';
 
 // The editor state is the document. The DOM is only its view; no rendered block is
 // made temporarily editable and no Markdown string is reconstructed after typing.
@@ -21,18 +17,8 @@ const tabId = (() => {
 })();
 const draftKey = id => `yantu:document-draft:${id}:${tabId}`;
 const snapshot = value => JSON.stringify(value);
-const blockTypes = new Set(['paragraph', 'heading', 'bulletList', 'orderedList', 'listItem', 'blockquote', 'codeBlock', 'horizontalRule', 'blockMath', 'table', 'tableRow', 'tableCell', 'tableHeader']);
-const safeCellColor = value => typeof value === 'string' && /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(value) ? value : null;
-const cellBackground = {
-  default: null,
-  parseHTML: element => safeCellColor(element.getAttribute('data-background')),
-  renderHTML: attributes => {
-    const color = safeCellColor(attributes.background);
-    return color ? { 'data-background': color, style: `background-color: ${color}` } : {};
-  },
-};
-const BackgroundTableCell = TableCell.extend({ addAttributes() { return { ...this.parent?.(), background: cellBackground }; } });
-const BackgroundTableHeader = TableHeader.extend({ addAttributes() { return { ...this.parent?.(), background: cellBackground }; } });
+const blockTypes = new Set(documentBlockTypes);
+const validBlockId = value => typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(value);
 const randomBlockId = () => crypto.randomUUID?.() || 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, letter => {
   const value = Math.floor(Math.random() * 16);
   return (letter === 'x' ? value : (value & 3) | 8).toString(16);
@@ -55,7 +41,7 @@ function repairBlockIds(editor) {
   editor.state.doc.descendants((node, pos) => {
     if (!blockTypes.has(node.type.name)) return;
     let id = node.attrs.id;
-    if (typeof id !== 'string' || seen.has(id)) {
+    if (!validBlockId(id) || seen.has(id)) {
       id = randomBlockId();
       transaction.setNodeMarkup(pos, undefined, { ...node.attrs, id }, node.marks);
     }
@@ -246,6 +232,35 @@ function setContent(value) {
   else current.editor.commands.setContent(value, { emitUpdate: false });
   outlineRows();
 }
+async function convertDocument() {
+  const workspace = current;
+  if (!workspace?.doc.canConvert || workspace.conflict) return;
+  const button = document.querySelector('.document-compatibility [data-structured-action="convert-document"]');
+  if (button) button.disabled = true;
+  status('转换中…');
+  try {
+    repairBlockIds(workspace.editor);
+    const value = content(workspace);
+    const saved = await api(`/resources/${enc(workspace.resource.id)}/document`, 'PUT', {
+      version: workspace.doc.version, content: value,
+    });
+    workspace.doc.version = saved.version;
+    workspace.lastSaved = snapshot(value);
+    workspace.doc.canEdit = true;
+    workspace.doc.canConvert = false;
+    workspace.doc.compatibilityIssue = '';
+    if (current !== workspace) return;
+    workspace.editor.setEditable(true);
+    document.querySelectorAll('[data-document-title]').forEach(input => { input.readOnly = false; });
+    syncTitle(workspace.resource.title);
+    document.querySelector('.document-compatibility')?.remove();
+    status('已转换并保存到云端');
+  } catch (error) {
+    if (current !== workspace) return;
+    status(error.status === 409 ? '云端已有更新，请刷新后再转换' : `转换未完成，原文件未修改：${error.message}`, true);
+    if (button) button.disabled = false;
+  }
+}
 function formulaDialog(node = null, pos = null) {
   if (!current?.doc.canEdit) return;
   const dialog = document.querySelector('#structuredFormulaDialog');
@@ -363,14 +378,7 @@ function mount() {
         return false;
       },
     },
-    extensions: [StarterKit.configure({ heading: { levels: [1, 2, 3, 4, 5, 6] } }),
-      UniqueID.configure({ types: ['paragraph', 'heading', 'bulletList', 'orderedList', 'listItem', 'blockquote', 'codeBlock', 'horizontalRule', 'blockMath', 'table', 'tableRow', 'tableCell', 'tableHeader'], updateDocument: doc.canEdit }),
-      TableKit.configure({ tableCell: false, tableHeader: false }), BackgroundTableCell, BackgroundTableHeader,
-      Mathematics.configure({
-      katexOptions: { throwOnError: false, trust: false, maxExpand: 1000, maxSize: 20 },
-      inlineOptions: { onClick: (node, pos) => formulaDialog(node, pos) },
-      blockOptions: { onClick: (node, pos) => formulaDialog(node, pos) },
-    }), Markdown],
+    extensions: createDocumentExtensions({ editable: doc.canEdit, onMathClick: (node, pos) => formulaDialog(node, pos) }),
     content: typeof doc.content === 'string' ? doc.content : doc.content,
     contentType: typeof doc.content === 'string' ? 'markdown' : 'json',
     onUpdate: () => { if (current !== workspace || workspace.initializing || !workspace.editor || repairBlockIds(editor)) return; outlineRows(); queueSave(); updateMenus(); },
@@ -421,7 +429,9 @@ function page(resource, doc) {
   const paperTitle = editable && resource.title === untitledTitle ? '' : resource.title;
   const owner = doc.owner || resource.owner || '未知作者';
   const back = state.driveReturn || 'resources';
-  return `<div class="document-workspace structured-workspace"><header class="document-topbar"><div class="document-top-left"><a class="document-home" href="#${esc(back)}" aria-label="返回我的云盘">${icon('back')}</a><span class="document-mark">${icon('file')}</span><div class="document-heading"><div class="document-title-top"><input id="documentTitle" data-document-title value="${esc(resource.title)}" maxlength="200" aria-label="文档标题" ${editable ? '' : 'readonly'}></div><span id="documentSaveStatus">${editable ? '已保存到云端' : '只读文档'}</span></div></div><div class="document-top-actions">${editable ? btn('分享', 'cloud-shares', resource.id, 'primary') : ''}<button type="button" class="btn document-more" data-action="cloud-resource-more" data-id="${esc(resource.id)}" aria-haspopup="menu">···</button></div></header><div class="document-toolbar"><span>文档</span><a href="/api/v1/resources/${enc(resource.id)}/download">下载原文件</a></div><div class="document-recovery" id="structuredRecovery" hidden><strong>本地记录</strong><span></span><button type="button" class="btn" data-structured-action="view-draft">查看</button><button type="button" class="btn" data-structured-action="restore-draft">恢复</button><button type="button" class="btn" data-structured-action="discard-draft">舍弃</button></div><div class="document-conflict" id="documentConflict" hidden><strong>云端已有更新</strong><span>自动保存已暂停，本地记录已保留。</span><button type="button" class="btn" data-structured-action="download-draft">下载本地记录</button><button type="button" class="btn" data-structured-action="reload-cloud">重新读取云端</button></div><div class="document-body"><aside class="document-outline" id="documentOutlinePanel"><div class="document-outline-header"><h2>目录</h2><button type="button" class="document-outline-collapse" data-structured-action="outline" aria-label="收起目录">«</button></div><ul id="documentOutline"></ul></aside><main class="document-stage"><div class="document-paper"><h1 class="document-paper-title"><input data-document-title value="${esc(paperTitle)}" placeholder="${editable ? '请输入标题' : ''}" maxlength="200" aria-label="文档标题" ${editable ? '' : 'readonly'}></h1><div class="document-paper-byline"><span class="document-author-avatar" aria-hidden="true">${esc(Array.from(owner)[0] || '?')}</span><span class="document-author-name">${esc(owner)}</span><span class="document-byline-divider"></span><time id="documentModifiedAt" datetime="${esc(doc.modifiedAt || '')}">${workspaceModifiedLabel(doc.modifiedAt)}</time></div><div id="structuredEditor" class="document-rendered" aria-label="文档正文"></div></div></main></div><div id="structuredSelectionTools" class="document-selection-tools" hidden><button type="button" data-editor-command="bold" title="加粗 Ctrl+B"><b>B</b></button><button type="button" data-editor-command="h1">H1</button><button type="button" data-editor-command="h2">H2</button></div><div id="structuredSlashMenu" class="document-slash-menu" hidden><div class="document-slash-heading">常用</div><button type="button" data-editor-command="formula" data-alias="gs eq formula"><span>𝑓𝑥</span>公式</button><button type="button" data-editor-command="h1" data-alias="h1 title"><span>H₁</span>一级标题</button><button type="button" data-editor-command="h2" data-alias="h2 subtitle"><span>H₂</span>二级标题</button><button type="button" data-editor-command="bullet" data-alias="list bullet"><span>≡</span>项目符号</button><button type="button" data-editor-command="quote" data-alias="quote"><span>❝</span>引用</button></div><dialog id="structuredFormulaDialog" class="document-equation-dialog"><div class="document-equation-head"><strong>公式</strong><button type="button" data-structured-action="cancel-formula" aria-label="关闭">×</button></div><div class="document-equation-kinds"><label><input type="radio" name="mathKind" value="inline" checked>行内公式</label><label><input type="radio" name="mathKind" value="block">独立公式</label></div><textarea aria-label="LaTeX 公式源码" placeholder="例如 \\frac{a}{b}+x^2" spellcheck="false"></textarea><div class="document-equation-actions"><button type="button" class="btn" data-structured-action="cancel-formula">取消</button><button type="button" class="btn primary" data-structured-action="save-formula">完成</button></div></dialog><dialog id="structuredDraftDialog" class="document-local-dialog"><div class="document-local-head"><strong>本地记录</strong><button type="button" data-structured-action="close-draft" aria-label="关闭">×</button></div><textarea readonly aria-label="本地记录内容"></textarea><div class="document-local-actions"><button type="button" class="btn" data-structured-action="download-draft">下载记录</button></div></dialog></div>`;
+  const compatibilityNotice = doc.compatibilityIssue
+    ? `<div class="document-recovery document-compatibility"><strong>检查旧内容</strong><span>${esc(doc.compatibilityIssue)}${doc.canConvert ? '。原文件仍可下载查看。' : '。'}</span>${doc.canConvert ? '<button type="button" class="btn" data-structured-action="convert-document">确认转换并编辑</button>' : ''}</div>` : '';
+  return `<div class="document-workspace structured-workspace"><header class="document-topbar"><div class="document-top-left"><a class="document-home" href="#${esc(back)}" aria-label="返回我的云盘">${icon('back')}</a><span class="document-mark">${icon('file')}</span><div class="document-heading"><div class="document-title-top"><input id="documentTitle" data-document-title value="${esc(resource.title)}" maxlength="200" aria-label="文档标题" ${editable ? '' : 'readonly'}></div><span id="documentSaveStatus">${editable ? '已保存到云端' : '只读文档'}</span></div></div><div class="document-top-actions">${editable ? btn('分享', 'cloud-shares', resource.id, 'primary') : ''}<button type="button" class="btn document-more" data-action="cloud-resource-more" data-id="${esc(resource.id)}" aria-haspopup="menu">···</button></div></header><div class="document-toolbar"><span>文档</span><a href="/api/v1/resources/${enc(resource.id)}/download">下载原文件</a></div><div class="document-recovery" id="structuredRecovery" hidden><strong>本地记录</strong><span></span><button type="button" class="btn" data-structured-action="view-draft">查看</button><button type="button" class="btn" data-structured-action="restore-draft">恢复</button><button type="button" class="btn" data-structured-action="discard-draft">舍弃</button></div><div class="document-conflict" id="documentConflict" hidden><strong>云端已有更新</strong><span>自动保存已暂停，本地记录已保留。</span><button type="button" class="btn" data-structured-action="download-draft">下载本地记录</button><button type="button" class="btn" data-structured-action="reload-cloud">重新读取云端</button></div>${compatibilityNotice}<div class="document-body"><aside class="document-outline" id="documentOutlinePanel"><div class="document-outline-header"><h2>目录</h2><button type="button" class="document-outline-collapse" data-structured-action="outline" aria-label="收起目录">«</button></div><ul id="documentOutline"></ul></aside><main class="document-stage"><div class="document-paper"><h1 class="document-paper-title"><input data-document-title value="${esc(paperTitle)}" placeholder="${editable ? '请输入标题' : ''}" maxlength="200" aria-label="文档标题" ${editable ? '' : 'readonly'}></h1><div class="document-paper-byline"><span class="document-author-avatar" aria-hidden="true">${esc(Array.from(owner)[0] || '?')}</span><span class="document-author-name">${esc(owner)}</span><span class="document-byline-divider"></span><time id="documentModifiedAt" datetime="${esc(doc.modifiedAt || '')}">${workspaceModifiedLabel(doc.modifiedAt)}</time></div><div id="structuredEditor" class="document-rendered" aria-label="文档正文"></div></div></main></div><div id="structuredSelectionTools" class="document-selection-tools" hidden><button type="button" data-editor-command="bold" title="加粗 Ctrl+B"><b>B</b></button><button type="button" data-editor-command="h1">H1</button><button type="button" data-editor-command="h2">H2</button></div><div id="structuredSlashMenu" class="document-slash-menu" hidden><div class="document-slash-heading">常用</div><button type="button" data-editor-command="formula" data-alias="gs eq formula"><span>𝑓𝑥</span>公式</button><button type="button" data-editor-command="h1" data-alias="h1 title"><span>H₁</span>一级标题</button><button type="button" data-editor-command="h2" data-alias="h2 subtitle"><span>H₂</span>二级标题</button><button type="button" data-editor-command="bullet" data-alias="list bullet"><span>≡</span>项目符号</button><button type="button" data-editor-command="quote" data-alias="quote"><span>❝</span>引用</button></div><dialog id="structuredFormulaDialog" class="document-equation-dialog"><div class="document-equation-head"><strong>公式</strong><button type="button" data-structured-action="cancel-formula" aria-label="关闭">×</button></div><div class="document-equation-kinds"><label><input type="radio" name="mathKind" value="inline" checked>行内公式</label><label><input type="radio" name="mathKind" value="block">独立公式</label></div><textarea aria-label="LaTeX 公式源码" placeholder="例如 \\frac{a}{b}+x^2" spellcheck="false"></textarea><div class="document-equation-actions"><button type="button" class="btn" data-structured-action="cancel-formula">取消</button><button type="button" class="btn primary" data-structured-action="save-formula">完成</button></div></dialog><dialog id="structuredDraftDialog" class="document-local-dialog"><div class="document-local-head"><strong>本地记录</strong><button type="button" data-structured-action="close-draft" aria-label="关闭">×</button></div><textarea readonly aria-label="本地记录内容"></textarea><div class="document-local-actions"><button type="button" class="btn" data-structured-action="download-draft">下载记录</button></div></dialog></div>`;
 }
 
 document.addEventListener('mousedown', event => {
@@ -444,6 +454,7 @@ document.addEventListener('click', event => {
   }
   if (event.target.closest('[data-outline-top]')) { scrollTo({ top: 0, behavior: 'smooth' }); return; }
   const action = event.target.closest('[data-structured-action]')?.dataset.structuredAction;
+  if (action === 'convert-document') { convertDocument(); return; }
   if (action === 'outline') {
     const panel = document.querySelector('#documentOutlinePanel'); panel.classList.toggle('is-collapsed');
     event.target.textContent = panel.classList.contains('is-collapsed') ? '»' : '«'; return;

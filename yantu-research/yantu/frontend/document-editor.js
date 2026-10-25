@@ -37750,2588 +37750,6 @@ ${prefix}
     }
   });
 
-  // node_modules/marked/lib/marked.esm.js
-  function M() {
-    return { async: false, breaks: false, extensions: null, gfm: true, hooks: null, pedantic: false, renderer: null, silent: false, tokenizer: null, walkTokens: null };
-  }
-  var O = M();
-  function G(u3) {
-    O = u3;
-  }
-  var _ = { exec: () => null };
-  function k(u3, e = "") {
-    let t = typeof u3 == "string" ? u3 : u3.source, n = { replace: (r, i) => {
-      let s = typeof i == "string" ? i : i.source;
-      return s = s.replace(m.caret, "$1"), t = t.replace(r, s), n;
-    }, getRegex: () => new RegExp(t, e) };
-    return n;
-  }
-  var be = (() => {
-    try {
-      return !!new RegExp("(?<=1)(?<!1)");
-    } catch {
-      return false;
-    }
-  })();
-  var m = { codeRemoveIndent: /^(?: {1,4}| {0,3}\t)/gm, outputLinkReplace: /\\([\[\]])/g, indentCodeCompensation: /^(\s+)(?:```)/, beginningSpace: /^\s+/, endingHash: /#$/, startingSpaceChar: /^ /, endingSpaceChar: / $/, nonSpaceChar: /[^ ]/, newLineCharGlobal: /\n/g, tabCharGlobal: /\t/g, multipleSpaceGlobal: /\s+/g, blankLine: /^[ \t]*$/, doubleBlankLine: /\n[ \t]*\n[ \t]*$/, blockquoteStart: /^ {0,3}>/, blockquoteSetextReplace: /\n {0,3}((?:=+|-+) *)(?=\n|$)/g, blockquoteSetextReplace2: /^ {0,3}>[ \t]?/gm, listReplaceNesting: /^ {1,4}(?=( {4})*[^ ])/g, listIsTask: /^\[[ xX]\] +\S/, listReplaceTask: /^\[[ xX]\] +/, listTaskCheckbox: /\[[ xX]\]/, anyLine: /\n.*\n/, hrefBrackets: /^<(.*)>$/, tableDelimiter: /[:|]/, tableAlignChars: /^\||\| *$/g, tableRowBlankLine: /\n[ \t]*$/, tableAlignRight: /^ *-+: *$/, tableAlignCenter: /^ *:-+: *$/, tableAlignLeft: /^ *:-+ *$/, startATag: /^<a /i, endATag: /^<\/a>/i, startPreScriptTag: /^<(pre|code|kbd|script)(\s|>)/i, endPreScriptTag: /^<\/(pre|code|kbd|script)(\s|>)/i, startAngleBracket: /^</, endAngleBracket: />$/, pedanticHrefTitle: /^([^'"]*[^\s])\s+(['"])(.*)\2/, unicodeAlphaNumeric: /[\p{L}\p{N}]/u, escapeTest: /[&<>"']/, escapeReplace: /[&<>"']/g, escapeTestNoEncode: /[<>"']|&(?!(#\d{1,7}|#[Xx][a-fA-F0-9]{1,6}|\w+);)/, escapeReplaceNoEncode: /[<>"']|&(?!(#\d{1,7}|#[Xx][a-fA-F0-9]{1,6}|\w+);)/g, caret: /(^|[^\[])\^/g, percentDecode: /%25/g, findPipe: /\|/g, splitPipe: / \|/, slashPipe: /\\\|/g, carriageReturn: /\r\n|\r/g, spaceLine: /^ +$/gm, notSpaceStart: /^\S*/, endingNewline: /\n$/, listItemRegex: (u3) => new RegExp(`^( {0,3}${u3})((?:[	 ][^\\n]*)?(?:\\n|$))`), nextBulletRegex: (u3) => new RegExp(`^ {0,${Math.min(3, u3 - 1)}}(?:[*+-]|\\d{1,9}[.)])((?:[ 	][^\\n]*)?(?:\\n|$))`), hrRegex: (u3) => new RegExp(`^ {0,${Math.min(3, u3 - 1)}}((?:- *){3,}|(?:_ *){3,}|(?:\\* *){3,})(?:\\n+|$)`), fencesBeginRegex: (u3) => new RegExp(`^ {0,${Math.min(3, u3 - 1)}}(?:\`\`\`|~~~)`), headingBeginRegex: (u3) => new RegExp(`^ {0,${Math.min(3, u3 - 1)}}#`), htmlBeginRegex: (u3) => new RegExp(`^ {0,${Math.min(3, u3 - 1)}}<(?:[a-z].*>|!--)`, "i"), blockquoteBeginRegex: (u3) => new RegExp(`^ {0,${Math.min(3, u3 - 1)}}>`) };
-  var Re = /^(?:[ \t]*(?:\n|$))+/;
-  var Oe = /^((?: {4}| {0,3}\t)[^\n]+(?:\n(?:[ \t]*(?:\n|$))*)?)+/;
-  var Te = /^ {0,3}(`{3,}(?=[^`\n]*(?:\n|$))|~{3,})([^\n]*)(?:\n|$)(?:|([\s\S]*?)(?:\n|$))(?: {0,3}\1[~`]* *(?=\n|$)|$)/;
-  var C = /^ {0,3}((?:-[\t ]*){3,}|(?:_[ \t]*){3,}|(?:\*[ \t]*){3,})(?:\n+|$)/;
-  var we = /^ {0,3}(#{1,6})(?=\s|$)(.*)(?:\n+|$)/;
-  var Q = / {0,3}(?:[*+-]|\d{1,9}[.)])/;
-  var se = /^(?!bull |blockCode|fences|blockquote|heading|html|table)((?:.|\n(?!\s*?\n|bull |blockCode|fences|blockquote|heading|html|table))+?)\n {0,3}(=+|-+) *(?:\n+|$)/;
-  var ie3 = k(se).replace(/bull/g, Q).replace(/blockCode/g, /(?: {4}| {0,3}\t)/).replace(/fences/g, / {0,3}(?:`{3,}|~{3,})/).replace(/blockquote/g, / {0,3}>/).replace(/heading/g, / {0,3}#{1,6}/).replace(/html/g, / {0,3}<[^\n>]+>\n/).replace(/\|table/g, "").getRegex();
-  var ye = k(se).replace(/bull/g, Q).replace(/blockCode/g, /(?: {4}| {0,3}\t)/).replace(/fences/g, / {0,3}(?:`{3,}|~{3,})/).replace(/blockquote/g, / {0,3}>/).replace(/heading/g, / {0,3}#{1,6}/).replace(/html/g, / {0,3}<[^\n>]+>\n/).replace(/table/g, / {0,3}\|?(?:[:\- ]*\|)+[\:\- ]*\n/).getRegex();
-  var j = /^([^\n]+(?:\n(?!hr|heading|lheading|blockquote|fences|list|html|table| +\n)[^\n]+)*)/;
-  var Pe = /^[^\n]+/;
-  var F = /(?!\s*\])(?:\\[\s\S]|[^\[\]\\])+/;
-  var Se = k(/^ {0,3}\[(label)\]: *(?:\n[ \t]*)?([^<\s][^\s]*|<.*?>)(?:(?: +(?:\n[ \t]*)?| *\n[ \t]*)(title))? *(?:\n+|$)/).replace("label", F).replace("title", /(?:"(?:\\"?|[^"\\])*"|'[^'\n]*(?:\n[^'\n]+)*\n?'|\([^()]*\))/).getRegex();
-  var $e = k(/^(bull)([ \t][^\n]+?)?(?:\n|$)/).replace(/bull/g, Q).getRegex();
-  var v = "address|article|aside|base|basefont|blockquote|body|caption|center|col|colgroup|dd|details|dialog|dir|div|dl|dt|fieldset|figcaption|figure|footer|form|frame|frameset|h[1-6]|head|header|hr|html|iframe|legend|li|link|main|menu|menuitem|meta|nav|noframes|ol|optgroup|option|p|param|search|section|summary|table|tbody|td|tfoot|th|thead|title|tr|track|ul";
-  var U = /<!--(?:-?>|[\s\S]*?(?:-->|$))/;
-  var _e = k("^ {0,3}(?:<(script|pre|style|textarea)[\\s>][\\s\\S]*?(?:</\\1>[^\\n]*\\n+|$)|comment[^\\n]*(\\n+|$)|<\\?[\\s\\S]*?(?:\\?>\\n*|$)|<![A-Z][\\s\\S]*?(?:>\\n*|$)|<!\\[CDATA\\[[\\s\\S]*?(?:\\]\\]>\\n*|$)|</?(tag)(?: +|\\n|/?>)[\\s\\S]*?(?:(?:\\n[ 	]*)+\\n|$)|<(?!script|pre|style|textarea)([a-z][\\w-]*)(?:attribute)*? */?>(?=[ \\t]*(?:\\n|$))[\\s\\S]*?(?:(?:\\n[ 	]*)+\\n|$)|</(?!script|pre|style|textarea)[a-z][\\w-]*\\s*>(?=[ \\t]*(?:\\n|$))[\\s\\S]*?(?:(?:\\n[ 	]*)+\\n|$))", "i").replace("comment", U).replace("tag", v).replace("attribute", / +[a-zA-Z:_][\w.:-]*(?: *= *"[^"\n]*"| *= *'[^'\n]*'| *= *[^\s"'=<>`]+)?/).getRegex();
-  var oe = k(j).replace("hr", C).replace("heading", " {0,3}#{1,6}(?:\\s|$)").replace("|lheading", "").replace("|table", "").replace("blockquote", " {0,3}>").replace("fences", " {0,3}(?:`{3,}(?=[^`\\n]*\\n)|~{3,})[^\\n]*\\n").replace("list", " {0,3}(?:[*+-]|1[.)])[ \\t]").replace("html", "</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|textarea|!--)").replace("tag", v).getRegex();
-  var Le = k(/^( {0,3}> ?(paragraph|[^\n]*)(?:\n|$))+/).replace("paragraph", oe).getRegex();
-  var K = { blockquote: Le, code: Oe, def: Se, fences: Te, heading: we, hr: C, html: _e, lheading: ie3, list: $e, newline: Re, paragraph: oe, table: _, text: Pe };
-  var ne = k("^ *([^\\n ].*)\\n {0,3}((?:\\| *)?:?-+:? *(?:\\| *:?-+:? *)*(?:\\| *)?)(?:\\n((?:(?! *\\n|hr|heading|blockquote|code|fences|list|html).*(?:\\n|$))*)\\n*|$)").replace("hr", C).replace("heading", " {0,3}#{1,6}(?:\\s|$)").replace("blockquote", " {0,3}>").replace("code", "(?: {4}| {0,3}	)[^\\n]").replace("fences", " {0,3}(?:`{3,}(?=[^`\\n]*\\n)|~{3,})[^\\n]*\\n").replace("list", " {0,3}(?:[*+-]|1[.)])[ \\t]").replace("html", "</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|textarea|!--)").replace("tag", v).getRegex();
-  var Me = { ...K, lheading: ye, table: ne, paragraph: k(j).replace("hr", C).replace("heading", " {0,3}#{1,6}(?:\\s|$)").replace("|lheading", "").replace("table", ne).replace("blockquote", " {0,3}>").replace("fences", " {0,3}(?:`{3,}(?=[^`\\n]*\\n)|~{3,})[^\\n]*\\n").replace("list", " {0,3}(?:[*+-]|1[.)])[ \\t]").replace("html", "</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|textarea|!--)").replace("tag", v).getRegex() };
-  var ze = { ...K, html: k(`^ *(?:comment *(?:\\n|\\s*$)|<(tag)[\\s\\S]+?</\\1> *(?:\\n{2,}|\\s*$)|<tag(?:"[^"]*"|'[^']*'|\\s[^'"/>\\s]*)*?/?> *(?:\\n{2,}|\\s*$))`).replace("comment", U).replace(/tag/g, "(?!(?:a|em|strong|small|s|cite|q|dfn|abbr|data|time|code|var|samp|kbd|sub|sup|i|b|u|mark|ruby|rt|rp|bdi|bdo|span|br|wbr|ins|del|img)\\b)\\w+(?!:|[^\\w\\s@]*@)\\b").getRegex(), def: /^ *\[([^\]]+)\]: *<?([^\s>]+)>?(?: +(["(][^\n]+[")]))? *(?:\n+|$)/, heading: /^(#{1,6})(.*)(?:\n+|$)/, fences: _, lheading: /^(.+?)\n {0,3}(=+|-+) *(?:\n+|$)/, paragraph: k(j).replace("hr", C).replace("heading", ` *#{1,6} *[^
-]`).replace("lheading", ie3).replace("|table", "").replace("blockquote", " {0,3}>").replace("|fences", "").replace("|list", "").replace("|html", "").replace("|tag", "").getRegex() };
-  var Ee = /^\\([!"#$%&'()*+,\-./:;<=>?@\[\]\\^_`{|}~])/;
-  var Ie = /^(`+)([^`]|[^`][\s\S]*?[^`])\1(?!`)/;
-  var ae = /^( {2,}|\\)\n(?!\s*$)/;
-  var Ae = /^(`+|[^`])(?:(?= {2,}\n)|[\s\S]*?(?:(?=[\\<!\[`*_]|\b_|$)|[^ ](?= {2,}\n)))/;
-  var z = /[\p{P}\p{S}]/u;
-  var H = /[\s\p{P}\p{S}]/u;
-  var W = /[^\s\p{P}\p{S}]/u;
-  var Ce = k(/^((?![*_])punctSpace)/, "u").replace(/punctSpace/g, H).getRegex();
-  var le = /(?!~)[\p{P}\p{S}]/u;
-  var Be = /(?!~)[\s\p{P}\p{S}]/u;
-  var De = /(?:[^\s\p{P}\p{S}]|~)/u;
-  var qe = k(/link|precode-code|html/, "g").replace("link", /\[(?:[^\[\]`]|(?<a>`+)[^`]+\k<a>(?!`))*?\]\((?:\\[\s\S]|[^\\\(\)]|\((?:\\[\s\S]|[^\\\(\)])*\))*\)/).replace("precode-", be ? "(?<!`)()" : "(^^|[^`])").replace("code", /(?<b>`+)[^`]+\k<b>(?!`)/).replace("html", /<(?! )[^<>]*?>/).getRegex();
-  var ue = /^(?:\*+(?:((?!\*)punct)|([^\s*]))?)|^_+(?:((?!_)punct)|([^\s_]))?/;
-  var ve = k(ue, "u").replace(/punct/g, z).getRegex();
-  var He = k(ue, "u").replace(/punct/g, le).getRegex();
-  var pe = "^[^_*]*?__[^_*]*?\\*[^_*]*?(?=__)|[^*]+(?=[^*])|(?!\\*)punct(\\*+)(?=[\\s]|$)|notPunctSpace(\\*+)(?!\\*)(?=punctSpace|$)|(?!\\*)punctSpace(\\*+)(?=notPunctSpace)|[\\s](\\*+)(?!\\*)(?=punct)|(?!\\*)punct(\\*+)(?!\\*)(?=punct)|notPunctSpace(\\*+)(?=notPunctSpace)";
-  var Ze = k(pe, "gu").replace(/notPunctSpace/g, W).replace(/punctSpace/g, H).replace(/punct/g, z).getRegex();
-  var Ge = k(pe, "gu").replace(/notPunctSpace/g, De).replace(/punctSpace/g, Be).replace(/punct/g, le).getRegex();
-  var Ne = k("^[^_*]*?\\*\\*[^_*]*?_[^_*]*?(?=\\*\\*)|[^_]+(?=[^_])|(?!_)punct(_+)(?=[\\s]|$)|notPunctSpace(_+)(?!_)(?=punctSpace|$)|(?!_)punctSpace(_+)(?=notPunctSpace)|[\\s](_+)(?!_)(?=punct)|(?!_)punct(_+)(?!_)(?=punct)", "gu").replace(/notPunctSpace/g, W).replace(/punctSpace/g, H).replace(/punct/g, z).getRegex();
-  var Qe = k(/^~~?(?:((?!~)punct)|[^\s~])/, "u").replace(/punct/g, z).getRegex();
-  var je = "^[^~]+(?=[^~])|(?!~)punct(~~?)(?=[\\s]|$)|notPunctSpace(~~?)(?!~)(?=punctSpace|$)|(?!~)punctSpace(~~?)(?=notPunctSpace)|[\\s](~~?)(?!~)(?=punct)|(?!~)punct(~~?)(?!~)(?=punct)|notPunctSpace(~~?)(?=notPunctSpace)";
-  var Fe = k(je, "gu").replace(/notPunctSpace/g, W).replace(/punctSpace/g, H).replace(/punct/g, z).getRegex();
-  var Ue = k(/\\(punct)/, "gu").replace(/punct/g, z).getRegex();
-  var Ke = k(/^<(scheme:[^\s\x00-\x1f<>]*|email)>/).replace("scheme", /[a-zA-Z][a-zA-Z0-9+.-]{1,31}/).replace("email", /[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+(@)[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+(?![-_])/).getRegex();
-  var We = k(U).replace("(?:-->|$)", "-->").getRegex();
-  var Xe = k("^comment|^</[a-zA-Z][\\w:-]*\\s*>|^<[a-zA-Z][\\w-]*(?:attribute)*?\\s*/?>|^<\\?[\\s\\S]*?\\?>|^<![a-zA-Z]+\\s[\\s\\S]*?>|^<!\\[CDATA\\[[\\s\\S]*?\\]\\]>").replace("comment", We).replace("attribute", /\s+[a-zA-Z:_][\w.:-]*(?:\s*=\s*"[^"]*"|\s*=\s*'[^']*'|\s*=\s*[^\s"'=<>`]+)?/).getRegex();
-  var q = /(?:\[(?:\\[\s\S]|[^\[\]\\])*\]|\\[\s\S]|`+(?!`)[^`]*?`+(?!`)|``+(?=\])|[^\[\]\\`])*?/;
-  var Je = k(/^!?\[(label)\]\(\s*(href)(?:(?:[ \t]+(?:\n[ \t]*)?|\n[ \t]*)(title))?\s*\)/).replace("label", q).replace("href", /<(?:\\.|[^\n<>\\])+>|[^ \t\n\x00-\x1f]*/).replace("title", /"(?:\\"?|[^"\\])*"|'(?:\\'?|[^'\\])*'|\((?:\\\)?|[^)\\])*\)/).getRegex();
-  var ce = k(/^!?\[(label)\]\[(ref)\]/).replace("label", q).replace("ref", F).getRegex();
-  var he = k(/^!?\[(ref)\](?:\[\])?/).replace("ref", F).getRegex();
-  var Ve = k("reflink|nolink(?!\\()", "g").replace("reflink", ce).replace("nolink", he).getRegex();
-  var re = /[hH][tT][tT][pP][sS]?|[fF][tT][pP]/;
-  var X = { _backpedal: _, anyPunctuation: Ue, autolink: Ke, blockSkip: qe, br: ae, code: Ie, del: _, delLDelim: _, delRDelim: _, emStrongLDelim: ve, emStrongRDelimAst: Ze, emStrongRDelimUnd: Ne, escape: Ee, link: Je, nolink: he, punctuation: Ce, reflink: ce, reflinkSearch: Ve, tag: Xe, text: Ae, url: _ };
-  var Ye = { ...X, link: k(/^!?\[(label)\]\((.*?)\)/).replace("label", q).getRegex(), reflink: k(/^!?\[(label)\]\s*\[([^\]]*)\]/).replace("label", q).getRegex() };
-  var N = { ...X, emStrongRDelimAst: Ge, emStrongLDelim: He, delLDelim: Qe, delRDelim: Fe, url: k(/^((?:protocol):\/\/|www\.)(?:[a-zA-Z0-9\-]+\.?)+[^\s<]*|^email/).replace("protocol", re).replace("email", /[A-Za-z0-9._+-]+(@)[a-zA-Z0-9-_]+(?:\.[a-zA-Z0-9-_]*[a-zA-Z0-9])+(?![-_])/).getRegex(), _backpedal: /(?:[^?!.,:;*_'"~()&]+|\([^)]*\)|&(?![a-zA-Z0-9]+;$)|[?!.,:;*_'"~)]+(?!$))+/, del: /^(~~?)(?=[^\s~])((?:\\[\s\S]|[^\\])*?(?:\\[\s\S]|[^\s~\\]))\1(?=[^~]|$)/, text: k(/^([`~]+|[^`~])(?:(?= {2,}\n)|(?=[a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-]+@)|[\s\S]*?(?:(?=[\\<!\[`*~_]|\b_|protocol:\/\/|www\.|$)|[^ ](?= {2,}\n)|[^a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-](?=[a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-]+@)))/).replace("protocol", re).getRegex() };
-  var et = { ...N, br: k(ae).replace("{2,}", "*").getRegex(), text: k(N.text).replace("\\b_", "\\b_| {2,}\\n").replace(/\{2,\}/g, "*").getRegex() };
-  var B = { normal: K, gfm: Me, pedantic: ze };
-  var E = { normal: X, gfm: N, breaks: et, pedantic: Ye };
-  var tt2 = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
-  var ke = (u3) => tt2[u3];
-  function T2(u3, e) {
-    if (e) {
-      if (m.escapeTest.test(u3)) return u3.replace(m.escapeReplace, ke);
-    } else if (m.escapeTestNoEncode.test(u3)) return u3.replace(m.escapeReplaceNoEncode, ke);
-    return u3;
-  }
-  function J(u3) {
-    try {
-      u3 = encodeURI(u3).replace(m.percentDecode, "%");
-    } catch {
-      return null;
-    }
-    return u3;
-  }
-  function V(u3, e) {
-    let t = u3.replace(m.findPipe, (i, s, a) => {
-      let o = false, l = s;
-      for (; --l >= 0 && a[l] === "\\"; ) o = !o;
-      return o ? "|" : " |";
-    }), n = t.split(m.splitPipe), r = 0;
-    if (n[0].trim() || n.shift(), n.length > 0 && !n.at(-1)?.trim() && n.pop(), e) if (n.length > e) n.splice(e);
-    else for (; n.length < e; ) n.push("");
-    for (; r < n.length; r++) n[r] = n[r].trim().replace(m.slashPipe, "|");
-    return n;
-  }
-  function I(u3, e, t) {
-    let n = u3.length;
-    if (n === 0) return "";
-    let r = 0;
-    for (; r < n; ) {
-      let i = u3.charAt(n - r - 1);
-      if (i === e && !t) r++;
-      else if (i !== e && t) r++;
-      else break;
-    }
-    return u3.slice(0, n - r);
-  }
-  function de(u3, e) {
-    if (u3.indexOf(e[1]) === -1) return -1;
-    let t = 0;
-    for (let n = 0; n < u3.length; n++) if (u3[n] === "\\") n++;
-    else if (u3[n] === e[0]) t++;
-    else if (u3[n] === e[1] && (t--, t < 0)) return n;
-    return t > 0 ? -2 : -1;
-  }
-  function ge(u3, e = 0) {
-    let t = e, n = "";
-    for (let r of u3) if (r === "	") {
-      let i = 4 - t % 4;
-      n += " ".repeat(i), t += i;
-    } else n += r, t++;
-    return n;
-  }
-  function fe(u3, e, t, n, r) {
-    let i = e.href, s = e.title || null, a = u3[1].replace(r.other.outputLinkReplace, "$1");
-    n.state.inLink = true;
-    let o = { type: u3[0].charAt(0) === "!" ? "image" : "link", raw: t, href: i, title: s, text: a, tokens: n.inlineTokens(a) };
-    return n.state.inLink = false, o;
-  }
-  function nt(u3, e, t) {
-    let n = u3.match(t.other.indentCodeCompensation);
-    if (n === null) return e;
-    let r = n[1];
-    return e.split(`
-`).map((i) => {
-      let s = i.match(t.other.beginningSpace);
-      if (s === null) return i;
-      let [a] = s;
-      return a.length >= r.length ? i.slice(r.length) : i;
-    }).join(`
-`);
-  }
-  var w = class {
-    options;
-    rules;
-    lexer;
-    constructor(e) {
-      this.options = e || O;
-    }
-    space(e) {
-      let t = this.rules.block.newline.exec(e);
-      if (t && t[0].length > 0) return { type: "space", raw: t[0] };
-    }
-    code(e) {
-      let t = this.rules.block.code.exec(e);
-      if (t) {
-        let n = t[0].replace(this.rules.other.codeRemoveIndent, "");
-        return { type: "code", raw: t[0], codeBlockStyle: "indented", text: this.options.pedantic ? n : I(n, `
-`) };
-      }
-    }
-    fences(e) {
-      let t = this.rules.block.fences.exec(e);
-      if (t) {
-        let n = t[0], r = nt(n, t[3] || "", this.rules);
-        return { type: "code", raw: n, lang: t[2] ? t[2].trim().replace(this.rules.inline.anyPunctuation, "$1") : t[2], text: r };
-      }
-    }
-    heading(e) {
-      let t = this.rules.block.heading.exec(e);
-      if (t) {
-        let n = t[2].trim();
-        if (this.rules.other.endingHash.test(n)) {
-          let r = I(n, "#");
-          (this.options.pedantic || !r || this.rules.other.endingSpaceChar.test(r)) && (n = r.trim());
-        }
-        return { type: "heading", raw: t[0], depth: t[1].length, text: n, tokens: this.lexer.inline(n) };
-      }
-    }
-    hr(e) {
-      let t = this.rules.block.hr.exec(e);
-      if (t) return { type: "hr", raw: I(t[0], `
-`) };
-    }
-    blockquote(e) {
-      let t = this.rules.block.blockquote.exec(e);
-      if (t) {
-        let n = I(t[0], `
-`).split(`
-`), r = "", i = "", s = [];
-        for (; n.length > 0; ) {
-          let a = false, o = [], l;
-          for (l = 0; l < n.length; l++) if (this.rules.other.blockquoteStart.test(n[l])) o.push(n[l]), a = true;
-          else if (!a) o.push(n[l]);
-          else break;
-          n = n.slice(l);
-          let p = o.join(`
-`), c = p.replace(this.rules.other.blockquoteSetextReplace, `
-    $1`).replace(this.rules.other.blockquoteSetextReplace2, "");
-          r = r ? `${r}
-${p}` : p, i = i ? `${i}
-${c}` : c;
-          let d = this.lexer.state.top;
-          if (this.lexer.state.top = true, this.lexer.blockTokens(c, s, true), this.lexer.state.top = d, n.length === 0) break;
-          let h2 = s.at(-1);
-          if (h2?.type === "code") break;
-          if (h2?.type === "blockquote") {
-            let R = h2, f = R.raw + `
-` + n.join(`
-`), S2 = this.blockquote(f);
-            s[s.length - 1] = S2, r = r.substring(0, r.length - R.raw.length) + S2.raw, i = i.substring(0, i.length - R.text.length) + S2.text;
-            break;
-          } else if (h2?.type === "list") {
-            let R = h2, f = R.raw + `
-` + n.join(`
-`), S2 = this.list(f);
-            s[s.length - 1] = S2, r = r.substring(0, r.length - h2.raw.length) + S2.raw, i = i.substring(0, i.length - R.raw.length) + S2.raw, n = f.substring(s.at(-1).raw.length).split(`
-`);
-            continue;
-          }
-        }
-        return { type: "blockquote", raw: r, tokens: s, text: i };
-      }
-    }
-    list(e) {
-      let t = this.rules.block.list.exec(e);
-      if (t) {
-        let n = t[1].trim(), r = n.length > 1, i = { type: "list", raw: "", ordered: r, start: r ? +n.slice(0, -1) : "", loose: false, items: [] };
-        n = r ? `\\d{1,9}\\${n.slice(-1)}` : `\\${n}`, this.options.pedantic && (n = r ? n : "[*+-]");
-        let s = this.rules.other.listItemRegex(n), a = false;
-        for (; e; ) {
-          let l = false, p = "", c = "";
-          if (!(t = s.exec(e)) || this.rules.block.hr.test(e)) break;
-          p = t[0], e = e.substring(p.length);
-          let d = ge(t[2].split(`
-`, 1)[0], t[1].length), h2 = e.split(`
-`, 1)[0], R = !d.trim(), f = 0;
-          if (this.options.pedantic ? (f = 2, c = d.trimStart()) : R ? f = t[1].length + 1 : (f = d.search(this.rules.other.nonSpaceChar), f = f > 4 ? 1 : f, c = d.slice(f), f += t[1].length), R && this.rules.other.blankLine.test(h2) && (p += h2 + `
-`, e = e.substring(h2.length + 1), l = true), !l) {
-            let S2 = this.rules.other.nextBulletRegex(f), Y = this.rules.other.hrRegex(f), ee = this.rules.other.fencesBeginRegex(f), te = this.rules.other.headingBeginRegex(f), me = this.rules.other.htmlBeginRegex(f), xe = this.rules.other.blockquoteBeginRegex(f);
-            for (; e; ) {
-              let Z = e.split(`
-`, 1)[0], A;
-              if (h2 = Z, this.options.pedantic ? (h2 = h2.replace(this.rules.other.listReplaceNesting, "  "), A = h2) : A = h2.replace(this.rules.other.tabCharGlobal, "    "), ee.test(h2) || te.test(h2) || me.test(h2) || xe.test(h2) || S2.test(h2) || Y.test(h2)) break;
-              if (A.search(this.rules.other.nonSpaceChar) >= f || !h2.trim()) c += `
-` + A.slice(f);
-              else {
-                if (R || d.replace(this.rules.other.tabCharGlobal, "    ").search(this.rules.other.nonSpaceChar) >= 4 || ee.test(d) || te.test(d) || Y.test(d)) break;
-                c += `
-` + h2;
-              }
-              R = !h2.trim(), p += Z + `
-`, e = e.substring(Z.length + 1), d = A.slice(f);
-            }
-          }
-          i.loose || (a ? i.loose = true : this.rules.other.doubleBlankLine.test(p) && (a = true)), i.items.push({ type: "list_item", raw: p, task: !!this.options.gfm && this.rules.other.listIsTask.test(c), loose: false, text: c, tokens: [] }), i.raw += p;
-        }
-        let o = i.items.at(-1);
-        if (o) o.raw = o.raw.trimEnd(), o.text = o.text.trimEnd();
-        else return;
-        i.raw = i.raw.trimEnd();
-        for (let l of i.items) {
-          if (this.lexer.state.top = false, l.tokens = this.lexer.blockTokens(l.text, []), l.task) {
-            if (l.text = l.text.replace(this.rules.other.listReplaceTask, ""), l.tokens[0]?.type === "text" || l.tokens[0]?.type === "paragraph") {
-              l.tokens[0].raw = l.tokens[0].raw.replace(this.rules.other.listReplaceTask, ""), l.tokens[0].text = l.tokens[0].text.replace(this.rules.other.listReplaceTask, "");
-              for (let c = this.lexer.inlineQueue.length - 1; c >= 0; c--) if (this.rules.other.listIsTask.test(this.lexer.inlineQueue[c].src)) {
-                this.lexer.inlineQueue[c].src = this.lexer.inlineQueue[c].src.replace(this.rules.other.listReplaceTask, "");
-                break;
-              }
-            }
-            let p = this.rules.other.listTaskCheckbox.exec(l.raw);
-            if (p) {
-              let c = { type: "checkbox", raw: p[0] + " ", checked: p[0] !== "[ ]" };
-              l.checked = c.checked, i.loose ? l.tokens[0] && ["paragraph", "text"].includes(l.tokens[0].type) && "tokens" in l.tokens[0] && l.tokens[0].tokens ? (l.tokens[0].raw = c.raw + l.tokens[0].raw, l.tokens[0].text = c.raw + l.tokens[0].text, l.tokens[0].tokens.unshift(c)) : l.tokens.unshift({ type: "paragraph", raw: c.raw, text: c.raw, tokens: [c] }) : l.tokens.unshift(c);
-            }
-          }
-          if (!i.loose) {
-            let p = l.tokens.filter((d) => d.type === "space"), c = p.length > 0 && p.some((d) => this.rules.other.anyLine.test(d.raw));
-            i.loose = c;
-          }
-        }
-        if (i.loose) for (let l of i.items) {
-          l.loose = true;
-          for (let p of l.tokens) p.type === "text" && (p.type = "paragraph");
-        }
-        return i;
-      }
-    }
-    html(e) {
-      let t = this.rules.block.html.exec(e);
-      if (t) return { type: "html", block: true, raw: t[0], pre: t[1] === "pre" || t[1] === "script" || t[1] === "style", text: t[0] };
-    }
-    def(e) {
-      let t = this.rules.block.def.exec(e);
-      if (t) {
-        let n = t[1].toLowerCase().replace(this.rules.other.multipleSpaceGlobal, " "), r = t[2] ? t[2].replace(this.rules.other.hrefBrackets, "$1").replace(this.rules.inline.anyPunctuation, "$1") : "", i = t[3] ? t[3].substring(1, t[3].length - 1).replace(this.rules.inline.anyPunctuation, "$1") : t[3];
-        return { type: "def", tag: n, raw: t[0], href: r, title: i };
-      }
-    }
-    table(e) {
-      let t = this.rules.block.table.exec(e);
-      if (!t || !this.rules.other.tableDelimiter.test(t[2])) return;
-      let n = V(t[1]), r = t[2].replace(this.rules.other.tableAlignChars, "").split("|"), i = t[3]?.trim() ? t[3].replace(this.rules.other.tableRowBlankLine, "").split(`
-`) : [], s = { type: "table", raw: t[0], header: [], align: [], rows: [] };
-      if (n.length === r.length) {
-        for (let a of r) this.rules.other.tableAlignRight.test(a) ? s.align.push("right") : this.rules.other.tableAlignCenter.test(a) ? s.align.push("center") : this.rules.other.tableAlignLeft.test(a) ? s.align.push("left") : s.align.push(null);
-        for (let a = 0; a < n.length; a++) s.header.push({ text: n[a], tokens: this.lexer.inline(n[a]), header: true, align: s.align[a] });
-        for (let a of i) s.rows.push(V(a, s.header.length).map((o, l) => ({ text: o, tokens: this.lexer.inline(o), header: false, align: s.align[l] })));
-        return s;
-      }
-    }
-    lheading(e) {
-      let t = this.rules.block.lheading.exec(e);
-      if (t) {
-        let n = t[1].trim();
-        return { type: "heading", raw: t[0], depth: t[2].charAt(0) === "=" ? 1 : 2, text: n, tokens: this.lexer.inline(n) };
-      }
-    }
-    paragraph(e) {
-      let t = this.rules.block.paragraph.exec(e);
-      if (t) {
-        let n = t[1].charAt(t[1].length - 1) === `
-` ? t[1].slice(0, -1) : t[1];
-        return { type: "paragraph", raw: t[0], text: n, tokens: this.lexer.inline(n) };
-      }
-    }
-    text(e) {
-      let t = this.rules.block.text.exec(e);
-      if (t) return { type: "text", raw: t[0], text: t[0], tokens: this.lexer.inline(t[0]) };
-    }
-    escape(e) {
-      let t = this.rules.inline.escape.exec(e);
-      if (t) return { type: "escape", raw: t[0], text: t[1] };
-    }
-    tag(e) {
-      let t = this.rules.inline.tag.exec(e);
-      if (t) return !this.lexer.state.inLink && this.rules.other.startATag.test(t[0]) ? this.lexer.state.inLink = true : this.lexer.state.inLink && this.rules.other.endATag.test(t[0]) && (this.lexer.state.inLink = false), !this.lexer.state.inRawBlock && this.rules.other.startPreScriptTag.test(t[0]) ? this.lexer.state.inRawBlock = true : this.lexer.state.inRawBlock && this.rules.other.endPreScriptTag.test(t[0]) && (this.lexer.state.inRawBlock = false), { type: "html", raw: t[0], inLink: this.lexer.state.inLink, inRawBlock: this.lexer.state.inRawBlock, block: false, text: t[0] };
-    }
-    link(e) {
-      let t = this.rules.inline.link.exec(e);
-      if (t) {
-        let n = t[2].trim();
-        if (!this.options.pedantic && this.rules.other.startAngleBracket.test(n)) {
-          if (!this.rules.other.endAngleBracket.test(n)) return;
-          let s = I(n.slice(0, -1), "\\");
-          if ((n.length - s.length) % 2 === 0) return;
-        } else {
-          let s = de(t[2], "()");
-          if (s === -2) return;
-          if (s > -1) {
-            let o = (t[0].indexOf("!") === 0 ? 5 : 4) + t[1].length + s;
-            t[2] = t[2].substring(0, s), t[0] = t[0].substring(0, o).trim(), t[3] = "";
-          }
-        }
-        let r = t[2], i = "";
-        if (this.options.pedantic) {
-          let s = this.rules.other.pedanticHrefTitle.exec(r);
-          s && (r = s[1], i = s[3]);
-        } else i = t[3] ? t[3].slice(1, -1) : "";
-        return r = r.trim(), this.rules.other.startAngleBracket.test(r) && (this.options.pedantic && !this.rules.other.endAngleBracket.test(n) ? r = r.slice(1) : r = r.slice(1, -1)), fe(t, { href: r && r.replace(this.rules.inline.anyPunctuation, "$1"), title: i && i.replace(this.rules.inline.anyPunctuation, "$1") }, t[0], this.lexer, this.rules);
-      }
-    }
-    reflink(e, t) {
-      let n;
-      if ((n = this.rules.inline.reflink.exec(e)) || (n = this.rules.inline.nolink.exec(e))) {
-        let r = (n[2] || n[1]).replace(this.rules.other.multipleSpaceGlobal, " "), i = t[r.toLowerCase()];
-        if (!i) {
-          let s = n[0].charAt(0);
-          return { type: "text", raw: s, text: s };
-        }
-        return fe(n, i, n[0], this.lexer, this.rules);
-      }
-    }
-    emStrong(e, t, n = "") {
-      let r = this.rules.inline.emStrongLDelim.exec(e);
-      if (!r || !r[1] && !r[2] && !r[3] && !r[4] || r[4] && n.match(this.rules.other.unicodeAlphaNumeric)) return;
-      if (!(r[1] || r[3] || "") || !n || this.rules.inline.punctuation.exec(n)) {
-        let s = [...r[0]].length - 1, a, o, l = s, p = 0, c = r[0][0] === "*" ? this.rules.inline.emStrongRDelimAst : this.rules.inline.emStrongRDelimUnd;
-        for (c.lastIndex = 0, t = t.slice(-1 * e.length + s); (r = c.exec(t)) !== null; ) {
-          if (a = r[1] || r[2] || r[3] || r[4] || r[5] || r[6], !a) continue;
-          if (o = [...a].length, r[3] || r[4]) {
-            l += o;
-            continue;
-          } else if ((r[5] || r[6]) && s % 3 && !((s + o) % 3)) {
-            p += o;
-            continue;
-          }
-          if (l -= o, l > 0) continue;
-          o = Math.min(o, o + l + p);
-          let d = [...r[0]][0].length, h2 = e.slice(0, s + r.index + d + o);
-          if (Math.min(s, o) % 2) {
-            let f = h2.slice(1, -1);
-            return { type: "em", raw: h2, text: f, tokens: this.lexer.inlineTokens(f) };
-          }
-          let R = h2.slice(2, -2);
-          return { type: "strong", raw: h2, text: R, tokens: this.lexer.inlineTokens(R) };
-        }
-      }
-    }
-    codespan(e) {
-      let t = this.rules.inline.code.exec(e);
-      if (t) {
-        let n = t[2].replace(this.rules.other.newLineCharGlobal, " "), r = this.rules.other.nonSpaceChar.test(n), i = this.rules.other.startingSpaceChar.test(n) && this.rules.other.endingSpaceChar.test(n);
-        return r && i && (n = n.substring(1, n.length - 1)), { type: "codespan", raw: t[0], text: n };
-      }
-    }
-    br(e) {
-      let t = this.rules.inline.br.exec(e);
-      if (t) return { type: "br", raw: t[0] };
-    }
-    del(e, t, n = "") {
-      let r = this.rules.inline.delLDelim.exec(e);
-      if (!r) return;
-      if (!(r[1] || "") || !n || this.rules.inline.punctuation.exec(n)) {
-        let s = [...r[0]].length - 1, a, o, l = s, p = this.rules.inline.delRDelim;
-        for (p.lastIndex = 0, t = t.slice(-1 * e.length + s); (r = p.exec(t)) !== null; ) {
-          if (a = r[1] || r[2] || r[3] || r[4] || r[5] || r[6], !a || (o = [...a].length, o !== s)) continue;
-          if (r[3] || r[4]) {
-            l += o;
-            continue;
-          }
-          if (l -= o, l > 0) continue;
-          o = Math.min(o, o + l);
-          let c = [...r[0]][0].length, d = e.slice(0, s + r.index + c + o), h2 = d.slice(s, -s);
-          return { type: "del", raw: d, text: h2, tokens: this.lexer.inlineTokens(h2) };
-        }
-      }
-    }
-    autolink(e) {
-      let t = this.rules.inline.autolink.exec(e);
-      if (t) {
-        let n, r;
-        return t[2] === "@" ? (n = t[1], r = "mailto:" + n) : (n = t[1], r = n), { type: "link", raw: t[0], text: n, href: r, tokens: [{ type: "text", raw: n, text: n }] };
-      }
-    }
-    url(e) {
-      let t;
-      if (t = this.rules.inline.url.exec(e)) {
-        let n, r;
-        if (t[2] === "@") n = t[0], r = "mailto:" + n;
-        else {
-          let i;
-          do
-            i = t[0], t[0] = this.rules.inline._backpedal.exec(t[0])?.[0] ?? "";
-          while (i !== t[0]);
-          n = t[0], t[1] === "www." ? r = "http://" + t[0] : r = t[0];
-        }
-        return { type: "link", raw: t[0], text: n, href: r, tokens: [{ type: "text", raw: n, text: n }] };
-      }
-    }
-    inlineText(e) {
-      let t = this.rules.inline.text.exec(e);
-      if (t) {
-        let n = this.lexer.state.inRawBlock;
-        return { type: "text", raw: t[0], text: t[0], escaped: n };
-      }
-    }
-  };
-  var x = class u {
-    tokens;
-    options;
-    state;
-    inlineQueue;
-    tokenizer;
-    constructor(e) {
-      this.tokens = [], this.tokens.links = /* @__PURE__ */ Object.create(null), this.options = e || O, this.options.tokenizer = this.options.tokenizer || new w(), this.tokenizer = this.options.tokenizer, this.tokenizer.options = this.options, this.tokenizer.lexer = this, this.inlineQueue = [], this.state = { inLink: false, inRawBlock: false, top: true };
-      let t = { other: m, block: B.normal, inline: E.normal };
-      this.options.pedantic ? (t.block = B.pedantic, t.inline = E.pedantic) : this.options.gfm && (t.block = B.gfm, this.options.breaks ? t.inline = E.breaks : t.inline = E.gfm), this.tokenizer.rules = t;
-    }
-    static get rules() {
-      return { block: B, inline: E };
-    }
-    static lex(e, t) {
-      return new u(t).lex(e);
-    }
-    static lexInline(e, t) {
-      return new u(t).inlineTokens(e);
-    }
-    lex(e) {
-      e = e.replace(m.carriageReturn, `
-`), this.blockTokens(e, this.tokens);
-      for (let t = 0; t < this.inlineQueue.length; t++) {
-        let n = this.inlineQueue[t];
-        this.inlineTokens(n.src, n.tokens);
-      }
-      return this.inlineQueue = [], this.tokens;
-    }
-    blockTokens(e, t = [], n = false) {
-      for (this.tokenizer.lexer = this, this.options.pedantic && (e = e.replace(m.tabCharGlobal, "    ").replace(m.spaceLine, "")); e; ) {
-        let r;
-        if (this.options.extensions?.block?.some((s) => (r = s.call({ lexer: this }, e, t)) ? (e = e.substring(r.raw.length), t.push(r), true) : false)) continue;
-        if (r = this.tokenizer.space(e)) {
-          e = e.substring(r.raw.length);
-          let s = t.at(-1);
-          r.raw.length === 1 && s !== void 0 ? s.raw += `
-` : t.push(r);
-          continue;
-        }
-        if (r = this.tokenizer.code(e)) {
-          e = e.substring(r.raw.length);
-          let s = t.at(-1);
-          s?.type === "paragraph" || s?.type === "text" ? (s.raw += (s.raw.endsWith(`
-`) ? "" : `
-`) + r.raw, s.text += `
-` + r.text, this.inlineQueue.at(-1).src = s.text) : t.push(r);
-          continue;
-        }
-        if (r = this.tokenizer.fences(e)) {
-          e = e.substring(r.raw.length), t.push(r);
-          continue;
-        }
-        if (r = this.tokenizer.heading(e)) {
-          e = e.substring(r.raw.length), t.push(r);
-          continue;
-        }
-        if (r = this.tokenizer.hr(e)) {
-          e = e.substring(r.raw.length), t.push(r);
-          continue;
-        }
-        if (r = this.tokenizer.blockquote(e)) {
-          e = e.substring(r.raw.length), t.push(r);
-          continue;
-        }
-        if (r = this.tokenizer.list(e)) {
-          e = e.substring(r.raw.length), t.push(r);
-          continue;
-        }
-        if (r = this.tokenizer.html(e)) {
-          e = e.substring(r.raw.length), t.push(r);
-          continue;
-        }
-        if (r = this.tokenizer.def(e)) {
-          e = e.substring(r.raw.length);
-          let s = t.at(-1);
-          s?.type === "paragraph" || s?.type === "text" ? (s.raw += (s.raw.endsWith(`
-`) ? "" : `
-`) + r.raw, s.text += `
-` + r.raw, this.inlineQueue.at(-1).src = s.text) : this.tokens.links[r.tag] || (this.tokens.links[r.tag] = { href: r.href, title: r.title }, t.push(r));
-          continue;
-        }
-        if (r = this.tokenizer.table(e)) {
-          e = e.substring(r.raw.length), t.push(r);
-          continue;
-        }
-        if (r = this.tokenizer.lheading(e)) {
-          e = e.substring(r.raw.length), t.push(r);
-          continue;
-        }
-        let i = e;
-        if (this.options.extensions?.startBlock) {
-          let s = 1 / 0, a = e.slice(1), o;
-          this.options.extensions.startBlock.forEach((l) => {
-            o = l.call({ lexer: this }, a), typeof o == "number" && o >= 0 && (s = Math.min(s, o));
-          }), s < 1 / 0 && s >= 0 && (i = e.substring(0, s + 1));
-        }
-        if (this.state.top && (r = this.tokenizer.paragraph(i))) {
-          let s = t.at(-1);
-          n && s?.type === "paragraph" ? (s.raw += (s.raw.endsWith(`
-`) ? "" : `
-`) + r.raw, s.text += `
-` + r.text, this.inlineQueue.pop(), this.inlineQueue.at(-1).src = s.text) : t.push(r), n = i.length !== e.length, e = e.substring(r.raw.length);
-          continue;
-        }
-        if (r = this.tokenizer.text(e)) {
-          e = e.substring(r.raw.length);
-          let s = t.at(-1);
-          s?.type === "text" ? (s.raw += (s.raw.endsWith(`
-`) ? "" : `
-`) + r.raw, s.text += `
-` + r.text, this.inlineQueue.pop(), this.inlineQueue.at(-1).src = s.text) : t.push(r);
-          continue;
-        }
-        if (e) {
-          let s = "Infinite loop on byte: " + e.charCodeAt(0);
-          if (this.options.silent) {
-            console.error(s);
-            break;
-          } else throw new Error(s);
-        }
-      }
-      return this.state.top = true, t;
-    }
-    inline(e, t = []) {
-      return this.inlineQueue.push({ src: e, tokens: t }), t;
-    }
-    inlineTokens(e, t = []) {
-      this.tokenizer.lexer = this;
-      let n = e, r = null;
-      if (this.tokens.links) {
-        let o = Object.keys(this.tokens.links);
-        if (o.length > 0) for (; (r = this.tokenizer.rules.inline.reflinkSearch.exec(n)) !== null; ) o.includes(r[0].slice(r[0].lastIndexOf("[") + 1, -1)) && (n = n.slice(0, r.index) + "[" + "a".repeat(r[0].length - 2) + "]" + n.slice(this.tokenizer.rules.inline.reflinkSearch.lastIndex));
-      }
-      for (; (r = this.tokenizer.rules.inline.anyPunctuation.exec(n)) !== null; ) n = n.slice(0, r.index) + "++" + n.slice(this.tokenizer.rules.inline.anyPunctuation.lastIndex);
-      let i;
-      for (; (r = this.tokenizer.rules.inline.blockSkip.exec(n)) !== null; ) i = r[2] ? r[2].length : 0, n = n.slice(0, r.index + i) + "[" + "a".repeat(r[0].length - i - 2) + "]" + n.slice(this.tokenizer.rules.inline.blockSkip.lastIndex);
-      n = this.options.hooks?.emStrongMask?.call({ lexer: this }, n) ?? n;
-      let s = false, a = "";
-      for (; e; ) {
-        s || (a = ""), s = false;
-        let o;
-        if (this.options.extensions?.inline?.some((p) => (o = p.call({ lexer: this }, e, t)) ? (e = e.substring(o.raw.length), t.push(o), true) : false)) continue;
-        if (o = this.tokenizer.escape(e)) {
-          e = e.substring(o.raw.length), t.push(o);
-          continue;
-        }
-        if (o = this.tokenizer.tag(e)) {
-          e = e.substring(o.raw.length), t.push(o);
-          continue;
-        }
-        if (o = this.tokenizer.link(e)) {
-          e = e.substring(o.raw.length), t.push(o);
-          continue;
-        }
-        if (o = this.tokenizer.reflink(e, this.tokens.links)) {
-          e = e.substring(o.raw.length);
-          let p = t.at(-1);
-          o.type === "text" && p?.type === "text" ? (p.raw += o.raw, p.text += o.text) : t.push(o);
-          continue;
-        }
-        if (o = this.tokenizer.emStrong(e, n, a)) {
-          e = e.substring(o.raw.length), t.push(o);
-          continue;
-        }
-        if (o = this.tokenizer.codespan(e)) {
-          e = e.substring(o.raw.length), t.push(o);
-          continue;
-        }
-        if (o = this.tokenizer.br(e)) {
-          e = e.substring(o.raw.length), t.push(o);
-          continue;
-        }
-        if (o = this.tokenizer.del(e, n, a)) {
-          e = e.substring(o.raw.length), t.push(o);
-          continue;
-        }
-        if (o = this.tokenizer.autolink(e)) {
-          e = e.substring(o.raw.length), t.push(o);
-          continue;
-        }
-        if (!this.state.inLink && (o = this.tokenizer.url(e))) {
-          e = e.substring(o.raw.length), t.push(o);
-          continue;
-        }
-        let l = e;
-        if (this.options.extensions?.startInline) {
-          let p = 1 / 0, c = e.slice(1), d;
-          this.options.extensions.startInline.forEach((h2) => {
-            d = h2.call({ lexer: this }, c), typeof d == "number" && d >= 0 && (p = Math.min(p, d));
-          }), p < 1 / 0 && p >= 0 && (l = e.substring(0, p + 1));
-        }
-        if (o = this.tokenizer.inlineText(l)) {
-          e = e.substring(o.raw.length), o.raw.slice(-1) !== "_" && (a = o.raw.slice(-1)), s = true;
-          let p = t.at(-1);
-          p?.type === "text" ? (p.raw += o.raw, p.text += o.text) : t.push(o);
-          continue;
-        }
-        if (e) {
-          let p = "Infinite loop on byte: " + e.charCodeAt(0);
-          if (this.options.silent) {
-            console.error(p);
-            break;
-          } else throw new Error(p);
-        }
-      }
-      return t;
-    }
-  };
-  var y = class {
-    options;
-    parser;
-    constructor(e) {
-      this.options = e || O;
-    }
-    space(e) {
-      return "";
-    }
-    code({ text: e, lang: t, escaped: n }) {
-      let r = (t || "").match(m.notSpaceStart)?.[0], i = e.replace(m.endingNewline, "") + `
-`;
-      return r ? '<pre><code class="language-' + T2(r) + '">' + (n ? i : T2(i, true)) + `</code></pre>
-` : "<pre><code>" + (n ? i : T2(i, true)) + `</code></pre>
-`;
-    }
-    blockquote({ tokens: e }) {
-      return `<blockquote>
-${this.parser.parse(e)}</blockquote>
-`;
-    }
-    html({ text: e }) {
-      return e;
-    }
-    def(e) {
-      return "";
-    }
-    heading({ tokens: e, depth: t }) {
-      return `<h${t}>${this.parser.parseInline(e)}</h${t}>
-`;
-    }
-    hr(e) {
-      return `<hr>
-`;
-    }
-    list(e) {
-      let t = e.ordered, n = e.start, r = "";
-      for (let a = 0; a < e.items.length; a++) {
-        let o = e.items[a];
-        r += this.listitem(o);
-      }
-      let i = t ? "ol" : "ul", s = t && n !== 1 ? ' start="' + n + '"' : "";
-      return "<" + i + s + `>
-` + r + "</" + i + `>
-`;
-    }
-    listitem(e) {
-      return `<li>${this.parser.parse(e.tokens)}</li>
-`;
-    }
-    checkbox({ checked: e }) {
-      return "<input " + (e ? 'checked="" ' : "") + 'disabled="" type="checkbox"> ';
-    }
-    paragraph({ tokens: e }) {
-      return `<p>${this.parser.parseInline(e)}</p>
-`;
-    }
-    table(e) {
-      let t = "", n = "";
-      for (let i = 0; i < e.header.length; i++) n += this.tablecell(e.header[i]);
-      t += this.tablerow({ text: n });
-      let r = "";
-      for (let i = 0; i < e.rows.length; i++) {
-        let s = e.rows[i];
-        n = "";
-        for (let a = 0; a < s.length; a++) n += this.tablecell(s[a]);
-        r += this.tablerow({ text: n });
-      }
-      return r && (r = `<tbody>${r}</tbody>`), `<table>
-<thead>
-` + t + `</thead>
-` + r + `</table>
-`;
-    }
-    tablerow({ text: e }) {
-      return `<tr>
-${e}</tr>
-`;
-    }
-    tablecell(e) {
-      let t = this.parser.parseInline(e.tokens), n = e.header ? "th" : "td";
-      return (e.align ? `<${n} align="${e.align}">` : `<${n}>`) + t + `</${n}>
-`;
-    }
-    strong({ tokens: e }) {
-      return `<strong>${this.parser.parseInline(e)}</strong>`;
-    }
-    em({ tokens: e }) {
-      return `<em>${this.parser.parseInline(e)}</em>`;
-    }
-    codespan({ text: e }) {
-      return `<code>${T2(e, true)}</code>`;
-    }
-    br(e) {
-      return "<br>";
-    }
-    del({ tokens: e }) {
-      return `<del>${this.parser.parseInline(e)}</del>`;
-    }
-    link({ href: e, title: t, tokens: n }) {
-      let r = this.parser.parseInline(n), i = J(e);
-      if (i === null) return r;
-      e = i;
-      let s = '<a href="' + e + '"';
-      return t && (s += ' title="' + T2(t) + '"'), s += ">" + r + "</a>", s;
-    }
-    image({ href: e, title: t, text: n, tokens: r }) {
-      r && (n = this.parser.parseInline(r, this.parser.textRenderer));
-      let i = J(e);
-      if (i === null) return T2(n);
-      e = i;
-      let s = `<img src="${e}" alt="${T2(n)}"`;
-      return t && (s += ` title="${T2(t)}"`), s += ">", s;
-    }
-    text(e) {
-      return "tokens" in e && e.tokens ? this.parser.parseInline(e.tokens) : "escaped" in e && e.escaped ? e.text : T2(e.text);
-    }
-  };
-  var $ = class {
-    strong({ text: e }) {
-      return e;
-    }
-    em({ text: e }) {
-      return e;
-    }
-    codespan({ text: e }) {
-      return e;
-    }
-    del({ text: e }) {
-      return e;
-    }
-    html({ text: e }) {
-      return e;
-    }
-    text({ text: e }) {
-      return e;
-    }
-    link({ text: e }) {
-      return "" + e;
-    }
-    image({ text: e }) {
-      return "" + e;
-    }
-    br() {
-      return "";
-    }
-    checkbox({ raw: e }) {
-      return e;
-    }
-  };
-  var b = class u2 {
-    options;
-    renderer;
-    textRenderer;
-    constructor(e) {
-      this.options = e || O, this.options.renderer = this.options.renderer || new y(), this.renderer = this.options.renderer, this.renderer.options = this.options, this.renderer.parser = this, this.textRenderer = new $();
-    }
-    static parse(e, t) {
-      return new u2(t).parse(e);
-    }
-    static parseInline(e, t) {
-      return new u2(t).parseInline(e);
-    }
-    parse(e) {
-      this.renderer.parser = this;
-      let t = "";
-      for (let n = 0; n < e.length; n++) {
-        let r = e[n];
-        if (this.options.extensions?.renderers?.[r.type]) {
-          let s = r, a = this.options.extensions.renderers[s.type].call({ parser: this }, s);
-          if (a !== false || !["space", "hr", "heading", "code", "table", "blockquote", "list", "html", "def", "paragraph", "text"].includes(s.type)) {
-            t += a || "";
-            continue;
-          }
-        }
-        let i = r;
-        switch (i.type) {
-          case "space": {
-            t += this.renderer.space(i);
-            break;
-          }
-          case "hr": {
-            t += this.renderer.hr(i);
-            break;
-          }
-          case "heading": {
-            t += this.renderer.heading(i);
-            break;
-          }
-          case "code": {
-            t += this.renderer.code(i);
-            break;
-          }
-          case "table": {
-            t += this.renderer.table(i);
-            break;
-          }
-          case "blockquote": {
-            t += this.renderer.blockquote(i);
-            break;
-          }
-          case "list": {
-            t += this.renderer.list(i);
-            break;
-          }
-          case "checkbox": {
-            t += this.renderer.checkbox(i);
-            break;
-          }
-          case "html": {
-            t += this.renderer.html(i);
-            break;
-          }
-          case "def": {
-            t += this.renderer.def(i);
-            break;
-          }
-          case "paragraph": {
-            t += this.renderer.paragraph(i);
-            break;
-          }
-          case "text": {
-            t += this.renderer.text(i);
-            break;
-          }
-          default: {
-            let s = 'Token with "' + i.type + '" type was not found.';
-            if (this.options.silent) return console.error(s), "";
-            throw new Error(s);
-          }
-        }
-      }
-      return t;
-    }
-    parseInline(e, t = this.renderer) {
-      this.renderer.parser = this;
-      let n = "";
-      for (let r = 0; r < e.length; r++) {
-        let i = e[r];
-        if (this.options.extensions?.renderers?.[i.type]) {
-          let a = this.options.extensions.renderers[i.type].call({ parser: this }, i);
-          if (a !== false || !["escape", "html", "link", "image", "strong", "em", "codespan", "br", "del", "text"].includes(i.type)) {
-            n += a || "";
-            continue;
-          }
-        }
-        let s = i;
-        switch (s.type) {
-          case "escape": {
-            n += t.text(s);
-            break;
-          }
-          case "html": {
-            n += t.html(s);
-            break;
-          }
-          case "link": {
-            n += t.link(s);
-            break;
-          }
-          case "image": {
-            n += t.image(s);
-            break;
-          }
-          case "checkbox": {
-            n += t.checkbox(s);
-            break;
-          }
-          case "strong": {
-            n += t.strong(s);
-            break;
-          }
-          case "em": {
-            n += t.em(s);
-            break;
-          }
-          case "codespan": {
-            n += t.codespan(s);
-            break;
-          }
-          case "br": {
-            n += t.br(s);
-            break;
-          }
-          case "del": {
-            n += t.del(s);
-            break;
-          }
-          case "text": {
-            n += t.text(s);
-            break;
-          }
-          default: {
-            let a = 'Token with "' + s.type + '" type was not found.';
-            if (this.options.silent) return console.error(a), "";
-            throw new Error(a);
-          }
-        }
-      }
-      return n;
-    }
-  };
-  var P = class {
-    options;
-    block;
-    constructor(e) {
-      this.options = e || O;
-    }
-    static passThroughHooks = /* @__PURE__ */ new Set(["preprocess", "postprocess", "processAllTokens", "emStrongMask"]);
-    static passThroughHooksRespectAsync = /* @__PURE__ */ new Set(["preprocess", "postprocess", "processAllTokens"]);
-    preprocess(e) {
-      return e;
-    }
-    postprocess(e) {
-      return e;
-    }
-    processAllTokens(e) {
-      return e;
-    }
-    emStrongMask(e) {
-      return e;
-    }
-    provideLexer(e = this.block) {
-      return e ? x.lex : x.lexInline;
-    }
-    provideParser(e = this.block) {
-      return e ? b.parse : b.parseInline;
-    }
-  };
-  var D2 = class {
-    defaults = M();
-    options = this.setOptions;
-    parse = this.parseMarkdown(true);
-    parseInline = this.parseMarkdown(false);
-    Parser = b;
-    Renderer = y;
-    TextRenderer = $;
-    Lexer = x;
-    Tokenizer = w;
-    Hooks = P;
-    constructor(...e) {
-      this.use(...e);
-    }
-    walkTokens(e, t) {
-      let n = [];
-      for (let r of e) switch (n = n.concat(t.call(this, r)), r.type) {
-        case "table": {
-          let i = r;
-          for (let s of i.header) n = n.concat(this.walkTokens(s.tokens, t));
-          for (let s of i.rows) for (let a of s) n = n.concat(this.walkTokens(a.tokens, t));
-          break;
-        }
-        case "list": {
-          let i = r;
-          n = n.concat(this.walkTokens(i.items, t));
-          break;
-        }
-        default: {
-          let i = r;
-          this.defaults.extensions?.childTokens?.[i.type] ? this.defaults.extensions.childTokens[i.type].forEach((s) => {
-            let a = i[s].flat(1 / 0);
-            n = n.concat(this.walkTokens(a, t));
-          }) : i.tokens && (n = n.concat(this.walkTokens(i.tokens, t)));
-        }
-      }
-      return n;
-    }
-    use(...e) {
-      let t = this.defaults.extensions || { renderers: {}, childTokens: {} };
-      return e.forEach((n) => {
-        let r = { ...n };
-        if (r.async = this.defaults.async || r.async || false, n.extensions && (n.extensions.forEach((i) => {
-          if (!i.name) throw new Error("extension name required");
-          if ("renderer" in i) {
-            let s = t.renderers[i.name];
-            s ? t.renderers[i.name] = function(...a) {
-              let o = i.renderer.apply(this, a);
-              return o === false && (o = s.apply(this, a)), o;
-            } : t.renderers[i.name] = i.renderer;
-          }
-          if ("tokenizer" in i) {
-            if (!i.level || i.level !== "block" && i.level !== "inline") throw new Error("extension level must be 'block' or 'inline'");
-            let s = t[i.level];
-            s ? s.unshift(i.tokenizer) : t[i.level] = [i.tokenizer], i.start && (i.level === "block" ? t.startBlock ? t.startBlock.push(i.start) : t.startBlock = [i.start] : i.level === "inline" && (t.startInline ? t.startInline.push(i.start) : t.startInline = [i.start]));
-          }
-          "childTokens" in i && i.childTokens && (t.childTokens[i.name] = i.childTokens);
-        }), r.extensions = t), n.renderer) {
-          let i = this.defaults.renderer || new y(this.defaults);
-          for (let s in n.renderer) {
-            if (!(s in i)) throw new Error(`renderer '${s}' does not exist`);
-            if (["options", "parser"].includes(s)) continue;
-            let a = s, o = n.renderer[a], l = i[a];
-            i[a] = (...p) => {
-              let c = o.apply(i, p);
-              return c === false && (c = l.apply(i, p)), c || "";
-            };
-          }
-          r.renderer = i;
-        }
-        if (n.tokenizer) {
-          let i = this.defaults.tokenizer || new w(this.defaults);
-          for (let s in n.tokenizer) {
-            if (!(s in i)) throw new Error(`tokenizer '${s}' does not exist`);
-            if (["options", "rules", "lexer"].includes(s)) continue;
-            let a = s, o = n.tokenizer[a], l = i[a];
-            i[a] = (...p) => {
-              let c = o.apply(i, p);
-              return c === false && (c = l.apply(i, p)), c;
-            };
-          }
-          r.tokenizer = i;
-        }
-        if (n.hooks) {
-          let i = this.defaults.hooks || new P();
-          for (let s in n.hooks) {
-            if (!(s in i)) throw new Error(`hook '${s}' does not exist`);
-            if (["options", "block"].includes(s)) continue;
-            let a = s, o = n.hooks[a], l = i[a];
-            P.passThroughHooks.has(s) ? i[a] = (p) => {
-              if (this.defaults.async && P.passThroughHooksRespectAsync.has(s)) return (async () => {
-                let d = await o.call(i, p);
-                return l.call(i, d);
-              })();
-              let c = o.call(i, p);
-              return l.call(i, c);
-            } : i[a] = (...p) => {
-              if (this.defaults.async) return (async () => {
-                let d = await o.apply(i, p);
-                return d === false && (d = await l.apply(i, p)), d;
-              })();
-              let c = o.apply(i, p);
-              return c === false && (c = l.apply(i, p)), c;
-            };
-          }
-          r.hooks = i;
-        }
-        if (n.walkTokens) {
-          let i = this.defaults.walkTokens, s = n.walkTokens;
-          r.walkTokens = function(a) {
-            let o = [];
-            return o.push(s.call(this, a)), i && (o = o.concat(i.call(this, a))), o;
-          };
-        }
-        this.defaults = { ...this.defaults, ...r };
-      }), this;
-    }
-    setOptions(e) {
-      return this.defaults = { ...this.defaults, ...e }, this;
-    }
-    lexer(e, t) {
-      return x.lex(e, t ?? this.defaults);
-    }
-    parser(e, t) {
-      return b.parse(e, t ?? this.defaults);
-    }
-    parseMarkdown(e) {
-      return (n, r) => {
-        let i = { ...r }, s = { ...this.defaults, ...i }, a = this.onError(!!s.silent, !!s.async);
-        if (this.defaults.async === true && i.async === false) return a(new Error("marked(): The async option was set to true by an extension. Remove async: false from the parse options object to return a Promise."));
-        if (typeof n > "u" || n === null) return a(new Error("marked(): input parameter is undefined or null"));
-        if (typeof n != "string") return a(new Error("marked(): input parameter is of type " + Object.prototype.toString.call(n) + ", string expected"));
-        if (s.hooks && (s.hooks.options = s, s.hooks.block = e), s.async) return (async () => {
-          let o = s.hooks ? await s.hooks.preprocess(n) : n, p = await (s.hooks ? await s.hooks.provideLexer(e) : e ? x.lex : x.lexInline)(o, s), c = s.hooks ? await s.hooks.processAllTokens(p) : p;
-          s.walkTokens && await Promise.all(this.walkTokens(c, s.walkTokens));
-          let h2 = await (s.hooks ? await s.hooks.provideParser(e) : e ? b.parse : b.parseInline)(c, s);
-          return s.hooks ? await s.hooks.postprocess(h2) : h2;
-        })().catch(a);
-        try {
-          s.hooks && (n = s.hooks.preprocess(n));
-          let l = (s.hooks ? s.hooks.provideLexer(e) : e ? x.lex : x.lexInline)(n, s);
-          s.hooks && (l = s.hooks.processAllTokens(l)), s.walkTokens && this.walkTokens(l, s.walkTokens);
-          let c = (s.hooks ? s.hooks.provideParser(e) : e ? b.parse : b.parseInline)(l, s);
-          return s.hooks && (c = s.hooks.postprocess(c)), c;
-        } catch (o) {
-          return a(o);
-        }
-      };
-    }
-    onError(e, t) {
-      return (n) => {
-        if (n.message += `
-Please report this to https://github.com/markedjs/marked.`, e) {
-          let r = "<p>An error occurred:</p><pre>" + T2(n.message + "", true) + "</pre>";
-          return t ? Promise.resolve(r) : r;
-        }
-        if (t) return Promise.reject(n);
-        throw n;
-      };
-    }
-  };
-  var L = new D2();
-  function g(u3, e) {
-    return L.parse(u3, e);
-  }
-  g.options = g.setOptions = function(u3) {
-    return L.setOptions(u3), g.defaults = L.defaults, G(g.defaults), g;
-  };
-  g.getDefaults = M;
-  g.defaults = O;
-  g.use = function(...u3) {
-    return L.use(...u3), g.defaults = L.defaults, G(g.defaults), g;
-  };
-  g.walkTokens = function(u3, e) {
-    return L.walkTokens(u3, e);
-  };
-  g.parseInline = L.parseInline;
-  g.Parser = b;
-  g.parser = b.parse;
-  g.Renderer = y;
-  g.TextRenderer = $;
-  g.Lexer = x;
-  g.lexer = x.lex;
-  g.Tokenizer = w;
-  g.Hooks = P;
-  g.parse = g;
-  var Qt = g.options;
-  var jt = g.setOptions;
-  var Ft = g.use;
-  var Ut = g.walkTokens;
-  var Kt = g.parseInline;
-  var Xt = b.parse;
-  var Jt = x.lex;
-
-  // node_modules/@tiptap/markdown/dist/index.js
-  var TRAILING_BLANK_LINES = /\n[^\S\n]*(?:\n[^\S\n]*)+$/;
-  function extractAbsorbedBlankLines(tokens) {
-    return tokens.flatMap((token, index) => {
-      var _tokens;
-      if (token.type === "space" || ((_tokens = tokens[index + 1]) === null || _tokens === void 0 ? void 0 : _tokens.type) === "space") return [token];
-      const trailingBlankLines = (token.raw || "").match(TRAILING_BLANK_LINES);
-      if (!trailingBlankLines) return [token];
-      return [{
-        ...token,
-        raw: (token.raw || "").slice(0, -trailingBlankLines[0].length)
-      }, {
-        type: "space",
-        raw: trailingBlankLines[0]
-      }];
-    });
-  }
-  function wrapInMarkdownBlock(prefix, content2) {
-    const output = content2.split("\n").flatMap((line) => [line, ""]).map((line) => `${prefix}${line}`).join("\n");
-    return output.slice(0, output.length - 1);
-  }
-  function findMarksToClose(currentMarks, nextNode) {
-    const marksToClose = [];
-    Array.from(currentMarks.entries()).forEach(([markType, currentMark]) => {
-      if (!nextNode) {
-        marksToClose.push(markType);
-        return;
-      }
-      if (!(nextNode.marks || []).find((mark) => mark.type === markType && attrsEqual(mark.attrs, currentMark.attrs))) marksToClose.push(markType);
-    });
-    return marksToClose;
-  }
-  function findMarksToOpen(activeMarks, currentMarks) {
-    const marksToOpen = [];
-    Array.from(currentMarks.entries()).forEach(([markType, mark]) => {
-      const activeMark = activeMarks.get(markType);
-      if (!activeMark || !attrsEqual(activeMark.attrs, mark.attrs)) marksToOpen.push({
-        type: markType,
-        mark
-      });
-    });
-    return marksToOpen;
-  }
-  function findMarksToCloseAtEnd(activeMarks, currentMarks, nextNode, markSetsEqual) {
-    const isLastNode = !nextNode;
-    const nextNodeHasNoMarks = nextNode && (!nextNode.marks || nextNode.marks.length === 0);
-    const nextNodeHasDifferentMarks = nextNode && nextNode.marks && !markSetsEqual(currentMarks, new Map(nextNode.marks.map((mark) => [mark.type, mark])));
-    const marksToCloseAtEnd = [];
-    if (isLastNode || nextNodeHasNoMarks || nextNodeHasDifferentMarks) {
-      if (nextNode && nextNode.marks) Array.from(activeMarks.entries()).reverse().forEach(([markType, activeMark]) => {
-        if (!nextNode.marks.find((m2) => m2.type === markType && attrsEqual(m2.attrs, activeMark.attrs))) marksToCloseAtEnd.push(markType);
-      });
-      else if (isLastNode || nextNodeHasNoMarks) marksToCloseAtEnd.push(...Array.from(activeMarks.keys()).reverse());
-    }
-    return marksToCloseAtEnd;
-  }
-  function closeMarksBeforeNode(activeMarks, getMarkClosing) {
-    let beforeMarkdown = "";
-    Array.from(activeMarks.keys()).reverse().forEach((markType) => {
-      const closeMarkdown = getMarkClosing(markType, activeMarks.get(markType));
-      if (closeMarkdown) beforeMarkdown = closeMarkdown + beforeMarkdown;
-    });
-    activeMarks.clear();
-    return beforeMarkdown;
-  }
-  function reopenMarksAfterNode(marksToReopen, activeMarks, getMarkOpening) {
-    let afterMarkdown = "";
-    Array.from(marksToReopen.entries()).forEach(([markType, mark]) => {
-      const openMarkdown = getMarkOpening(markType, mark);
-      if (openMarkdown) afterMarkdown += openMarkdown;
-      activeMarks.set(markType, mark);
-    });
-    return afterMarkdown;
-  }
-  function isTaskItem(item) {
-    const match = (item.raw || item.text || "").match(/^(\s*)[-+*]\s+\[([ xX])\]\s+/);
-    if (match) return {
-      isTask: true,
-      checked: match[2].toLowerCase() === "x",
-      indentLevel: match[1].length
-    };
-    return {
-      isTask: false,
-      indentLevel: 0
-    };
-  }
-  function assumeContentType(content2, contentType) {
-    if (typeof content2 !== "string") return "json";
-    return contentType;
-  }
-  function collectMarkSpanTexts(nodes) {
-    const spanTexts = nodes.map(() => /* @__PURE__ */ new Map());
-    const openRuns = /* @__PURE__ */ new Map();
-    const flush = (markType) => {
-      const run3 = openRuns.get(markType);
-      if (!run3) return;
-      run3.indexes.forEach((index) => spanTexts[index].set(markType, run3.text));
-      openRuns.delete(markType);
-    };
-    nodes.forEach((node, index) => {
-      if (node.type !== "text") {
-        Array.from(openRuns.keys()).forEach(flush);
-        return;
-      }
-      const markTypes = new Set((node.marks || []).map((mark) => mark.type));
-      Array.from(openRuns.keys()).filter((markType) => !markTypes.has(markType)).forEach(flush);
-      markTypes.forEach((markType) => {
-        const run3 = openRuns.get(markType) || {
-          indexes: [],
-          text: ""
-        };
-        run3.indexes.push(index);
-        run3.text += node.text || "";
-        openRuns.set(markType, run3);
-      });
-    });
-    Array.from(openRuns.keys()).forEach(flush);
-    return spanTexts;
-  }
-  var STANDARD_HTML_TAGS = /* @__PURE__ */ new Set([
-    "a",
-    "abbr",
-    "address",
-    "area",
-    "article",
-    "aside",
-    "audio",
-    "b",
-    "base",
-    "bdi",
-    "bdo",
-    "blockquote",
-    "body",
-    "br",
-    "button",
-    "canvas",
-    "caption",
-    "cite",
-    "code",
-    "col",
-    "colgroup",
-    "data",
-    "datalist",
-    "dd",
-    "del",
-    "details",
-    "dfn",
-    "dialog",
-    "div",
-    "dl",
-    "dt",
-    "em",
-    "embed",
-    "fieldset",
-    "figcaption",
-    "figure",
-    "footer",
-    "form",
-    "h1",
-    "h2",
-    "h3",
-    "h4",
-    "h5",
-    "h6",
-    "head",
-    "header",
-    "hgroup",
-    "hr",
-    "html",
-    "i",
-    "iframe",
-    "img",
-    "input",
-    "ins",
-    "kbd",
-    "label",
-    "legend",
-    "li",
-    "link",
-    "main",
-    "map",
-    "mark",
-    "menu",
-    "meta",
-    "meter",
-    "nav",
-    "noscript",
-    "object",
-    "ol",
-    "optgroup",
-    "option",
-    "output",
-    "p",
-    "param",
-    "picture",
-    "pre",
-    "progress",
-    "q",
-    "rp",
-    "rt",
-    "ruby",
-    "s",
-    "samp",
-    "script",
-    "search",
-    "section",
-    "select",
-    "slot",
-    "small",
-    "source",
-    "span",
-    "strong",
-    "style",
-    "sub",
-    "summary",
-    "sup",
-    "svg",
-    "circle",
-    "clippath",
-    "defs",
-    "ellipse",
-    "foreignobject",
-    "g",
-    "image",
-    "line",
-    "lineargradient",
-    "mask",
-    "path",
-    "polygon",
-    "polyline",
-    "radialgradient",
-    "rect",
-    "stop",
-    "switch",
-    "symbol",
-    "textpath",
-    "tspan",
-    "use",
-    "table",
-    "tbody",
-    "td",
-    "template",
-    "textarea",
-    "tfoot",
-    "th",
-    "thead",
-    "time",
-    "title",
-    "tr",
-    "track",
-    "u",
-    "ul",
-    "var",
-    "video",
-    "wbr"
-  ]);
-  var HTML_TAG_NAME_PATTERN = /<\/?([a-zA-Z][\w-]*)/g;
-  function extractHtmlTagNames(html) {
-    const tagNames = [];
-    let match;
-    while ((match = HTML_TAG_NAME_PATTERN.exec(html)) !== null) tagNames.push(match[1].toLowerCase());
-    return tagNames;
-  }
-  function isHtmlUnknownTagName(tagName) {
-    const lower = tagName.toLowerCase();
-    if (lower.includes("-")) return false;
-    return !STANDARD_HTML_TAGS.has(lower);
-  }
-  function htmlContainsUnrecognizedTag(html, schemaTags) {
-    return extractHtmlTagNames(html).some((tagName) => {
-      if (!isHtmlUnknownTagName(tagName)) return false;
-      return !schemaTags.has(tagName);
-    });
-  }
-  var MarkdownManager = class {
-    /**
-    * Create a MarkdownManager.
-    * @param options.marked Optional marked instance to use (injected).
-    * @param options.markedOptions Optional options to pass to marked.setOptions
-    * @param options.indentation Indentation settings (style and size).
-    * @param options.extensions An array of Tiptap extensions to register for markdown parsing and rendering.
-    */
-    constructor(options) {
-      var _options$marked, _options$indentation$, _options$indentation, _options$indentation$2, _options$indentation2;
-      this.activeParseLexer = null;
-      this.extensionRanks = /* @__PURE__ */ new Map();
-      this.baseExtensions = [];
-      this.extensions = [];
-      this.codeTypes = /* @__PURE__ */ new Set();
-      this.schemaParseDomTagsCache = null;
-      this.inlineNodeTypesCache = null;
-      this.lastParseResult = null;
-      this.markedInstance = (_options$marked = options === null || options === void 0 ? void 0 : options.marked) !== null && _options$marked !== void 0 ? _options$marked : g;
-      this.indentStyle = (_options$indentation$ = options === null || options === void 0 || (_options$indentation = options.indentation) === null || _options$indentation === void 0 ? void 0 : _options$indentation.style) !== null && _options$indentation$ !== void 0 ? _options$indentation$ : "space";
-      this.indentSize = (_options$indentation$2 = options === null || options === void 0 || (_options$indentation2 = options.indentation) === null || _options$indentation2 === void 0 ? void 0 : _options$indentation2.size) !== null && _options$indentation$2 !== void 0 ? _options$indentation$2 : 2;
-      this.baseExtensions = (options === null || options === void 0 ? void 0 : options.extensions) || [];
-      if ((options === null || options === void 0 ? void 0 : options.markedOptions) && typeof this.markedInstance.setOptions === "function") this.markedInstance.setOptions(options.markedOptions);
-      this.registry = /* @__PURE__ */ new Map();
-      this.nodeTypeRegistry = /* @__PURE__ */ new Map();
-      if (options === null || options === void 0 ? void 0 : options.extensions) {
-        this.baseExtensions = options.extensions;
-        sortExtensions(flattenExtensions(options.extensions)).forEach((ext) => this.registerExtension(ext));
-      }
-    }
-    /** Returns the underlying marked instance. */
-    get instance() {
-      return this.markedInstance;
-    }
-    /** Returns the correct indentCharacter (space or tab) */
-    get indentCharacter() {
-      return this.indentStyle === "space" ? " " : "	";
-    }
-    /** Returns the correct indentString repeated X times */
-    get indentString() {
-      return this.indentCharacter.repeat(this.indentSize);
-    }
-    /** Helper to quickly check whether a marked instance is available. */
-    hasMarked() {
-      return !!this.markedInstance;
-    }
-    /**
-    * Register a Tiptap extension (Node/Mark/Extension). This will read
-    * `markdownName`, `parseMarkdown`, `renderMarkdown` and `priority` from the
-    * extension config (using the same resolution used across the codebase).
-    */
-    registerExtension(extension) {
-      var _getExtensionField, _markdownCfg$indentsC;
-      this.extensions.push(extension);
-      const isCode = callOrReturn(getExtensionField(extension, "code"));
-      const name = extension.name;
-      const extensionContext = {
-        name,
-        options: extension.options,
-        storage: extension.storage
-      };
-      if (isCode) this.codeTypes.add(name);
-      if (!this.extensionRanks.has(name)) this.extensionRanks.set(name, this.extensionRanks.size);
-      const tokenName = getExtensionField(extension, "markdownTokenName", extensionContext) || name;
-      const parseMarkdown = getExtensionField(extension, "parseMarkdown", extensionContext);
-      const renderMarkdown = getExtensionField(extension, "renderMarkdown", extensionContext);
-      const tokenizer = getExtensionField(extension, "markdownTokenizer", extensionContext);
-      const markdownCfg = (_getExtensionField = getExtensionField(extension, "markdownOptions", extensionContext)) !== null && _getExtensionField !== void 0 ? _getExtensionField : null;
-      const spec = {
-        tokenName,
-        nodeName: name,
-        parseMarkdown,
-        renderMarkdown,
-        isIndenting: (_markdownCfg$indentsC = markdownCfg === null || markdownCfg === void 0 ? void 0 : markdownCfg.indentsContent) !== null && _markdownCfg$indentsC !== void 0 ? _markdownCfg$indentsC : false,
-        htmlReopen: markdownCfg === null || markdownCfg === void 0 ? void 0 : markdownCfg.htmlReopen,
-        tokenizer
-      };
-      if (tokenName && parseMarkdown) {
-        const parseExisting = this.registry.get(tokenName) || [];
-        parseExisting.push(spec);
-        this.registry.set(tokenName, parseExisting);
-      }
-      if (renderMarkdown) {
-        const renderExisting = this.nodeTypeRegistry.get(name) || [];
-        renderExisting.push(spec);
-        this.nodeTypeRegistry.set(name, renderExisting);
-      }
-      if (tokenizer && this.hasMarked()) this.registerTokenizer(tokenizer);
-    }
-    createLexer() {
-      return new this.markedInstance.Lexer(this.markedInstance.defaults);
-    }
-    createTokenizerHelpers(lexer) {
-      return {
-        inlineTokens: (src) => lexer.inlineTokens(src),
-        blockTokens: (src) => lexer.blockTokens(src)
-      };
-    }
-    tokenizeInline(src) {
-      var _this$activeParseLexe;
-      return ((_this$activeParseLexe = this.activeParseLexer) !== null && _this$activeParseLexe !== void 0 ? _this$activeParseLexe : this.createLexer()).inlineTokens(src);
-    }
-    /**
-    * Register a custom tokenizer with marked.js for parsing non-standard markdown syntax.
-    */
-    registerTokenizer(tokenizer) {
-      if (!this.hasMarked()) return;
-      const { name, start, level = "inline", tokenize: tokenize2 } = tokenizer;
-      const createTokenizerHelpers = this.createTokenizerHelpers.bind(this);
-      const createLexer = this.createLexer.bind(this);
-      let startCb;
-      if (!start) startCb = (src) => {
-        const result = tokenize2(src, [], this.createTokenizerHelpers(this.createLexer()));
-        if (result && result.raw) return src.indexOf(result.raw);
-        return -1;
-      };
-      else startCb = typeof start === "function" ? start : (src) => src.indexOf(start);
-      const markedExtension = {
-        name,
-        level,
-        start: startCb,
-        tokenizer(src, tokens) {
-          const helper = this.lexer ? createTokenizerHelpers(this.lexer) : createTokenizerHelpers(createLexer());
-          const result = tokenize2(src, tokens, helper);
-          if (result && result.type) return {
-            ...result,
-            type: result.type || name,
-            raw: result.raw || "",
-            tokens: result.tokens || []
-          };
-        },
-        childTokens: []
-      };
-      this.markedInstance.use({ extensions: [markedExtension] });
-    }
-    /** Get registered handlers for a token type and try each until one succeeds. */
-    getHandlersForToken(type) {
-      try {
-        return this.registry.get(type) || [];
-      } catch {
-        return [];
-      }
-    }
-    /** Get the first handler for a token type (for backwards compatibility). */
-    getHandlerForToken(type) {
-      const markdownHandlers = this.getHandlersForToken(type);
-      if (markdownHandlers.length > 0) return markdownHandlers[0];
-      const nodeTypeHandlers = this.getHandlersForNodeType(type);
-      return nodeTypeHandlers.length > 0 ? nodeTypeHandlers[0] : void 0;
-    }
-    /** Get registered handlers for a node type (for rendering). */
-    getHandlersForNodeType(type) {
-      try {
-        return this.nodeTypeRegistry.get(type) || [];
-      } catch {
-        return [];
-      }
-    }
-    /**
-    * Serialize a ProseMirror-like JSON document (or node array) to a Markdown string
-    * using registered renderers and fallback renderers.
-    */
-    serialize(docOrContent) {
-      if (!docOrContent) return "";
-      const result = this.renderNodes(docOrContent, docOrContent);
-      return this.isEmptyOutput(result) ? "" : result;
-    }
-    /**
-    * Check if the markdown output represents an empty document.
-    * Empty documents may contain only &nbsp; entities or non-breaking space characters
-    * which are used by the Paragraph extension to preserve blank lines.
-    */
-    isEmptyOutput(markdown) {
-      if (!markdown || markdown.trim() === "") return true;
-      return markdown.replace(/&nbsp;/g, "").replace(/\u00A0/g, "").trim() === "";
-    }
-    /**
-    * Parse markdown string into Tiptap JSON document using registered extension handlers.
-    */
-    parse(markdown) {
-      if (!this.hasMarked()) throw new Error("No marked instance available for parsing");
-      const previousParseLexer = this.activeParseLexer;
-      const parseLexer = this.createLexer();
-      this.activeParseLexer = parseLexer;
-      try {
-        const tokens = parseLexer.lex(markdown);
-        return {
-          type: "doc",
-          content: this.parseTokens(tokens, true)
-        };
-      } finally {
-        this.activeParseLexer = previousParseLexer;
-      }
-    }
-    /**
-    * Convert an array of marked tokens into Tiptap JSON nodes using registered extension handlers.
-    */
-    parseTokens(tokens, parseImplicitEmptyParagraphs = false) {
-      const normalizedTokens = parseImplicitEmptyParagraphs ? extractAbsorbedBlankLines(tokens) : tokens;
-      const nonSpaceTokenIndexes = normalizedTokens.reduce((indexes, token, index) => {
-        if (token.type !== "space") indexes.push(index);
-        return indexes;
-      }, []);
-      let previousNonSpaceTokenIndex = -1;
-      let nextNonSpaceTokenPointer = 0;
-      return normalizedTokens.flatMap((token, index) => {
-        while (nextNonSpaceTokenPointer < nonSpaceTokenIndexes.length && nonSpaceTokenIndexes[nextNonSpaceTokenPointer] < index) {
-          previousNonSpaceTokenIndex = nonSpaceTokenIndexes[nextNonSpaceTokenPointer];
-          nextNonSpaceTokenPointer += 1;
-        }
-        if (parseImplicitEmptyParagraphs && token.type === "space") {
-          var _nonSpaceTokenIndexes;
-          const nextNonSpaceTokenIndex = (_nonSpaceTokenIndexes = nonSpaceTokenIndexes[nextNonSpaceTokenPointer]) !== null && _nonSpaceTokenIndexes !== void 0 ? _nonSpaceTokenIndexes : -1;
-          return this.createImplicitEmptyParagraphsFromSpace(token, previousNonSpaceTokenIndex, nextNonSpaceTokenIndex);
-        }
-        const parsed = this.parseToken(token, parseImplicitEmptyParagraphs);
-        if (parsed === null) return [];
-        return Array.isArray(parsed) ? parsed : [parsed];
-      });
-    }
-    createImplicitEmptyParagraphsFromSpace(token, previousNonSpaceTokenIndex, nextNonSpaceTokenIndex) {
-      const separatorCount = this.countParagraphSeparators(token.raw || "");
-      if (separatorCount === 0) return [];
-      const emptyParagraphCount = Math.max(separatorCount - (previousNonSpaceTokenIndex === -1 || nextNonSpaceTokenIndex === -1 ? 0 : 1), 0);
-      return Array.from({ length: emptyParagraphCount }, () => ({
-        type: "paragraph",
-        content: []
-      }));
-    }
-    countParagraphSeparators(raw) {
-      return (raw.replace(/\r\n/g, "\n").match(/\n\n/g) || []).length;
-    }
-    /**
-    * Parse a single token into Tiptap JSON using the appropriate registered handler.
-    */
-    parseToken(token, parseImplicitEmptyParagraphs = false) {
-      if (!token.type) return null;
-      if (token.type === "list") return this.parseListToken(token);
-      const handlers2 = this.getHandlersForToken(token.type);
-      const helpers = this.createParseHelpers();
-      if (handlers2.find((handler) => {
-        if (!handler.parseMarkdown) return false;
-        const parseResult = handler.parseMarkdown(token, helpers);
-        const normalized = this.normalizeParseResult(parseResult);
-        if (normalized && (!Array.isArray(normalized) || normalized.length > 0)) {
-          this.lastParseResult = normalized;
-          return true;
-        }
-        return false;
-      }) && this.lastParseResult) {
-        const toReturn = this.lastParseResult;
-        this.lastParseResult = null;
-        return toReturn;
-      }
-      return this.parseFallbackToken(token, parseImplicitEmptyParagraphs);
-    }
-    /**
-    * Parse a list token, handling mixed bullet and task list items by splitting them into separate lists.
-    * This ensures that consecutive task items and bullet items are grouped and parsed as separate list nodes.
-    *
-    * @param token The list token to parse
-    * @returns Array of parsed list nodes, or null if parsing fails
-    */
-    parseListToken(token) {
-      if (!token.items || token.items.length === 0) return this.parseTokenWithHandlers(token);
-      const hasTask = token.items.some((item) => isTaskItem(item).isTask);
-      const hasNonTask = token.items.some((item) => !isTaskItem(item).isTask);
-      if (!hasTask || !hasNonTask || this.getHandlersForToken("taskList").length === 0) return this.parseTokenWithHandlers(token);
-      const groups = [];
-      let currentGroup = [];
-      let currentType = null;
-      for (let i = 0; i < token.items.length; i += 1) {
-        const item = token.items[i];
-        const { isTask, checked, indentLevel } = isTaskItem(item);
-        let processedItem = item;
-        if (isTask) {
-          const lines = (item.raw || item.text || "").split("\n");
-          const firstLineMatch = lines[0].match(/^\s*[-+*]\s+\[([ xX])\]\s+(.*)$/);
-          const mainContent = firstLineMatch ? firstLineMatch[2] : "";
-          let nestedTokens = [];
-          if (lines.length > 1) {
-            if (lines.slice(1).join("\n").trim()) {
-              const nestedLines = lines.slice(1);
-              const nonEmptyLines = nestedLines.filter((line) => line.trim());
-              if (nonEmptyLines.length > 0) {
-                const minIndent = Math.min(...nonEmptyLines.map((line) => line.length - line.trimStart().length));
-                const nestedContent = nestedLines.map((line) => {
-                  if (!line.trim()) return "";
-                  return line.slice(minIndent);
-                }).join("\n").trim();
-                if (nestedContent) nestedTokens = this.markedInstance.lexer(`${nestedContent}
-`);
-              }
-            }
-          }
-          processedItem = {
-            type: "taskItem",
-            raw: "",
-            mainContent,
-            indentLevel,
-            checked: checked !== null && checked !== void 0 ? checked : false,
-            text: mainContent,
-            tokens: this.tokenizeInline(mainContent),
-            nestedTokens
-          };
-        }
-        const itemType = isTask ? "taskList" : "list";
-        if (currentType !== itemType) {
-          if (currentGroup.length > 0) groups.push({
-            type: currentType,
-            items: currentGroup
-          });
-          currentGroup = [processedItem];
-          currentType = itemType;
-        } else currentGroup.push(processedItem);
-      }
-      if (currentGroup.length > 0) groups.push({
-        type: currentType,
-        items: currentGroup
-      });
-      const results = [];
-      for (let i = 0; i < groups.length; i += 1) {
-        const group = groups[i];
-        const subToken = {
-          ...token,
-          type: group.type,
-          items: group.items
-        };
-        const parsed = this.parseToken(subToken);
-        if (parsed) {
-          if (Array.isArray(parsed)) results.push(...parsed);
-          else results.push(parsed);
-        }
-      }
-      return results.length > 0 ? results : null;
-    }
-    /**
-    * Parse a token using registered handlers (extracted for reuse).
-    */
-    parseTokenWithHandlers(token) {
-      if (!token.type) return null;
-      const handlers2 = this.getHandlersForToken(token.type);
-      const helpers = this.createParseHelpers();
-      if (handlers2.find((handler) => {
-        if (!handler.parseMarkdown) return false;
-        const parseResult = handler.parseMarkdown(token, helpers);
-        const normalized = this.normalizeParseResult(parseResult);
-        if (normalized && (!Array.isArray(normalized) || normalized.length > 0)) {
-          this.lastParseResult = normalized;
-          return true;
-        }
-        return false;
-      }) && this.lastParseResult) {
-        const toReturn = this.lastParseResult;
-        this.lastParseResult = null;
-        return toReturn;
-      }
-      return this.parseFallbackToken(token);
-    }
-    /**
-    * Creates helper functions for parsing markdown tokens.
-    * @returns An object containing helper functions for parsing.
-    */
-    createParseHelpers() {
-      return {
-        parseInline: (tokens) => this.parseInlineTokens(tokens),
-        tokenizeInline: (src) => this.tokenizeInline(src),
-        parseChildren: (tokens) => this.parseTokens(tokens),
-        parseBlockChildren: (tokens) => this.parseTokens(tokens, true),
-        createTextNode: (text2, marks) => {
-          return {
-            type: "text",
-            text: text2,
-            marks: marks || void 0
-          };
-        },
-        createNode: (type, attrs, content2) => {
-          const node = {
-            type,
-            attrs: attrs || void 0,
-            content: content2 || void 0
-          };
-          if (!attrs || Object.keys(attrs).length === 0) delete node.attrs;
-          return node;
-        },
-        applyMark: (markType, content2, attrs) => ({
-          mark: markType,
-          content: content2,
-          attrs: attrs && Object.keys(attrs).length > 0 ? attrs : void 0
-        })
-      };
-    }
-    /**
-    * Escape special regex characters in a string.
-    */
-    escapeRegex(str) {
-      return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    }
-    /**
-    * Parse inline tokens (bold, italic, links, etc.) into text nodes with marks.
-    * This is the complex part that handles mark nesting and boundaries.
-    */
-    parseInlineTokens(tokens) {
-      const result = [];
-      for (let i = 0; i < tokens.length; i += 1) {
-        const token = tokens[i];
-        if (token.type === "text") result.push({
-          type: "text",
-          text: decodeHtmlEntities(token.text || "")
-        });
-        else if (token.type === "escape") result.push({
-          type: "text",
-          text: token.text || ""
-        });
-        else if (token.type === "html") {
-          var _ref, _token$raw;
-          const raw = ((_ref = (_token$raw = token.raw) !== null && _token$raw !== void 0 ? _token$raw : token.text) !== null && _ref !== void 0 ? _ref : "").toString();
-          const isClosing = /^<\/[\s]*[\w-]+/i.test(raw);
-          const openMatch = raw.match(/^<[\s]*([\w-]+)(\s|>|\/|$)/i);
-          if (!isClosing && openMatch && !/\/>$/.test(raw)) {
-            const tagName = openMatch[1];
-            const escapedTagName = this.escapeRegex(tagName);
-            const closingRegex = new RegExp(`^<\\/\\s*${escapedTagName}\\b`, "i");
-            let foundIndex = -1;
-            const parts = [raw];
-            for (let j2 = i + 1; j2 < tokens.length; j2 += 1) {
-              var _ref2, _t$raw;
-              const t = tokens[j2];
-              const tRaw = ((_ref2 = (_t$raw = t.raw) !== null && _t$raw !== void 0 ? _t$raw : t.text) !== null && _ref2 !== void 0 ? _ref2 : "").toString();
-              parts.push(tRaw);
-              if (t.type === "html" && closingRegex.test(tRaw)) {
-                foundIndex = j2;
-                break;
-              }
-            }
-            if (foundIndex !== -1) {
-              const mergedRaw = parts.join("");
-              const mergedToken = {
-                type: "html",
-                raw: mergedRaw,
-                text: mergedRaw,
-                block: false
-              };
-              const parsed = this.parseHTMLToken(mergedToken);
-              if (parsed) {
-                const normalized = this.normalizeParseResult(parsed);
-                if (Array.isArray(normalized)) result.push(...normalized);
-                else if (normalized) result.push(normalized);
-              }
-              i = foundIndex;
-              continue;
-            }
-          }
-          const parsedSingle = this.parseHTMLToken(token);
-          if (parsedSingle) {
-            const normalized = this.normalizeParseResult(parsedSingle);
-            if (Array.isArray(normalized)) result.push(...normalized);
-            else if (normalized) result.push(normalized);
-          }
-        } else if (token.type) {
-          const markHandler = this.getHandlerForToken(token.type);
-          if (markHandler && markHandler.parseMarkdown) {
-            const helpers = this.createParseHelpers();
-            const parsed = markHandler.parseMarkdown(token, helpers);
-            if (this.isMarkResult(parsed)) {
-              const markedContent = this.applyMarkToContent(parsed.mark, parsed.content, parsed.attrs);
-              result.push(...markedContent);
-            } else {
-              const normalized = this.normalizeParseResult(parsed);
-              if (Array.isArray(normalized)) result.push(...normalized);
-              else if (normalized) result.push(normalized);
-            }
-          } else if (token.tokens) result.push(...this.parseInlineTokens(token.tokens));
-        }
-      }
-      for (let i = result.length - 1; i > 0; i -= 1) {
-        const current2 = result[i];
-        const previous = result[i - 1];
-        if (current2.type === "text" && previous.type === "text") {
-          const currentMarks = current2.marks || [];
-          const previousMarks = previous.marks || [];
-          if (marksEqual(currentMarks, previousMarks)) {
-            previous.text = (previous.text || "") + (current2.text || "");
-            result.splice(i, 1);
-          }
-        }
-      }
-      return result;
-    }
-    /**
-    * Apply a mark to content nodes.
-    */
-    applyMarkToContent(markType, content2, attrs) {
-      return content2.map((node) => {
-        if (node.type === "text") {
-          const existingMarks = node.marks || [];
-          const newMark = attrs ? {
-            type: markType,
-            attrs
-          } : { type: markType };
-          return {
-            ...node,
-            marks: [...existingMarks, newMark]
-          };
-        }
-        return {
-          ...node,
-          content: node.content ? this.applyMarkToContent(markType, node.content, attrs) : void 0
-        };
-      });
-    }
-    isMarkResult(result) {
-      return result && typeof result === "object" && "mark" in result;
-    }
-    /**
-    * Normalize parse results to ensure they're valid JSONContent.
-    */
-    normalizeParseResult(result) {
-      if (!result) return null;
-      if (this.isMarkResult(result)) return result.content;
-      return result;
-    }
-    /**
-    * Fallback parsing for common tokens when no specific handler is registered.
-    */
-    parseFallbackToken(token, parseImplicitEmptyParagraphs = false) {
-      switch (token.type) {
-        case "paragraph":
-          return {
-            type: "paragraph",
-            content: token.tokens ? this.parseInlineTokens(token.tokens) : []
-          };
-        case "heading":
-          return {
-            type: "heading",
-            attrs: { level: token.depth || 1 },
-            content: token.tokens ? this.parseInlineTokens(token.tokens) : []
-          };
-        case "text":
-          return {
-            type: "text",
-            text: decodeHtmlEntities(token.text || "")
-          };
-        case "html":
-          return this.parseHTMLToken(token);
-        case "escape":
-          return {
-            type: "text",
-            text: token.text || ""
-          };
-        case "space":
-          return null;
-        default:
-          if (token.tokens) return this.parseTokens(token.tokens, parseImplicitEmptyParagraphs);
-          return null;
-      }
-    }
-    /**
-    * Parse an HTML token from marked into JSONContent using the registered
-    * extensions' `parseHTML` rules. Falls back to literal text when the HTML
-    * has nothing for the schema to keep.
-    *
-    * @param token Marked HTML token (block or inline).
-    * @example
-    *   parseHTMLToken({ type: 'html', raw: '<em>hi</em>', block: false })
-    *   // → text node with an italic mark
-    */
-    parseHTMLToken(token) {
-      const html = token.text || token.raw || "";
-      if (!html.trim()) return null;
-      if (this.isUnrecognizedHtml(html)) return this.htmlAsLiteralText(html, !!token.block);
-      if (typeof window === "undefined" || typeof window.DOMParser === "undefined") return this.htmlAsLiteralText(html, !!token.block);
-      try {
-        const parsed = generateJSON(html, this.baseExtensions);
-        if (parsed.type === "doc" && parsed.content) {
-          if (token.block) return parsed.content;
-          const inlineContent = this.toInlineContent(parsed.content);
-          return inlineContent.length > 0 ? inlineContent : null;
-        }
-        return parsed;
-      } catch (error) {
-        throw new Error(`Failed to parse HTML in markdown: ${error}`);
-      }
-    }
-    /**
-    * Keep only the inline nodes of parsed HTML content, unwrapping the block
-    * nodes around them. Inline HTML sits inside a textblock, where a block node
-    * would make the document invalid for the schema.
-    *
-    * @param content Content array of a parsed HTML fragment.
-    * @example
-    *   toInlineContent([{ type: 'paragraph', content: [{ type: 'text', text: 'hi' }] }])
-    *   // → [{ type: 'text', text: 'hi' }]
-    */
-    toInlineContent(content2) {
-      const inlineTypes = this.getInlineNodeTypes();
-      return content2.flatMap((node) => {
-        if (node.type && inlineTypes.has(node.type)) return [node];
-        return node.content ? this.toInlineContent(node.content) : [];
-      });
-    }
-    /**
-    * Collect the names of the node types the schema treats as inline. Result is
-    * cached for the lifetime of the manager since extensions don't change after
-    * registration.
-    *
-    * @example
-    *   getInlineNodeTypes().has('text') // → true
-    */
-    getInlineNodeTypes() {
-      if (this.inlineNodeTypesCache) return this.inlineNodeTypesCache;
-      const types = /* @__PURE__ */ new Set(["text"]);
-      try {
-        const schema = getSchema(this.baseExtensions);
-        Object.values(schema.nodes).forEach((type) => {
-          if (type.isInline) types.add(type.name);
-        });
-      } catch {
-      }
-      this.inlineNodeTypesCache = types;
-      return types;
-    }
-    /**
-    * Returns true when the HTML contains a tag that is neither a standard
-    * HTML/SVG element nor declared in a registered extension's parseDOM rules.
-    *
-    * Recognized but empty elements such as `<em></em>` or `<span></span>`,
-    * and hyphenated custom elements like `<my-mention>`, are not considered
-    * unrecognized.
-    *
-    * @param html Raw HTML string from a marked token.
-    * @example
-    *   isUnrecognizedHtml('<enter foo bar>')  // → true
-    *   isUnrecognizedHtml('<em></em>')        // → false (empty, but real tag)
-    *   isUnrecognizedHtml('<em>hi</em>')      // → false
-    *   isUnrecognizedHtml('<my-el></my-el>')  // → false (valid custom element)
-    *   isUnrecognizedHtml('<br>')             // → false
-    */
-    isUnrecognizedHtml(html) {
-      return htmlContainsUnrecognizedTag(html, this.getSchemaParseDomTags());
-    }
-    /**
-    * Collect the lower-cased tag names declared by the registered extensions'
-    * parseDOM rules, so custom node/mark elements that use non-hyphenated,
-    * non-standard tag names are treated as recognized HTML. Result is cached for the
-    * lifetime of the manager since extensions don't change after registration.
-    *
-    * @example
-    *   // After registering an extension with parseDOM [{ tag: 'something' }]
-    *   getSchemaParseDomTags().has('something') // → true
-    */
-    getSchemaParseDomTags() {
-      if (this.schemaParseDomTagsCache) return this.schemaParseDomTagsCache;
-      const tags = /* @__PURE__ */ new Set();
-      try {
-        const schema = getSchema(this.baseExtensions);
-        const collect = (spec) => {
-          const parseDOM = spec === null || spec === void 0 ? void 0 : spec.parseDOM;
-          if (!Array.isArray(parseDOM)) return;
-          parseDOM.forEach((rule) => {
-            if (typeof (rule === null || rule === void 0 ? void 0 : rule.tag) === "string") {
-              const match = rule.tag.match(/^[a-zA-Z][\w-]*/);
-              if (match) tags.add(match[0].toLowerCase());
-            }
-          });
-        };
-        Object.values(schema.nodes).forEach((type) => collect(type.spec));
-        Object.values(schema.marks).forEach((type) => collect(type.spec));
-      } catch {
-      }
-      this.schemaParseDomTagsCache = tags;
-      return tags;
-    }
-    /**
-    * Build a JSONContent that preserves the original HTML markup as literal
-    * text. Used when the HTML would otherwise be silently dropped during
-    * schema-aware parsing.
-    *
-    * @param html Raw HTML string to preserve verbatim.
-    * @param isBlock Whether to wrap the text in a paragraph node (block tokens)
-    *   or return it as a bare text node (inline tokens).
-    * @example
-    *   htmlAsLiteralText('<enter foo>', true)
-    *   // → { type: 'paragraph', content: [{ type: 'text', text: '<enter foo>' }] }
-    */
-    htmlAsLiteralText(html, isBlock) {
-      const text2 = html.replace(/\s+$/, "");
-      if (!text2) return null;
-      if (isBlock) return {
-        type: "paragraph",
-        content: [{
-          type: "text",
-          text: text2
-        }]
-      };
-      return {
-        type: "text",
-        text: text2
-      };
-    }
-    /**
-    * Encode HTML entities in text unless the node is inside a code context
-    * (code mark or code-block parent) where literal characters should be preserved.
-    * Also backslash-escape markdown-significant characters in non-code text to
-    * prevent them from being misinterpreted as formatting delimiters.
-    */
-    encodeTextForMarkdown(text2, node, parentNode2) {
-      if ((parentNode2 === null || parentNode2 === void 0 ? void 0 : parentNode2.type) != null && this.codeTypes.has(parentNode2.type) || (node.marks || []).some((m2) => this.codeTypes.has(typeof m2 === "string" ? m2 : m2.type))) return text2;
-      return this.escapeMarkdownSyntax(encodeHtmlEntities(text2));
-    }
-    /**
-    * Backslash-escape characters that have special meaning in markdown inline
-    * syntax. This prevents literal characters in text nodes from being
-    * misinterpreted as formatting delimiters when the output is parsed again.
-    *
-    * The set covers the most common inline markdown syntax characters.
-    * Characters inside code blocks/code marks are skipped by the caller
-    * (`encodeTextForMarkdown`) via the existing `isInsideCode` guard.
-    */
-    escapeMarkdownSyntax(text2) {
-      return text2.replace(/([\\`*_[\]~])/g, "\\$1");
-    }
-    renderNodeToMarkdown(node, parentNode2, index = 0, level = 0, meta = {}) {
-      var _handler$renderMarkdo;
-      if (node.type === "text") return this.encodeTextForMarkdown(node.text || "", node, parentNode2);
-      if (!node.type) return "";
-      const handler = this.getHandlerForToken(node.type);
-      if (!handler) return "";
-      const previousNode = Array.isArray(parentNode2 === null || parentNode2 === void 0 ? void 0 : parentNode2.content) && index > 0 ? parentNode2.content[index - 1] : void 0;
-      const helpers = {
-        renderChildren: (nodes, separator) => {
-          const childLevel = handler.isIndenting ? level + 1 : level;
-          if (!Array.isArray(nodes) && nodes.content) return this.renderNodes(nodes.content, node, separator || "", index, childLevel);
-          return this.renderNodes(nodes, node, separator || "", index, childLevel);
-        },
-        renderChild: (childNode, childIndex) => {
-          const childLevel = handler.isIndenting ? level + 1 : level;
-          return this.renderNodeToMarkdown(childNode, node, childIndex, childLevel);
-        },
-        indent: (content2) => {
-          return this.indentString + content2;
-        },
-        wrapInBlock: wrapInMarkdownBlock
-      };
-      const context = {
-        index,
-        level,
-        parentType: parentNode2 === null || parentNode2 === void 0 ? void 0 : parentNode2.type,
-        previousNode,
-        meta: {
-          parentAttrs: parentNode2 === null || parentNode2 === void 0 ? void 0 : parentNode2.attrs,
-          ...meta
-        }
-      };
-      return ((_handler$renderMarkdo = handler.renderMarkdown) === null || _handler$renderMarkdo === void 0 ? void 0 : _handler$renderMarkdo.call(handler, node, helpers, context)) || "";
-    }
-    /**
-    * Render a node or an array of nodes. Parent type controls how children
-    * are joined (which determines newline insertion between children).
-    */
-    renderNodes(nodeOrNodes, parentNode2, separator = "", index = 0, level = 0) {
-      if (!Array.isArray(nodeOrNodes)) {
-        if (!nodeOrNodes.type) return "";
-        return this.renderNodeToMarkdown(nodeOrNodes, parentNode2, index, level);
-      }
-      return this.renderNodesWithMarkBoundaries(nodeOrNodes, parentNode2, separator, level);
-    }
-    /**
-    * Render an array of nodes while properly tracking mark boundaries.
-    * This handles cases where marks span across multiple text nodes.
-    */
-    renderNodesWithMarkBoundaries(nodes, parentNode2, separator = "", level = 0) {
-      const result = [];
-      const activeMarks = /* @__PURE__ */ new Map();
-      const reopenWithHtmlOnNextOpen = /* @__PURE__ */ new Set();
-      const markOpeningModes = /* @__PURE__ */ new Map();
-      const markSpanTexts = collectMarkSpanTexts(nodes);
-      nodes.forEach((node, i) => {
-        const nextNode = i < nodes.length - 1 ? nodes[i + 1] : null;
-        if (!node.type) return;
-        if (node.type === "text") {
-          let textContent = this.encodeTextForMarkdown(node.text || "", node, parentNode2);
-          let currentMarks = new Map((node.marks || []).map((mark) => [mark.type, mark]));
-          let marksToOpen = this.getMarksToOpenForSerialization(activeMarks, currentMarks, nextNode);
-          let marksToClose = findMarksToClose(currentMarks, nextNode);
-          if (textContent.length > 0 && textContent.trim().length === 0 && currentMarks.size > 0) {
-            const transientMarks = new Set(marksToClose.filter((markType) => !activeMarks.has(markType)));
-            if (transientMarks.size > 0) {
-              currentMarks = new Map(Array.from(currentMarks).filter(([markType]) => !transientMarks.has(markType)));
-              marksToOpen = this.getMarksToOpenForSerialization(activeMarks, currentMarks, nextNode);
-              marksToClose = findMarksToClose(currentMarks, nextNode);
-            }
-          }
-          const activeMarksClosingHere = marksToClose.filter((markType) => activeMarks.has(markType));
-          const hasCrossedBoundary = activeMarksClosingHere.length > 0 && marksToOpen.length > 0;
-          let middleTrailingWhitespace = "";
-          if (marksToClose.length > 0 && !hasCrossedBoundary) {
-            const middleTrailingMatch = textContent.match(/(\s+)$/);
-            if (middleTrailingMatch) {
-              middleTrailingWhitespace = middleTrailingMatch[1];
-              textContent = textContent.slice(0, -middleTrailingWhitespace.length);
-            }
-          }
-          if (!hasCrossedBoundary) marksToClose.slice().reverse().forEach((markType) => {
-            var _markSpanTexts$i;
-            if (!activeMarks.has(markType)) return;
-            const mark = currentMarks.get(markType);
-            const closeMarkdown = this.getMarkClosing(markType, mark, markOpeningModes.get(markType), (_markSpanTexts$i = markSpanTexts[i]) === null || _markSpanTexts$i === void 0 ? void 0 : _markSpanTexts$i.get(markType));
-            if (closeMarkdown) textContent += closeMarkdown;
-            if (activeMarks.has(markType)) {
-              activeMarks.delete(markType);
-              markOpeningModes.delete(markType);
-            }
-          });
-          let leadingWhitespace = "";
-          if (marksToOpen.length > 0) {
-            const leadingMatch = textContent.match(/^(\s+)/);
-            if (leadingMatch) {
-              leadingWhitespace = leadingMatch[1];
-              textContent = textContent.slice(leadingWhitespace.length);
-            }
-          }
-          marksToOpen.forEach(({ type, mark }) => {
-            var _markSpanTexts$i2;
-            const openingMode = reopenWithHtmlOnNextOpen.has(type) ? "html" : "markdown";
-            const openMarkdown = this.getMarkOpening(type, mark, openingMode, (_markSpanTexts$i2 = markSpanTexts[i]) === null || _markSpanTexts$i2 === void 0 ? void 0 : _markSpanTexts$i2.get(type));
-            if (openMarkdown) textContent = openMarkdown + textContent;
-            markOpeningModes.set(type, openingMode);
-            reopenWithHtmlOnNextOpen.delete(type);
-          });
-          if (!hasCrossedBoundary) marksToOpen.slice().reverse().forEach(({ type, mark }) => {
-            activeMarks.set(type, mark);
-          });
-          textContent = leadingWhitespace + textContent;
-          let marksToCloseAtEnd;
-          if (hasCrossedBoundary) {
-            const nextMarkTypes = new Set(((nextNode === null || nextNode === void 0 ? void 0 : nextNode.marks) || []).map((mark) => mark.type));
-            marksToOpen.forEach(({ type }) => {
-              if (nextMarkTypes.has(type) && this.getHtmlReopenTags(type)) reopenWithHtmlOnNextOpen.add(type);
-            });
-            const activeMarkKeys = Array.from(activeMarks.keys());
-            const activeMarksClosingHereLifo = activeMarksClosingHere.slice().sort((a, b2) => activeMarkKeys.indexOf(b2) - activeMarkKeys.indexOf(a));
-            marksToCloseAtEnd = [...marksToOpen.map((m2) => m2.type), ...activeMarksClosingHereLifo];
-          } else marksToCloseAtEnd = findMarksToCloseAtEnd(activeMarks, currentMarks, nextNode, this.markSetsEqual.bind(this));
-          let trailingWhitespace = "";
-          if (marksToCloseAtEnd.length > 0) {
-            const trailingMatch = textContent.match(/(\s+)$/);
-            if (trailingMatch) {
-              trailingWhitespace = trailingMatch[1];
-              textContent = textContent.slice(0, -trailingWhitespace.length);
-            }
-          }
-          marksToCloseAtEnd.forEach((markType) => {
-            var _activeMarks$get, _markSpanTexts$i3;
-            const mark = (_activeMarks$get = activeMarks.get(markType)) !== null && _activeMarks$get !== void 0 ? _activeMarks$get : currentMarks.get(markType);
-            const closeMarkdown = this.getMarkClosing(markType, mark, markOpeningModes.get(markType), (_markSpanTexts$i3 = markSpanTexts[i]) === null || _markSpanTexts$i3 === void 0 ? void 0 : _markSpanTexts$i3.get(markType));
-            if (closeMarkdown) textContent += closeMarkdown;
-            activeMarks.delete(markType);
-            markOpeningModes.delete(markType);
-          });
-          textContent += trailingWhitespace;
-          textContent += middleTrailingWhitespace;
-          result.push(textContent);
-        } else {
-          const nodeMarkTypes = new Set((node.marks || []).map((mark) => mark.type));
-          const marksToReopen = /* @__PURE__ */ new Map();
-          const openingModesToReopen = /* @__PURE__ */ new Map();
-          activeMarks.forEach((mark, type) => {
-            if (nodeMarkTypes.has(type)) {
-              var _markOpeningModes$get;
-              marksToReopen.set(type, mark);
-              openingModesToReopen.set(type, (_markOpeningModes$get = markOpeningModes.get(type)) !== null && _markOpeningModes$get !== void 0 ? _markOpeningModes$get : "markdown");
-            }
-          });
-          const beforeMarkdown = closeMarksBeforeNode(activeMarks, (markType, mark) => {
-            var _markSpanTexts;
-            return this.getMarkClosing(markType, mark, markOpeningModes.get(markType), (_markSpanTexts = markSpanTexts[i - 1]) === null || _markSpanTexts === void 0 ? void 0 : _markSpanTexts.get(markType));
-          });
-          markOpeningModes.clear();
-          const nodeContent = this.renderNodeToMarkdown(node, parentNode2, i, level);
-          const afterMarkdown = node.type === "hardBreak" ? "" : reopenMarksAfterNode(marksToReopen, activeMarks, (markType, mark) => {
-            var _openingModesToReopen, _markSpanTexts2;
-            const openingMode = (_openingModesToReopen = openingModesToReopen.get(markType)) !== null && _openingModesToReopen !== void 0 ? _openingModesToReopen : "markdown";
-            markOpeningModes.set(markType, openingMode);
-            return this.getMarkOpening(markType, mark, openingMode, (_markSpanTexts2 = markSpanTexts[i + 1]) === null || _markSpanTexts2 === void 0 ? void 0 : _markSpanTexts2.get(markType));
-          });
-          result.push(beforeMarkdown + nodeContent + afterMarkdown);
-        }
-      });
-      if (separator === "") {
-        let previous = -1;
-        result.forEach((piece, i) => {
-          if (!piece) return;
-          if (previous >= 0 && piece.startsWith("[")) {
-            const trailing = /(\\*)!$/.exec(result[previous]);
-            if (trailing && trailing[1].length % 2 === 0) result[previous] = `${result[previous].slice(0, -1)}\\!`;
-          }
-          previous = i;
-        });
-      }
-      return result.join(separator);
-    }
-    /**
-    * Get the opening markdown syntax for a mark type.
-    */
-    getMarkOpening(markType, mark, openingMode = "markdown", markText) {
-      if (openingMode === "html") {
-        var _this$getHtmlReopenTa;
-        return ((_this$getHtmlReopenTa = this.getHtmlReopenTags(markType)) === null || _this$getHtmlReopenTa === void 0 ? void 0 : _this$getHtmlReopenTa.open) || "";
-      }
-      const handlers2 = this.getHandlersForNodeType(markType);
-      const handler = handlers2.length > 0 ? handlers2[0] : void 0;
-      if (!handler || !handler.renderMarkdown) return "";
-      const placeholder = "\uE000__TIPTAP_MARKDOWN_PLACEHOLDER__\uE001";
-      const syntheticNode = {
-        type: markType,
-        attrs: mark.attrs || {},
-        content: [{
-          type: "text",
-          text: placeholder
-        }]
-      };
-      try {
-        const rendered = handler.renderMarkdown(syntheticNode, {
-          renderChildren: () => placeholder,
-          renderChild: () => placeholder,
-          indent: (content2) => content2,
-          wrapInBlock: (prefix, content2) => prefix + content2
-        }, {
-          index: 0,
-          level: 0,
-          parentType: "text",
-          meta: { markText }
-        });
-        const placeholderIndex = rendered.indexOf(placeholder);
-        return placeholderIndex >= 0 ? rendered.substring(0, placeholderIndex) : "";
-      } catch (err) {
-        throw new Error(`Failed to get mark opening for ${markType}: ${err}`);
-      }
-    }
-    /**
-    * Get the closing markdown syntax for a mark type.
-    */
-    getMarkClosing(markType, mark, openingMode = "markdown", markText) {
-      if (openingMode === "html") {
-        var _this$getHtmlReopenTa2;
-        return ((_this$getHtmlReopenTa2 = this.getHtmlReopenTags(markType)) === null || _this$getHtmlReopenTa2 === void 0 ? void 0 : _this$getHtmlReopenTa2.close) || "";
-      }
-      const handlers2 = this.getHandlersForNodeType(markType);
-      const handler = handlers2.length > 0 ? handlers2[0] : void 0;
-      if (!handler || !handler.renderMarkdown) return "";
-      const placeholder = "\uE000__TIPTAP_MARKDOWN_PLACEHOLDER__\uE001";
-      const syntheticNode = {
-        type: markType,
-        attrs: mark.attrs || {},
-        content: [{
-          type: "text",
-          text: placeholder
-        }]
-      };
-      try {
-        const rendered = handler.renderMarkdown(syntheticNode, {
-          renderChildren: () => placeholder,
-          renderChild: () => placeholder,
-          indent: (content2) => content2,
-          wrapInBlock: (prefix, content2) => prefix + content2
-        }, {
-          index: 0,
-          level: 0,
-          parentType: "text",
-          meta: { markText }
-        });
-        const placeholderIndex = rendered.indexOf(placeholder);
-        const placeholderEnd = placeholderIndex + 33;
-        return placeholderIndex >= 0 ? rendered.substring(placeholderEnd) : "";
-      } catch (err) {
-        throw new Error(`Failed to get mark closing for ${markType}: ${err}`);
-      }
-    }
-    /**
-    * Returns the inline HTML tags an extension exposes for overlap-boundary
-    * reopen handling, if that mark explicitly opted into HTML reopen mode.
-    */
-    getHtmlReopenTags(markType) {
-      const handlers2 = this.getHandlersForNodeType(markType);
-      const handler = handlers2.length > 0 ? handlers2[0] : void 0;
-      return handler === null || handler === void 0 ? void 0 : handler.htmlReopen;
-    }
-    /**
-    * Check if two mark sets are equal (same types and matching attributes).
-    */
-    markSetsEqual(marks1, marks2) {
-      if (marks1.size !== marks2.size) return false;
-      return Array.from(marks1.entries()).every(([type, mark]) => {
-        const otherMark = marks2.get(type);
-        return otherMark && attrsEqual(mark.attrs, otherMark.attrs);
-      });
-    }
-    /**
-    * Decide the order in which marks open on the current text node.
-    *
-    * The returned array is iterated head-first when prepending opening
-    * delimiters, so the first entry becomes the innermost mark in the emitted
-    * markdown and the last becomes the outermost. Two stable signals drive
-    * the order — neither one inspects any rendered markdown:
-    *
-    *   1. Marks that end on this node must be inner relative to marks that
-    *      continue into the next node, otherwise the delimiters interleave
-    *      instead of nesting.
-    *   2. Within each lifetime group, marks are sorted so that lower
-    *      registration ranks (i.e. higher Tiptap extension priorities) end up
-    *      outermost. ProseMirror assigns mark ranks in the same priority-aware
-    *      order Tiptap uses when building the schema, so link (priority 1000)
-    *      naturally wraps bold/italic without the serializer needing to peek
-    *      at how any particular mark renders.
-    */
-    getMarksToOpenForSerialization(activeMarks, currentMarks, nextNode) {
-      const marksToOpen = findMarksToOpen(activeMarks, currentMarks);
-      if (marksToOpen.length <= 1) return marksToOpen;
-      const nextMarks = (nextNode === null || nextNode === void 0 ? void 0 : nextNode.marks) || [];
-      const continuesInNextNode = (markType, attrs) => nextMarks.some((m2) => m2.type === markType && attrsEqual(m2.attrs, attrs));
-      const byRankInnerFirst = (a, b2) => {
-        var _this$extensionRanks$, _this$extensionRanks$2;
-        const rankA = (_this$extensionRanks$ = this.extensionRanks.get(a.type)) !== null && _this$extensionRanks$ !== void 0 ? _this$extensionRanks$ : Number.MAX_SAFE_INTEGER;
-        const rankB = (_this$extensionRanks$2 = this.extensionRanks.get(b2.type)) !== null && _this$extensionRanks$2 !== void 0 ? _this$extensionRanks$2 : Number.MAX_SAFE_INTEGER;
-        if (rankA !== rankB) return rankB - rankA;
-        return a.type.localeCompare(b2.type);
-      };
-      const endingHere = marksToOpen.filter((mark) => !continuesInNextNode(mark.type, mark.mark.attrs)).sort(byRankInnerFirst);
-      const continuing = marksToOpen.filter((mark) => continuesInNextNode(mark.type, mark.mark.attrs)).sort(byRankInnerFirst);
-      return [...endingHere, ...continuing];
-    }
-  };
-  var Markdown = Extension.create({
-    name: "markdown",
-    addOptions() {
-      return {
-        indentation: {
-          style: "space",
-          size: 2
-        },
-        marked: void 0,
-        markedOptions: {}
-      };
-    },
-    addCommands() {
-      return {
-        setContent: (content2, options) => {
-          if (!(options === null || options === void 0 ? void 0 : options.contentType)) return commands_exports.setContent(content2, options);
-          if (assumeContentType(content2, options === null || options === void 0 ? void 0 : options.contentType) !== "markdown" || !this.editor.markdown) return commands_exports.setContent(content2, options);
-          const mdContent = this.editor.markdown.parse(content2);
-          return commands_exports.setContent(mdContent, options);
-        },
-        insertContent: (value, options) => {
-          if (!(options === null || options === void 0 ? void 0 : options.contentType)) return commands_exports.insertContent(value, options);
-          if (assumeContentType(value, options === null || options === void 0 ? void 0 : options.contentType) !== "markdown" || !this.editor.markdown) return commands_exports.insertContent(value, options);
-          const mdContent = this.editor.markdown.parse(value);
-          return commands_exports.insertContent(mdContent, options);
-        },
-        insertContentAt: (position, value, options) => {
-          if (!(options === null || options === void 0 ? void 0 : options.contentType)) return commands_exports.insertContentAt(position, value, options);
-          if (assumeContentType(value, options === null || options === void 0 ? void 0 : options.contentType) !== "markdown" || !this.editor.markdown) return commands_exports.insertContentAt(position, value, options);
-          const mdContent = this.editor.markdown.parse(value);
-          return commands_exports.insertContentAt(position, mdContent, options);
-        }
-      };
-    },
-    addStorage() {
-      return { manager: new MarkdownManager({
-        indentation: this.options.indentation,
-        marked: this.options.marked,
-        markedOptions: this.options.markedOptions,
-        extensions: []
-      }) };
-    },
-    onBeforeCreate() {
-      var _json$content;
-      if (this.editor.markdown) {
-        console.error("[tiptap][markdown]: There is already a `markdown` property on the editor instance. This might lead to unexpected behavior.");
-        return;
-      }
-      this.storage.manager = new MarkdownManager({
-        indentation: this.options.indentation,
-        marked: this.options.marked,
-        markedOptions: this.options.markedOptions,
-        extensions: this.editor.extensionManager.baseExtensions
-      });
-      this.editor.markdown = this.storage.manager;
-      this.editor.getMarkdown = () => {
-        return this.storage.manager.serialize(this.editor.getJSON());
-      };
-      if (!this.editor.options.contentType) return;
-      if (assumeContentType(this.editor.options.content, this.editor.options.contentType) !== "markdown") return;
-      if (!this.editor.markdown) throw new Error('[tiptap][markdown]: The `contentType` option is set to "markdown", but the Markdown extension is not added to the editor. Please add the Markdown extension to use this feature.');
-      if (this.editor.options.content === void 0 || typeof this.editor.options.content !== "string") throw new Error('[tiptap][markdown]: The `contentType` option is set to "markdown", but the initial content is not a string. Please provide the initial content as a markdown string.');
-      const json = this.editor.markdown.parse(this.editor.options.content);
-      if ((_json$content = json.content) === null || _json$content === void 0 ? void 0 : _json$content.length) this.editor.options.content = json;
-    }
-  });
-
   // node_modules/prosemirror-tables/dist/index.js
   var readFromCache;
   var addToCache;
@@ -43048,6 +40466,2636 @@ Please report this to https://github.com/markedjs/marked.`, e) {
     }
   });
 
+  // node_modules/marked/lib/marked.esm.js
+  function M() {
+    return { async: false, breaks: false, extensions: null, gfm: true, hooks: null, pedantic: false, renderer: null, silent: false, tokenizer: null, walkTokens: null };
+  }
+  var O = M();
+  function G(u3) {
+    O = u3;
+  }
+  var _ = { exec: () => null };
+  function k(u3, e = "") {
+    let t = typeof u3 == "string" ? u3 : u3.source, n = { replace: (r, i) => {
+      let s = typeof i == "string" ? i : i.source;
+      return s = s.replace(m.caret, "$1"), t = t.replace(r, s), n;
+    }, getRegex: () => new RegExp(t, e) };
+    return n;
+  }
+  var be = (() => {
+    try {
+      return !!new RegExp("(?<=1)(?<!1)");
+    } catch {
+      return false;
+    }
+  })();
+  var m = { codeRemoveIndent: /^(?: {1,4}| {0,3}\t)/gm, outputLinkReplace: /\\([\[\]])/g, indentCodeCompensation: /^(\s+)(?:```)/, beginningSpace: /^\s+/, endingHash: /#$/, startingSpaceChar: /^ /, endingSpaceChar: / $/, nonSpaceChar: /[^ ]/, newLineCharGlobal: /\n/g, tabCharGlobal: /\t/g, multipleSpaceGlobal: /\s+/g, blankLine: /^[ \t]*$/, doubleBlankLine: /\n[ \t]*\n[ \t]*$/, blockquoteStart: /^ {0,3}>/, blockquoteSetextReplace: /\n {0,3}((?:=+|-+) *)(?=\n|$)/g, blockquoteSetextReplace2: /^ {0,3}>[ \t]?/gm, listReplaceNesting: /^ {1,4}(?=( {4})*[^ ])/g, listIsTask: /^\[[ xX]\] +\S/, listReplaceTask: /^\[[ xX]\] +/, listTaskCheckbox: /\[[ xX]\]/, anyLine: /\n.*\n/, hrefBrackets: /^<(.*)>$/, tableDelimiter: /[:|]/, tableAlignChars: /^\||\| *$/g, tableRowBlankLine: /\n[ \t]*$/, tableAlignRight: /^ *-+: *$/, tableAlignCenter: /^ *:-+: *$/, tableAlignLeft: /^ *:-+ *$/, startATag: /^<a /i, endATag: /^<\/a>/i, startPreScriptTag: /^<(pre|code|kbd|script)(\s|>)/i, endPreScriptTag: /^<\/(pre|code|kbd|script)(\s|>)/i, startAngleBracket: /^</, endAngleBracket: />$/, pedanticHrefTitle: /^([^'"]*[^\s])\s+(['"])(.*)\2/, unicodeAlphaNumeric: /[\p{L}\p{N}]/u, escapeTest: /[&<>"']/, escapeReplace: /[&<>"']/g, escapeTestNoEncode: /[<>"']|&(?!(#\d{1,7}|#[Xx][a-fA-F0-9]{1,6}|\w+);)/, escapeReplaceNoEncode: /[<>"']|&(?!(#\d{1,7}|#[Xx][a-fA-F0-9]{1,6}|\w+);)/g, caret: /(^|[^\[])\^/g, percentDecode: /%25/g, findPipe: /\|/g, splitPipe: / \|/, slashPipe: /\\\|/g, carriageReturn: /\r\n|\r/g, spaceLine: /^ +$/gm, notSpaceStart: /^\S*/, endingNewline: /\n$/, listItemRegex: (u3) => new RegExp(`^( {0,3}${u3})((?:[	 ][^\\n]*)?(?:\\n|$))`), nextBulletRegex: (u3) => new RegExp(`^ {0,${Math.min(3, u3 - 1)}}(?:[*+-]|\\d{1,9}[.)])((?:[ 	][^\\n]*)?(?:\\n|$))`), hrRegex: (u3) => new RegExp(`^ {0,${Math.min(3, u3 - 1)}}((?:- *){3,}|(?:_ *){3,}|(?:\\* *){3,})(?:\\n+|$)`), fencesBeginRegex: (u3) => new RegExp(`^ {0,${Math.min(3, u3 - 1)}}(?:\`\`\`|~~~)`), headingBeginRegex: (u3) => new RegExp(`^ {0,${Math.min(3, u3 - 1)}}#`), htmlBeginRegex: (u3) => new RegExp(`^ {0,${Math.min(3, u3 - 1)}}<(?:[a-z].*>|!--)`, "i"), blockquoteBeginRegex: (u3) => new RegExp(`^ {0,${Math.min(3, u3 - 1)}}>`) };
+  var Re = /^(?:[ \t]*(?:\n|$))+/;
+  var Oe = /^((?: {4}| {0,3}\t)[^\n]+(?:\n(?:[ \t]*(?:\n|$))*)?)+/;
+  var Te = /^ {0,3}(`{3,}(?=[^`\n]*(?:\n|$))|~{3,})([^\n]*)(?:\n|$)(?:|([\s\S]*?)(?:\n|$))(?: {0,3}\1[~`]* *(?=\n|$)|$)/;
+  var C = /^ {0,3}((?:-[\t ]*){3,}|(?:_[ \t]*){3,}|(?:\*[ \t]*){3,})(?:\n+|$)/;
+  var we = /^ {0,3}(#{1,6})(?=\s|$)(.*)(?:\n+|$)/;
+  var Q = / {0,3}(?:[*+-]|\d{1,9}[.)])/;
+  var se = /^(?!bull |blockCode|fences|blockquote|heading|html|table)((?:.|\n(?!\s*?\n|bull |blockCode|fences|blockquote|heading|html|table))+?)\n {0,3}(=+|-+) *(?:\n+|$)/;
+  var ie3 = k(se).replace(/bull/g, Q).replace(/blockCode/g, /(?: {4}| {0,3}\t)/).replace(/fences/g, / {0,3}(?:`{3,}|~{3,})/).replace(/blockquote/g, / {0,3}>/).replace(/heading/g, / {0,3}#{1,6}/).replace(/html/g, / {0,3}<[^\n>]+>\n/).replace(/\|table/g, "").getRegex();
+  var ye = k(se).replace(/bull/g, Q).replace(/blockCode/g, /(?: {4}| {0,3}\t)/).replace(/fences/g, / {0,3}(?:`{3,}|~{3,})/).replace(/blockquote/g, / {0,3}>/).replace(/heading/g, / {0,3}#{1,6}/).replace(/html/g, / {0,3}<[^\n>]+>\n/).replace(/table/g, / {0,3}\|?(?:[:\- ]*\|)+[\:\- ]*\n/).getRegex();
+  var j = /^([^\n]+(?:\n(?!hr|heading|lheading|blockquote|fences|list|html|table| +\n)[^\n]+)*)/;
+  var Pe = /^[^\n]+/;
+  var F = /(?!\s*\])(?:\\[\s\S]|[^\[\]\\])+/;
+  var Se = k(/^ {0,3}\[(label)\]: *(?:\n[ \t]*)?([^<\s][^\s]*|<.*?>)(?:(?: +(?:\n[ \t]*)?| *\n[ \t]*)(title))? *(?:\n+|$)/).replace("label", F).replace("title", /(?:"(?:\\"?|[^"\\])*"|'[^'\n]*(?:\n[^'\n]+)*\n?'|\([^()]*\))/).getRegex();
+  var $e = k(/^(bull)([ \t][^\n]+?)?(?:\n|$)/).replace(/bull/g, Q).getRegex();
+  var v = "address|article|aside|base|basefont|blockquote|body|caption|center|col|colgroup|dd|details|dialog|dir|div|dl|dt|fieldset|figcaption|figure|footer|form|frame|frameset|h[1-6]|head|header|hr|html|iframe|legend|li|link|main|menu|menuitem|meta|nav|noframes|ol|optgroup|option|p|param|search|section|summary|table|tbody|td|tfoot|th|thead|title|tr|track|ul";
+  var U = /<!--(?:-?>|[\s\S]*?(?:-->|$))/;
+  var _e = k("^ {0,3}(?:<(script|pre|style|textarea)[\\s>][\\s\\S]*?(?:</\\1>[^\\n]*\\n+|$)|comment[^\\n]*(\\n+|$)|<\\?[\\s\\S]*?(?:\\?>\\n*|$)|<![A-Z][\\s\\S]*?(?:>\\n*|$)|<!\\[CDATA\\[[\\s\\S]*?(?:\\]\\]>\\n*|$)|</?(tag)(?: +|\\n|/?>)[\\s\\S]*?(?:(?:\\n[ 	]*)+\\n|$)|<(?!script|pre|style|textarea)([a-z][\\w-]*)(?:attribute)*? */?>(?=[ \\t]*(?:\\n|$))[\\s\\S]*?(?:(?:\\n[ 	]*)+\\n|$)|</(?!script|pre|style|textarea)[a-z][\\w-]*\\s*>(?=[ \\t]*(?:\\n|$))[\\s\\S]*?(?:(?:\\n[ 	]*)+\\n|$))", "i").replace("comment", U).replace("tag", v).replace("attribute", / +[a-zA-Z:_][\w.:-]*(?: *= *"[^"\n]*"| *= *'[^'\n]*'| *= *[^\s"'=<>`]+)?/).getRegex();
+  var oe = k(j).replace("hr", C).replace("heading", " {0,3}#{1,6}(?:\\s|$)").replace("|lheading", "").replace("|table", "").replace("blockquote", " {0,3}>").replace("fences", " {0,3}(?:`{3,}(?=[^`\\n]*\\n)|~{3,})[^\\n]*\\n").replace("list", " {0,3}(?:[*+-]|1[.)])[ \\t]").replace("html", "</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|textarea|!--)").replace("tag", v).getRegex();
+  var Le = k(/^( {0,3}> ?(paragraph|[^\n]*)(?:\n|$))+/).replace("paragraph", oe).getRegex();
+  var K = { blockquote: Le, code: Oe, def: Se, fences: Te, heading: we, hr: C, html: _e, lheading: ie3, list: $e, newline: Re, paragraph: oe, table: _, text: Pe };
+  var ne = k("^ *([^\\n ].*)\\n {0,3}((?:\\| *)?:?-+:? *(?:\\| *:?-+:? *)*(?:\\| *)?)(?:\\n((?:(?! *\\n|hr|heading|blockquote|code|fences|list|html).*(?:\\n|$))*)\\n*|$)").replace("hr", C).replace("heading", " {0,3}#{1,6}(?:\\s|$)").replace("blockquote", " {0,3}>").replace("code", "(?: {4}| {0,3}	)[^\\n]").replace("fences", " {0,3}(?:`{3,}(?=[^`\\n]*\\n)|~{3,})[^\\n]*\\n").replace("list", " {0,3}(?:[*+-]|1[.)])[ \\t]").replace("html", "</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|textarea|!--)").replace("tag", v).getRegex();
+  var Me = { ...K, lheading: ye, table: ne, paragraph: k(j).replace("hr", C).replace("heading", " {0,3}#{1,6}(?:\\s|$)").replace("|lheading", "").replace("table", ne).replace("blockquote", " {0,3}>").replace("fences", " {0,3}(?:`{3,}(?=[^`\\n]*\\n)|~{3,})[^\\n]*\\n").replace("list", " {0,3}(?:[*+-]|1[.)])[ \\t]").replace("html", "</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|textarea|!--)").replace("tag", v).getRegex() };
+  var ze = { ...K, html: k(`^ *(?:comment *(?:\\n|\\s*$)|<(tag)[\\s\\S]+?</\\1> *(?:\\n{2,}|\\s*$)|<tag(?:"[^"]*"|'[^']*'|\\s[^'"/>\\s]*)*?/?> *(?:\\n{2,}|\\s*$))`).replace("comment", U).replace(/tag/g, "(?!(?:a|em|strong|small|s|cite|q|dfn|abbr|data|time|code|var|samp|kbd|sub|sup|i|b|u|mark|ruby|rt|rp|bdi|bdo|span|br|wbr|ins|del|img)\\b)\\w+(?!:|[^\\w\\s@]*@)\\b").getRegex(), def: /^ *\[([^\]]+)\]: *<?([^\s>]+)>?(?: +(["(][^\n]+[")]))? *(?:\n+|$)/, heading: /^(#{1,6})(.*)(?:\n+|$)/, fences: _, lheading: /^(.+?)\n {0,3}(=+|-+) *(?:\n+|$)/, paragraph: k(j).replace("hr", C).replace("heading", ` *#{1,6} *[^
+]`).replace("lheading", ie3).replace("|table", "").replace("blockquote", " {0,3}>").replace("|fences", "").replace("|list", "").replace("|html", "").replace("|tag", "").getRegex() };
+  var Ee = /^\\([!"#$%&'()*+,\-./:;<=>?@\[\]\\^_`{|}~])/;
+  var Ie = /^(`+)([^`]|[^`][\s\S]*?[^`])\1(?!`)/;
+  var ae = /^( {2,}|\\)\n(?!\s*$)/;
+  var Ae = /^(`+|[^`])(?:(?= {2,}\n)|[\s\S]*?(?:(?=[\\<!\[`*_]|\b_|$)|[^ ](?= {2,}\n)))/;
+  var z = /[\p{P}\p{S}]/u;
+  var H = /[\s\p{P}\p{S}]/u;
+  var W = /[^\s\p{P}\p{S}]/u;
+  var Ce = k(/^((?![*_])punctSpace)/, "u").replace(/punctSpace/g, H).getRegex();
+  var le = /(?!~)[\p{P}\p{S}]/u;
+  var Be = /(?!~)[\s\p{P}\p{S}]/u;
+  var De = /(?:[^\s\p{P}\p{S}]|~)/u;
+  var qe = k(/link|precode-code|html/, "g").replace("link", /\[(?:[^\[\]`]|(?<a>`+)[^`]+\k<a>(?!`))*?\]\((?:\\[\s\S]|[^\\\(\)]|\((?:\\[\s\S]|[^\\\(\)])*\))*\)/).replace("precode-", be ? "(?<!`)()" : "(^^|[^`])").replace("code", /(?<b>`+)[^`]+\k<b>(?!`)/).replace("html", /<(?! )[^<>]*?>/).getRegex();
+  var ue = /^(?:\*+(?:((?!\*)punct)|([^\s*]))?)|^_+(?:((?!_)punct)|([^\s_]))?/;
+  var ve = k(ue, "u").replace(/punct/g, z).getRegex();
+  var He = k(ue, "u").replace(/punct/g, le).getRegex();
+  var pe = "^[^_*]*?__[^_*]*?\\*[^_*]*?(?=__)|[^*]+(?=[^*])|(?!\\*)punct(\\*+)(?=[\\s]|$)|notPunctSpace(\\*+)(?!\\*)(?=punctSpace|$)|(?!\\*)punctSpace(\\*+)(?=notPunctSpace)|[\\s](\\*+)(?!\\*)(?=punct)|(?!\\*)punct(\\*+)(?!\\*)(?=punct)|notPunctSpace(\\*+)(?=notPunctSpace)";
+  var Ze = k(pe, "gu").replace(/notPunctSpace/g, W).replace(/punctSpace/g, H).replace(/punct/g, z).getRegex();
+  var Ge = k(pe, "gu").replace(/notPunctSpace/g, De).replace(/punctSpace/g, Be).replace(/punct/g, le).getRegex();
+  var Ne = k("^[^_*]*?\\*\\*[^_*]*?_[^_*]*?(?=\\*\\*)|[^_]+(?=[^_])|(?!_)punct(_+)(?=[\\s]|$)|notPunctSpace(_+)(?!_)(?=punctSpace|$)|(?!_)punctSpace(_+)(?=notPunctSpace)|[\\s](_+)(?!_)(?=punct)|(?!_)punct(_+)(?!_)(?=punct)", "gu").replace(/notPunctSpace/g, W).replace(/punctSpace/g, H).replace(/punct/g, z).getRegex();
+  var Qe = k(/^~~?(?:((?!~)punct)|[^\s~])/, "u").replace(/punct/g, z).getRegex();
+  var je = "^[^~]+(?=[^~])|(?!~)punct(~~?)(?=[\\s]|$)|notPunctSpace(~~?)(?!~)(?=punctSpace|$)|(?!~)punctSpace(~~?)(?=notPunctSpace)|[\\s](~~?)(?!~)(?=punct)|(?!~)punct(~~?)(?!~)(?=punct)|notPunctSpace(~~?)(?=notPunctSpace)";
+  var Fe = k(je, "gu").replace(/notPunctSpace/g, W).replace(/punctSpace/g, H).replace(/punct/g, z).getRegex();
+  var Ue = k(/\\(punct)/, "gu").replace(/punct/g, z).getRegex();
+  var Ke = k(/^<(scheme:[^\s\x00-\x1f<>]*|email)>/).replace("scheme", /[a-zA-Z][a-zA-Z0-9+.-]{1,31}/).replace("email", /[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+(@)[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+(?![-_])/).getRegex();
+  var We = k(U).replace("(?:-->|$)", "-->").getRegex();
+  var Xe = k("^comment|^</[a-zA-Z][\\w:-]*\\s*>|^<[a-zA-Z][\\w-]*(?:attribute)*?\\s*/?>|^<\\?[\\s\\S]*?\\?>|^<![a-zA-Z]+\\s[\\s\\S]*?>|^<!\\[CDATA\\[[\\s\\S]*?\\]\\]>").replace("comment", We).replace("attribute", /\s+[a-zA-Z:_][\w.:-]*(?:\s*=\s*"[^"]*"|\s*=\s*'[^']*'|\s*=\s*[^\s"'=<>`]+)?/).getRegex();
+  var q = /(?:\[(?:\\[\s\S]|[^\[\]\\])*\]|\\[\s\S]|`+(?!`)[^`]*?`+(?!`)|``+(?=\])|[^\[\]\\`])*?/;
+  var Je = k(/^!?\[(label)\]\(\s*(href)(?:(?:[ \t]+(?:\n[ \t]*)?|\n[ \t]*)(title))?\s*\)/).replace("label", q).replace("href", /<(?:\\.|[^\n<>\\])+>|[^ \t\n\x00-\x1f]*/).replace("title", /"(?:\\"?|[^"\\])*"|'(?:\\'?|[^'\\])*'|\((?:\\\)?|[^)\\])*\)/).getRegex();
+  var ce = k(/^!?\[(label)\]\[(ref)\]/).replace("label", q).replace("ref", F).getRegex();
+  var he = k(/^!?\[(ref)\](?:\[\])?/).replace("ref", F).getRegex();
+  var Ve = k("reflink|nolink(?!\\()", "g").replace("reflink", ce).replace("nolink", he).getRegex();
+  var re = /[hH][tT][tT][pP][sS]?|[fF][tT][pP]/;
+  var X = { _backpedal: _, anyPunctuation: Ue, autolink: Ke, blockSkip: qe, br: ae, code: Ie, del: _, delLDelim: _, delRDelim: _, emStrongLDelim: ve, emStrongRDelimAst: Ze, emStrongRDelimUnd: Ne, escape: Ee, link: Je, nolink: he, punctuation: Ce, reflink: ce, reflinkSearch: Ve, tag: Xe, text: Ae, url: _ };
+  var Ye = { ...X, link: k(/^!?\[(label)\]\((.*?)\)/).replace("label", q).getRegex(), reflink: k(/^!?\[(label)\]\s*\[([^\]]*)\]/).replace("label", q).getRegex() };
+  var N = { ...X, emStrongRDelimAst: Ge, emStrongLDelim: He, delLDelim: Qe, delRDelim: Fe, url: k(/^((?:protocol):\/\/|www\.)(?:[a-zA-Z0-9\-]+\.?)+[^\s<]*|^email/).replace("protocol", re).replace("email", /[A-Za-z0-9._+-]+(@)[a-zA-Z0-9-_]+(?:\.[a-zA-Z0-9-_]*[a-zA-Z0-9])+(?![-_])/).getRegex(), _backpedal: /(?:[^?!.,:;*_'"~()&]+|\([^)]*\)|&(?![a-zA-Z0-9]+;$)|[?!.,:;*_'"~)]+(?!$))+/, del: /^(~~?)(?=[^\s~])((?:\\[\s\S]|[^\\])*?(?:\\[\s\S]|[^\s~\\]))\1(?=[^~]|$)/, text: k(/^([`~]+|[^`~])(?:(?= {2,}\n)|(?=[a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-]+@)|[\s\S]*?(?:(?=[\\<!\[`*~_]|\b_|protocol:\/\/|www\.|$)|[^ ](?= {2,}\n)|[^a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-](?=[a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-]+@)))/).replace("protocol", re).getRegex() };
+  var et = { ...N, br: k(ae).replace("{2,}", "*").getRegex(), text: k(N.text).replace("\\b_", "\\b_| {2,}\\n").replace(/\{2,\}/g, "*").getRegex() };
+  var B = { normal: K, gfm: Me, pedantic: ze };
+  var E = { normal: X, gfm: N, breaks: et, pedantic: Ye };
+  var tt2 = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+  var ke = (u3) => tt2[u3];
+  function T2(u3, e) {
+    if (e) {
+      if (m.escapeTest.test(u3)) return u3.replace(m.escapeReplace, ke);
+    } else if (m.escapeTestNoEncode.test(u3)) return u3.replace(m.escapeReplaceNoEncode, ke);
+    return u3;
+  }
+  function J(u3) {
+    try {
+      u3 = encodeURI(u3).replace(m.percentDecode, "%");
+    } catch {
+      return null;
+    }
+    return u3;
+  }
+  function V(u3, e) {
+    let t = u3.replace(m.findPipe, (i, s, a) => {
+      let o = false, l = s;
+      for (; --l >= 0 && a[l] === "\\"; ) o = !o;
+      return o ? "|" : " |";
+    }), n = t.split(m.splitPipe), r = 0;
+    if (n[0].trim() || n.shift(), n.length > 0 && !n.at(-1)?.trim() && n.pop(), e) if (n.length > e) n.splice(e);
+    else for (; n.length < e; ) n.push("");
+    for (; r < n.length; r++) n[r] = n[r].trim().replace(m.slashPipe, "|");
+    return n;
+  }
+  function I(u3, e, t) {
+    let n = u3.length;
+    if (n === 0) return "";
+    let r = 0;
+    for (; r < n; ) {
+      let i = u3.charAt(n - r - 1);
+      if (i === e && !t) r++;
+      else if (i !== e && t) r++;
+      else break;
+    }
+    return u3.slice(0, n - r);
+  }
+  function de(u3, e) {
+    if (u3.indexOf(e[1]) === -1) return -1;
+    let t = 0;
+    for (let n = 0; n < u3.length; n++) if (u3[n] === "\\") n++;
+    else if (u3[n] === e[0]) t++;
+    else if (u3[n] === e[1] && (t--, t < 0)) return n;
+    return t > 0 ? -2 : -1;
+  }
+  function ge(u3, e = 0) {
+    let t = e, n = "";
+    for (let r of u3) if (r === "	") {
+      let i = 4 - t % 4;
+      n += " ".repeat(i), t += i;
+    } else n += r, t++;
+    return n;
+  }
+  function fe(u3, e, t, n, r) {
+    let i = e.href, s = e.title || null, a = u3[1].replace(r.other.outputLinkReplace, "$1");
+    n.state.inLink = true;
+    let o = { type: u3[0].charAt(0) === "!" ? "image" : "link", raw: t, href: i, title: s, text: a, tokens: n.inlineTokens(a) };
+    return n.state.inLink = false, o;
+  }
+  function nt(u3, e, t) {
+    let n = u3.match(t.other.indentCodeCompensation);
+    if (n === null) return e;
+    let r = n[1];
+    return e.split(`
+`).map((i) => {
+      let s = i.match(t.other.beginningSpace);
+      if (s === null) return i;
+      let [a] = s;
+      return a.length >= r.length ? i.slice(r.length) : i;
+    }).join(`
+`);
+  }
+  var w = class {
+    options;
+    rules;
+    lexer;
+    constructor(e) {
+      this.options = e || O;
+    }
+    space(e) {
+      let t = this.rules.block.newline.exec(e);
+      if (t && t[0].length > 0) return { type: "space", raw: t[0] };
+    }
+    code(e) {
+      let t = this.rules.block.code.exec(e);
+      if (t) {
+        let n = t[0].replace(this.rules.other.codeRemoveIndent, "");
+        return { type: "code", raw: t[0], codeBlockStyle: "indented", text: this.options.pedantic ? n : I(n, `
+`) };
+      }
+    }
+    fences(e) {
+      let t = this.rules.block.fences.exec(e);
+      if (t) {
+        let n = t[0], r = nt(n, t[3] || "", this.rules);
+        return { type: "code", raw: n, lang: t[2] ? t[2].trim().replace(this.rules.inline.anyPunctuation, "$1") : t[2], text: r };
+      }
+    }
+    heading(e) {
+      let t = this.rules.block.heading.exec(e);
+      if (t) {
+        let n = t[2].trim();
+        if (this.rules.other.endingHash.test(n)) {
+          let r = I(n, "#");
+          (this.options.pedantic || !r || this.rules.other.endingSpaceChar.test(r)) && (n = r.trim());
+        }
+        return { type: "heading", raw: t[0], depth: t[1].length, text: n, tokens: this.lexer.inline(n) };
+      }
+    }
+    hr(e) {
+      let t = this.rules.block.hr.exec(e);
+      if (t) return { type: "hr", raw: I(t[0], `
+`) };
+    }
+    blockquote(e) {
+      let t = this.rules.block.blockquote.exec(e);
+      if (t) {
+        let n = I(t[0], `
+`).split(`
+`), r = "", i = "", s = [];
+        for (; n.length > 0; ) {
+          let a = false, o = [], l;
+          for (l = 0; l < n.length; l++) if (this.rules.other.blockquoteStart.test(n[l])) o.push(n[l]), a = true;
+          else if (!a) o.push(n[l]);
+          else break;
+          n = n.slice(l);
+          let p = o.join(`
+`), c = p.replace(this.rules.other.blockquoteSetextReplace, `
+    $1`).replace(this.rules.other.blockquoteSetextReplace2, "");
+          r = r ? `${r}
+${p}` : p, i = i ? `${i}
+${c}` : c;
+          let d = this.lexer.state.top;
+          if (this.lexer.state.top = true, this.lexer.blockTokens(c, s, true), this.lexer.state.top = d, n.length === 0) break;
+          let h2 = s.at(-1);
+          if (h2?.type === "code") break;
+          if (h2?.type === "blockquote") {
+            let R = h2, f = R.raw + `
+` + n.join(`
+`), S2 = this.blockquote(f);
+            s[s.length - 1] = S2, r = r.substring(0, r.length - R.raw.length) + S2.raw, i = i.substring(0, i.length - R.text.length) + S2.text;
+            break;
+          } else if (h2?.type === "list") {
+            let R = h2, f = R.raw + `
+` + n.join(`
+`), S2 = this.list(f);
+            s[s.length - 1] = S2, r = r.substring(0, r.length - h2.raw.length) + S2.raw, i = i.substring(0, i.length - R.raw.length) + S2.raw, n = f.substring(s.at(-1).raw.length).split(`
+`);
+            continue;
+          }
+        }
+        return { type: "blockquote", raw: r, tokens: s, text: i };
+      }
+    }
+    list(e) {
+      let t = this.rules.block.list.exec(e);
+      if (t) {
+        let n = t[1].trim(), r = n.length > 1, i = { type: "list", raw: "", ordered: r, start: r ? +n.slice(0, -1) : "", loose: false, items: [] };
+        n = r ? `\\d{1,9}\\${n.slice(-1)}` : `\\${n}`, this.options.pedantic && (n = r ? n : "[*+-]");
+        let s = this.rules.other.listItemRegex(n), a = false;
+        for (; e; ) {
+          let l = false, p = "", c = "";
+          if (!(t = s.exec(e)) || this.rules.block.hr.test(e)) break;
+          p = t[0], e = e.substring(p.length);
+          let d = ge(t[2].split(`
+`, 1)[0], t[1].length), h2 = e.split(`
+`, 1)[0], R = !d.trim(), f = 0;
+          if (this.options.pedantic ? (f = 2, c = d.trimStart()) : R ? f = t[1].length + 1 : (f = d.search(this.rules.other.nonSpaceChar), f = f > 4 ? 1 : f, c = d.slice(f), f += t[1].length), R && this.rules.other.blankLine.test(h2) && (p += h2 + `
+`, e = e.substring(h2.length + 1), l = true), !l) {
+            let S2 = this.rules.other.nextBulletRegex(f), Y = this.rules.other.hrRegex(f), ee = this.rules.other.fencesBeginRegex(f), te = this.rules.other.headingBeginRegex(f), me = this.rules.other.htmlBeginRegex(f), xe = this.rules.other.blockquoteBeginRegex(f);
+            for (; e; ) {
+              let Z = e.split(`
+`, 1)[0], A;
+              if (h2 = Z, this.options.pedantic ? (h2 = h2.replace(this.rules.other.listReplaceNesting, "  "), A = h2) : A = h2.replace(this.rules.other.tabCharGlobal, "    "), ee.test(h2) || te.test(h2) || me.test(h2) || xe.test(h2) || S2.test(h2) || Y.test(h2)) break;
+              if (A.search(this.rules.other.nonSpaceChar) >= f || !h2.trim()) c += `
+` + A.slice(f);
+              else {
+                if (R || d.replace(this.rules.other.tabCharGlobal, "    ").search(this.rules.other.nonSpaceChar) >= 4 || ee.test(d) || te.test(d) || Y.test(d)) break;
+                c += `
+` + h2;
+              }
+              R = !h2.trim(), p += Z + `
+`, e = e.substring(Z.length + 1), d = A.slice(f);
+            }
+          }
+          i.loose || (a ? i.loose = true : this.rules.other.doubleBlankLine.test(p) && (a = true)), i.items.push({ type: "list_item", raw: p, task: !!this.options.gfm && this.rules.other.listIsTask.test(c), loose: false, text: c, tokens: [] }), i.raw += p;
+        }
+        let o = i.items.at(-1);
+        if (o) o.raw = o.raw.trimEnd(), o.text = o.text.trimEnd();
+        else return;
+        i.raw = i.raw.trimEnd();
+        for (let l of i.items) {
+          if (this.lexer.state.top = false, l.tokens = this.lexer.blockTokens(l.text, []), l.task) {
+            if (l.text = l.text.replace(this.rules.other.listReplaceTask, ""), l.tokens[0]?.type === "text" || l.tokens[0]?.type === "paragraph") {
+              l.tokens[0].raw = l.tokens[0].raw.replace(this.rules.other.listReplaceTask, ""), l.tokens[0].text = l.tokens[0].text.replace(this.rules.other.listReplaceTask, "");
+              for (let c = this.lexer.inlineQueue.length - 1; c >= 0; c--) if (this.rules.other.listIsTask.test(this.lexer.inlineQueue[c].src)) {
+                this.lexer.inlineQueue[c].src = this.lexer.inlineQueue[c].src.replace(this.rules.other.listReplaceTask, "");
+                break;
+              }
+            }
+            let p = this.rules.other.listTaskCheckbox.exec(l.raw);
+            if (p) {
+              let c = { type: "checkbox", raw: p[0] + " ", checked: p[0] !== "[ ]" };
+              l.checked = c.checked, i.loose ? l.tokens[0] && ["paragraph", "text"].includes(l.tokens[0].type) && "tokens" in l.tokens[0] && l.tokens[0].tokens ? (l.tokens[0].raw = c.raw + l.tokens[0].raw, l.tokens[0].text = c.raw + l.tokens[0].text, l.tokens[0].tokens.unshift(c)) : l.tokens.unshift({ type: "paragraph", raw: c.raw, text: c.raw, tokens: [c] }) : l.tokens.unshift(c);
+            }
+          }
+          if (!i.loose) {
+            let p = l.tokens.filter((d) => d.type === "space"), c = p.length > 0 && p.some((d) => this.rules.other.anyLine.test(d.raw));
+            i.loose = c;
+          }
+        }
+        if (i.loose) for (let l of i.items) {
+          l.loose = true;
+          for (let p of l.tokens) p.type === "text" && (p.type = "paragraph");
+        }
+        return i;
+      }
+    }
+    html(e) {
+      let t = this.rules.block.html.exec(e);
+      if (t) return { type: "html", block: true, raw: t[0], pre: t[1] === "pre" || t[1] === "script" || t[1] === "style", text: t[0] };
+    }
+    def(e) {
+      let t = this.rules.block.def.exec(e);
+      if (t) {
+        let n = t[1].toLowerCase().replace(this.rules.other.multipleSpaceGlobal, " "), r = t[2] ? t[2].replace(this.rules.other.hrefBrackets, "$1").replace(this.rules.inline.anyPunctuation, "$1") : "", i = t[3] ? t[3].substring(1, t[3].length - 1).replace(this.rules.inline.anyPunctuation, "$1") : t[3];
+        return { type: "def", tag: n, raw: t[0], href: r, title: i };
+      }
+    }
+    table(e) {
+      let t = this.rules.block.table.exec(e);
+      if (!t || !this.rules.other.tableDelimiter.test(t[2])) return;
+      let n = V(t[1]), r = t[2].replace(this.rules.other.tableAlignChars, "").split("|"), i = t[3]?.trim() ? t[3].replace(this.rules.other.tableRowBlankLine, "").split(`
+`) : [], s = { type: "table", raw: t[0], header: [], align: [], rows: [] };
+      if (n.length === r.length) {
+        for (let a of r) this.rules.other.tableAlignRight.test(a) ? s.align.push("right") : this.rules.other.tableAlignCenter.test(a) ? s.align.push("center") : this.rules.other.tableAlignLeft.test(a) ? s.align.push("left") : s.align.push(null);
+        for (let a = 0; a < n.length; a++) s.header.push({ text: n[a], tokens: this.lexer.inline(n[a]), header: true, align: s.align[a] });
+        for (let a of i) s.rows.push(V(a, s.header.length).map((o, l) => ({ text: o, tokens: this.lexer.inline(o), header: false, align: s.align[l] })));
+        return s;
+      }
+    }
+    lheading(e) {
+      let t = this.rules.block.lheading.exec(e);
+      if (t) {
+        let n = t[1].trim();
+        return { type: "heading", raw: t[0], depth: t[2].charAt(0) === "=" ? 1 : 2, text: n, tokens: this.lexer.inline(n) };
+      }
+    }
+    paragraph(e) {
+      let t = this.rules.block.paragraph.exec(e);
+      if (t) {
+        let n = t[1].charAt(t[1].length - 1) === `
+` ? t[1].slice(0, -1) : t[1];
+        return { type: "paragraph", raw: t[0], text: n, tokens: this.lexer.inline(n) };
+      }
+    }
+    text(e) {
+      let t = this.rules.block.text.exec(e);
+      if (t) return { type: "text", raw: t[0], text: t[0], tokens: this.lexer.inline(t[0]) };
+    }
+    escape(e) {
+      let t = this.rules.inline.escape.exec(e);
+      if (t) return { type: "escape", raw: t[0], text: t[1] };
+    }
+    tag(e) {
+      let t = this.rules.inline.tag.exec(e);
+      if (t) return !this.lexer.state.inLink && this.rules.other.startATag.test(t[0]) ? this.lexer.state.inLink = true : this.lexer.state.inLink && this.rules.other.endATag.test(t[0]) && (this.lexer.state.inLink = false), !this.lexer.state.inRawBlock && this.rules.other.startPreScriptTag.test(t[0]) ? this.lexer.state.inRawBlock = true : this.lexer.state.inRawBlock && this.rules.other.endPreScriptTag.test(t[0]) && (this.lexer.state.inRawBlock = false), { type: "html", raw: t[0], inLink: this.lexer.state.inLink, inRawBlock: this.lexer.state.inRawBlock, block: false, text: t[0] };
+    }
+    link(e) {
+      let t = this.rules.inline.link.exec(e);
+      if (t) {
+        let n = t[2].trim();
+        if (!this.options.pedantic && this.rules.other.startAngleBracket.test(n)) {
+          if (!this.rules.other.endAngleBracket.test(n)) return;
+          let s = I(n.slice(0, -1), "\\");
+          if ((n.length - s.length) % 2 === 0) return;
+        } else {
+          let s = de(t[2], "()");
+          if (s === -2) return;
+          if (s > -1) {
+            let o = (t[0].indexOf("!") === 0 ? 5 : 4) + t[1].length + s;
+            t[2] = t[2].substring(0, s), t[0] = t[0].substring(0, o).trim(), t[3] = "";
+          }
+        }
+        let r = t[2], i = "";
+        if (this.options.pedantic) {
+          let s = this.rules.other.pedanticHrefTitle.exec(r);
+          s && (r = s[1], i = s[3]);
+        } else i = t[3] ? t[3].slice(1, -1) : "";
+        return r = r.trim(), this.rules.other.startAngleBracket.test(r) && (this.options.pedantic && !this.rules.other.endAngleBracket.test(n) ? r = r.slice(1) : r = r.slice(1, -1)), fe(t, { href: r && r.replace(this.rules.inline.anyPunctuation, "$1"), title: i && i.replace(this.rules.inline.anyPunctuation, "$1") }, t[0], this.lexer, this.rules);
+      }
+    }
+    reflink(e, t) {
+      let n;
+      if ((n = this.rules.inline.reflink.exec(e)) || (n = this.rules.inline.nolink.exec(e))) {
+        let r = (n[2] || n[1]).replace(this.rules.other.multipleSpaceGlobal, " "), i = t[r.toLowerCase()];
+        if (!i) {
+          let s = n[0].charAt(0);
+          return { type: "text", raw: s, text: s };
+        }
+        return fe(n, i, n[0], this.lexer, this.rules);
+      }
+    }
+    emStrong(e, t, n = "") {
+      let r = this.rules.inline.emStrongLDelim.exec(e);
+      if (!r || !r[1] && !r[2] && !r[3] && !r[4] || r[4] && n.match(this.rules.other.unicodeAlphaNumeric)) return;
+      if (!(r[1] || r[3] || "") || !n || this.rules.inline.punctuation.exec(n)) {
+        let s = [...r[0]].length - 1, a, o, l = s, p = 0, c = r[0][0] === "*" ? this.rules.inline.emStrongRDelimAst : this.rules.inline.emStrongRDelimUnd;
+        for (c.lastIndex = 0, t = t.slice(-1 * e.length + s); (r = c.exec(t)) !== null; ) {
+          if (a = r[1] || r[2] || r[3] || r[4] || r[5] || r[6], !a) continue;
+          if (o = [...a].length, r[3] || r[4]) {
+            l += o;
+            continue;
+          } else if ((r[5] || r[6]) && s % 3 && !((s + o) % 3)) {
+            p += o;
+            continue;
+          }
+          if (l -= o, l > 0) continue;
+          o = Math.min(o, o + l + p);
+          let d = [...r[0]][0].length, h2 = e.slice(0, s + r.index + d + o);
+          if (Math.min(s, o) % 2) {
+            let f = h2.slice(1, -1);
+            return { type: "em", raw: h2, text: f, tokens: this.lexer.inlineTokens(f) };
+          }
+          let R = h2.slice(2, -2);
+          return { type: "strong", raw: h2, text: R, tokens: this.lexer.inlineTokens(R) };
+        }
+      }
+    }
+    codespan(e) {
+      let t = this.rules.inline.code.exec(e);
+      if (t) {
+        let n = t[2].replace(this.rules.other.newLineCharGlobal, " "), r = this.rules.other.nonSpaceChar.test(n), i = this.rules.other.startingSpaceChar.test(n) && this.rules.other.endingSpaceChar.test(n);
+        return r && i && (n = n.substring(1, n.length - 1)), { type: "codespan", raw: t[0], text: n };
+      }
+    }
+    br(e) {
+      let t = this.rules.inline.br.exec(e);
+      if (t) return { type: "br", raw: t[0] };
+    }
+    del(e, t, n = "") {
+      let r = this.rules.inline.delLDelim.exec(e);
+      if (!r) return;
+      if (!(r[1] || "") || !n || this.rules.inline.punctuation.exec(n)) {
+        let s = [...r[0]].length - 1, a, o, l = s, p = this.rules.inline.delRDelim;
+        for (p.lastIndex = 0, t = t.slice(-1 * e.length + s); (r = p.exec(t)) !== null; ) {
+          if (a = r[1] || r[2] || r[3] || r[4] || r[5] || r[6], !a || (o = [...a].length, o !== s)) continue;
+          if (r[3] || r[4]) {
+            l += o;
+            continue;
+          }
+          if (l -= o, l > 0) continue;
+          o = Math.min(o, o + l);
+          let c = [...r[0]][0].length, d = e.slice(0, s + r.index + c + o), h2 = d.slice(s, -s);
+          return { type: "del", raw: d, text: h2, tokens: this.lexer.inlineTokens(h2) };
+        }
+      }
+    }
+    autolink(e) {
+      let t = this.rules.inline.autolink.exec(e);
+      if (t) {
+        let n, r;
+        return t[2] === "@" ? (n = t[1], r = "mailto:" + n) : (n = t[1], r = n), { type: "link", raw: t[0], text: n, href: r, tokens: [{ type: "text", raw: n, text: n }] };
+      }
+    }
+    url(e) {
+      let t;
+      if (t = this.rules.inline.url.exec(e)) {
+        let n, r;
+        if (t[2] === "@") n = t[0], r = "mailto:" + n;
+        else {
+          let i;
+          do
+            i = t[0], t[0] = this.rules.inline._backpedal.exec(t[0])?.[0] ?? "";
+          while (i !== t[0]);
+          n = t[0], t[1] === "www." ? r = "http://" + t[0] : r = t[0];
+        }
+        return { type: "link", raw: t[0], text: n, href: r, tokens: [{ type: "text", raw: n, text: n }] };
+      }
+    }
+    inlineText(e) {
+      let t = this.rules.inline.text.exec(e);
+      if (t) {
+        let n = this.lexer.state.inRawBlock;
+        return { type: "text", raw: t[0], text: t[0], escaped: n };
+      }
+    }
+  };
+  var x = class u {
+    tokens;
+    options;
+    state;
+    inlineQueue;
+    tokenizer;
+    constructor(e) {
+      this.tokens = [], this.tokens.links = /* @__PURE__ */ Object.create(null), this.options = e || O, this.options.tokenizer = this.options.tokenizer || new w(), this.tokenizer = this.options.tokenizer, this.tokenizer.options = this.options, this.tokenizer.lexer = this, this.inlineQueue = [], this.state = { inLink: false, inRawBlock: false, top: true };
+      let t = { other: m, block: B.normal, inline: E.normal };
+      this.options.pedantic ? (t.block = B.pedantic, t.inline = E.pedantic) : this.options.gfm && (t.block = B.gfm, this.options.breaks ? t.inline = E.breaks : t.inline = E.gfm), this.tokenizer.rules = t;
+    }
+    static get rules() {
+      return { block: B, inline: E };
+    }
+    static lex(e, t) {
+      return new u(t).lex(e);
+    }
+    static lexInline(e, t) {
+      return new u(t).inlineTokens(e);
+    }
+    lex(e) {
+      e = e.replace(m.carriageReturn, `
+`), this.blockTokens(e, this.tokens);
+      for (let t = 0; t < this.inlineQueue.length; t++) {
+        let n = this.inlineQueue[t];
+        this.inlineTokens(n.src, n.tokens);
+      }
+      return this.inlineQueue = [], this.tokens;
+    }
+    blockTokens(e, t = [], n = false) {
+      for (this.tokenizer.lexer = this, this.options.pedantic && (e = e.replace(m.tabCharGlobal, "    ").replace(m.spaceLine, "")); e; ) {
+        let r;
+        if (this.options.extensions?.block?.some((s) => (r = s.call({ lexer: this }, e, t)) ? (e = e.substring(r.raw.length), t.push(r), true) : false)) continue;
+        if (r = this.tokenizer.space(e)) {
+          e = e.substring(r.raw.length);
+          let s = t.at(-1);
+          r.raw.length === 1 && s !== void 0 ? s.raw += `
+` : t.push(r);
+          continue;
+        }
+        if (r = this.tokenizer.code(e)) {
+          e = e.substring(r.raw.length);
+          let s = t.at(-1);
+          s?.type === "paragraph" || s?.type === "text" ? (s.raw += (s.raw.endsWith(`
+`) ? "" : `
+`) + r.raw, s.text += `
+` + r.text, this.inlineQueue.at(-1).src = s.text) : t.push(r);
+          continue;
+        }
+        if (r = this.tokenizer.fences(e)) {
+          e = e.substring(r.raw.length), t.push(r);
+          continue;
+        }
+        if (r = this.tokenizer.heading(e)) {
+          e = e.substring(r.raw.length), t.push(r);
+          continue;
+        }
+        if (r = this.tokenizer.hr(e)) {
+          e = e.substring(r.raw.length), t.push(r);
+          continue;
+        }
+        if (r = this.tokenizer.blockquote(e)) {
+          e = e.substring(r.raw.length), t.push(r);
+          continue;
+        }
+        if (r = this.tokenizer.list(e)) {
+          e = e.substring(r.raw.length), t.push(r);
+          continue;
+        }
+        if (r = this.tokenizer.html(e)) {
+          e = e.substring(r.raw.length), t.push(r);
+          continue;
+        }
+        if (r = this.tokenizer.def(e)) {
+          e = e.substring(r.raw.length);
+          let s = t.at(-1);
+          s?.type === "paragraph" || s?.type === "text" ? (s.raw += (s.raw.endsWith(`
+`) ? "" : `
+`) + r.raw, s.text += `
+` + r.raw, this.inlineQueue.at(-1).src = s.text) : this.tokens.links[r.tag] || (this.tokens.links[r.tag] = { href: r.href, title: r.title }, t.push(r));
+          continue;
+        }
+        if (r = this.tokenizer.table(e)) {
+          e = e.substring(r.raw.length), t.push(r);
+          continue;
+        }
+        if (r = this.tokenizer.lheading(e)) {
+          e = e.substring(r.raw.length), t.push(r);
+          continue;
+        }
+        let i = e;
+        if (this.options.extensions?.startBlock) {
+          let s = 1 / 0, a = e.slice(1), o;
+          this.options.extensions.startBlock.forEach((l) => {
+            o = l.call({ lexer: this }, a), typeof o == "number" && o >= 0 && (s = Math.min(s, o));
+          }), s < 1 / 0 && s >= 0 && (i = e.substring(0, s + 1));
+        }
+        if (this.state.top && (r = this.tokenizer.paragraph(i))) {
+          let s = t.at(-1);
+          n && s?.type === "paragraph" ? (s.raw += (s.raw.endsWith(`
+`) ? "" : `
+`) + r.raw, s.text += `
+` + r.text, this.inlineQueue.pop(), this.inlineQueue.at(-1).src = s.text) : t.push(r), n = i.length !== e.length, e = e.substring(r.raw.length);
+          continue;
+        }
+        if (r = this.tokenizer.text(e)) {
+          e = e.substring(r.raw.length);
+          let s = t.at(-1);
+          s?.type === "text" ? (s.raw += (s.raw.endsWith(`
+`) ? "" : `
+`) + r.raw, s.text += `
+` + r.text, this.inlineQueue.pop(), this.inlineQueue.at(-1).src = s.text) : t.push(r);
+          continue;
+        }
+        if (e) {
+          let s = "Infinite loop on byte: " + e.charCodeAt(0);
+          if (this.options.silent) {
+            console.error(s);
+            break;
+          } else throw new Error(s);
+        }
+      }
+      return this.state.top = true, t;
+    }
+    inline(e, t = []) {
+      return this.inlineQueue.push({ src: e, tokens: t }), t;
+    }
+    inlineTokens(e, t = []) {
+      this.tokenizer.lexer = this;
+      let n = e, r = null;
+      if (this.tokens.links) {
+        let o = Object.keys(this.tokens.links);
+        if (o.length > 0) for (; (r = this.tokenizer.rules.inline.reflinkSearch.exec(n)) !== null; ) o.includes(r[0].slice(r[0].lastIndexOf("[") + 1, -1)) && (n = n.slice(0, r.index) + "[" + "a".repeat(r[0].length - 2) + "]" + n.slice(this.tokenizer.rules.inline.reflinkSearch.lastIndex));
+      }
+      for (; (r = this.tokenizer.rules.inline.anyPunctuation.exec(n)) !== null; ) n = n.slice(0, r.index) + "++" + n.slice(this.tokenizer.rules.inline.anyPunctuation.lastIndex);
+      let i;
+      for (; (r = this.tokenizer.rules.inline.blockSkip.exec(n)) !== null; ) i = r[2] ? r[2].length : 0, n = n.slice(0, r.index + i) + "[" + "a".repeat(r[0].length - i - 2) + "]" + n.slice(this.tokenizer.rules.inline.blockSkip.lastIndex);
+      n = this.options.hooks?.emStrongMask?.call({ lexer: this }, n) ?? n;
+      let s = false, a = "";
+      for (; e; ) {
+        s || (a = ""), s = false;
+        let o;
+        if (this.options.extensions?.inline?.some((p) => (o = p.call({ lexer: this }, e, t)) ? (e = e.substring(o.raw.length), t.push(o), true) : false)) continue;
+        if (o = this.tokenizer.escape(e)) {
+          e = e.substring(o.raw.length), t.push(o);
+          continue;
+        }
+        if (o = this.tokenizer.tag(e)) {
+          e = e.substring(o.raw.length), t.push(o);
+          continue;
+        }
+        if (o = this.tokenizer.link(e)) {
+          e = e.substring(o.raw.length), t.push(o);
+          continue;
+        }
+        if (o = this.tokenizer.reflink(e, this.tokens.links)) {
+          e = e.substring(o.raw.length);
+          let p = t.at(-1);
+          o.type === "text" && p?.type === "text" ? (p.raw += o.raw, p.text += o.text) : t.push(o);
+          continue;
+        }
+        if (o = this.tokenizer.emStrong(e, n, a)) {
+          e = e.substring(o.raw.length), t.push(o);
+          continue;
+        }
+        if (o = this.tokenizer.codespan(e)) {
+          e = e.substring(o.raw.length), t.push(o);
+          continue;
+        }
+        if (o = this.tokenizer.br(e)) {
+          e = e.substring(o.raw.length), t.push(o);
+          continue;
+        }
+        if (o = this.tokenizer.del(e, n, a)) {
+          e = e.substring(o.raw.length), t.push(o);
+          continue;
+        }
+        if (o = this.tokenizer.autolink(e)) {
+          e = e.substring(o.raw.length), t.push(o);
+          continue;
+        }
+        if (!this.state.inLink && (o = this.tokenizer.url(e))) {
+          e = e.substring(o.raw.length), t.push(o);
+          continue;
+        }
+        let l = e;
+        if (this.options.extensions?.startInline) {
+          let p = 1 / 0, c = e.slice(1), d;
+          this.options.extensions.startInline.forEach((h2) => {
+            d = h2.call({ lexer: this }, c), typeof d == "number" && d >= 0 && (p = Math.min(p, d));
+          }), p < 1 / 0 && p >= 0 && (l = e.substring(0, p + 1));
+        }
+        if (o = this.tokenizer.inlineText(l)) {
+          e = e.substring(o.raw.length), o.raw.slice(-1) !== "_" && (a = o.raw.slice(-1)), s = true;
+          let p = t.at(-1);
+          p?.type === "text" ? (p.raw += o.raw, p.text += o.text) : t.push(o);
+          continue;
+        }
+        if (e) {
+          let p = "Infinite loop on byte: " + e.charCodeAt(0);
+          if (this.options.silent) {
+            console.error(p);
+            break;
+          } else throw new Error(p);
+        }
+      }
+      return t;
+    }
+  };
+  var y = class {
+    options;
+    parser;
+    constructor(e) {
+      this.options = e || O;
+    }
+    space(e) {
+      return "";
+    }
+    code({ text: e, lang: t, escaped: n }) {
+      let r = (t || "").match(m.notSpaceStart)?.[0], i = e.replace(m.endingNewline, "") + `
+`;
+      return r ? '<pre><code class="language-' + T2(r) + '">' + (n ? i : T2(i, true)) + `</code></pre>
+` : "<pre><code>" + (n ? i : T2(i, true)) + `</code></pre>
+`;
+    }
+    blockquote({ tokens: e }) {
+      return `<blockquote>
+${this.parser.parse(e)}</blockquote>
+`;
+    }
+    html({ text: e }) {
+      return e;
+    }
+    def(e) {
+      return "";
+    }
+    heading({ tokens: e, depth: t }) {
+      return `<h${t}>${this.parser.parseInline(e)}</h${t}>
+`;
+    }
+    hr(e) {
+      return `<hr>
+`;
+    }
+    list(e) {
+      let t = e.ordered, n = e.start, r = "";
+      for (let a = 0; a < e.items.length; a++) {
+        let o = e.items[a];
+        r += this.listitem(o);
+      }
+      let i = t ? "ol" : "ul", s = t && n !== 1 ? ' start="' + n + '"' : "";
+      return "<" + i + s + `>
+` + r + "</" + i + `>
+`;
+    }
+    listitem(e) {
+      return `<li>${this.parser.parse(e.tokens)}</li>
+`;
+    }
+    checkbox({ checked: e }) {
+      return "<input " + (e ? 'checked="" ' : "") + 'disabled="" type="checkbox"> ';
+    }
+    paragraph({ tokens: e }) {
+      return `<p>${this.parser.parseInline(e)}</p>
+`;
+    }
+    table(e) {
+      let t = "", n = "";
+      for (let i = 0; i < e.header.length; i++) n += this.tablecell(e.header[i]);
+      t += this.tablerow({ text: n });
+      let r = "";
+      for (let i = 0; i < e.rows.length; i++) {
+        let s = e.rows[i];
+        n = "";
+        for (let a = 0; a < s.length; a++) n += this.tablecell(s[a]);
+        r += this.tablerow({ text: n });
+      }
+      return r && (r = `<tbody>${r}</tbody>`), `<table>
+<thead>
+` + t + `</thead>
+` + r + `</table>
+`;
+    }
+    tablerow({ text: e }) {
+      return `<tr>
+${e}</tr>
+`;
+    }
+    tablecell(e) {
+      let t = this.parser.parseInline(e.tokens), n = e.header ? "th" : "td";
+      return (e.align ? `<${n} align="${e.align}">` : `<${n}>`) + t + `</${n}>
+`;
+    }
+    strong({ tokens: e }) {
+      return `<strong>${this.parser.parseInline(e)}</strong>`;
+    }
+    em({ tokens: e }) {
+      return `<em>${this.parser.parseInline(e)}</em>`;
+    }
+    codespan({ text: e }) {
+      return `<code>${T2(e, true)}</code>`;
+    }
+    br(e) {
+      return "<br>";
+    }
+    del({ tokens: e }) {
+      return `<del>${this.parser.parseInline(e)}</del>`;
+    }
+    link({ href: e, title: t, tokens: n }) {
+      let r = this.parser.parseInline(n), i = J(e);
+      if (i === null) return r;
+      e = i;
+      let s = '<a href="' + e + '"';
+      return t && (s += ' title="' + T2(t) + '"'), s += ">" + r + "</a>", s;
+    }
+    image({ href: e, title: t, text: n, tokens: r }) {
+      r && (n = this.parser.parseInline(r, this.parser.textRenderer));
+      let i = J(e);
+      if (i === null) return T2(n);
+      e = i;
+      let s = `<img src="${e}" alt="${T2(n)}"`;
+      return t && (s += ` title="${T2(t)}"`), s += ">", s;
+    }
+    text(e) {
+      return "tokens" in e && e.tokens ? this.parser.parseInline(e.tokens) : "escaped" in e && e.escaped ? e.text : T2(e.text);
+    }
+  };
+  var $ = class {
+    strong({ text: e }) {
+      return e;
+    }
+    em({ text: e }) {
+      return e;
+    }
+    codespan({ text: e }) {
+      return e;
+    }
+    del({ text: e }) {
+      return e;
+    }
+    html({ text: e }) {
+      return e;
+    }
+    text({ text: e }) {
+      return e;
+    }
+    link({ text: e }) {
+      return "" + e;
+    }
+    image({ text: e }) {
+      return "" + e;
+    }
+    br() {
+      return "";
+    }
+    checkbox({ raw: e }) {
+      return e;
+    }
+  };
+  var b = class u2 {
+    options;
+    renderer;
+    textRenderer;
+    constructor(e) {
+      this.options = e || O, this.options.renderer = this.options.renderer || new y(), this.renderer = this.options.renderer, this.renderer.options = this.options, this.renderer.parser = this, this.textRenderer = new $();
+    }
+    static parse(e, t) {
+      return new u2(t).parse(e);
+    }
+    static parseInline(e, t) {
+      return new u2(t).parseInline(e);
+    }
+    parse(e) {
+      this.renderer.parser = this;
+      let t = "";
+      for (let n = 0; n < e.length; n++) {
+        let r = e[n];
+        if (this.options.extensions?.renderers?.[r.type]) {
+          let s = r, a = this.options.extensions.renderers[s.type].call({ parser: this }, s);
+          if (a !== false || !["space", "hr", "heading", "code", "table", "blockquote", "list", "html", "def", "paragraph", "text"].includes(s.type)) {
+            t += a || "";
+            continue;
+          }
+        }
+        let i = r;
+        switch (i.type) {
+          case "space": {
+            t += this.renderer.space(i);
+            break;
+          }
+          case "hr": {
+            t += this.renderer.hr(i);
+            break;
+          }
+          case "heading": {
+            t += this.renderer.heading(i);
+            break;
+          }
+          case "code": {
+            t += this.renderer.code(i);
+            break;
+          }
+          case "table": {
+            t += this.renderer.table(i);
+            break;
+          }
+          case "blockquote": {
+            t += this.renderer.blockquote(i);
+            break;
+          }
+          case "list": {
+            t += this.renderer.list(i);
+            break;
+          }
+          case "checkbox": {
+            t += this.renderer.checkbox(i);
+            break;
+          }
+          case "html": {
+            t += this.renderer.html(i);
+            break;
+          }
+          case "def": {
+            t += this.renderer.def(i);
+            break;
+          }
+          case "paragraph": {
+            t += this.renderer.paragraph(i);
+            break;
+          }
+          case "text": {
+            t += this.renderer.text(i);
+            break;
+          }
+          default: {
+            let s = 'Token with "' + i.type + '" type was not found.';
+            if (this.options.silent) return console.error(s), "";
+            throw new Error(s);
+          }
+        }
+      }
+      return t;
+    }
+    parseInline(e, t = this.renderer) {
+      this.renderer.parser = this;
+      let n = "";
+      for (let r = 0; r < e.length; r++) {
+        let i = e[r];
+        if (this.options.extensions?.renderers?.[i.type]) {
+          let a = this.options.extensions.renderers[i.type].call({ parser: this }, i);
+          if (a !== false || !["escape", "html", "link", "image", "strong", "em", "codespan", "br", "del", "text"].includes(i.type)) {
+            n += a || "";
+            continue;
+          }
+        }
+        let s = i;
+        switch (s.type) {
+          case "escape": {
+            n += t.text(s);
+            break;
+          }
+          case "html": {
+            n += t.html(s);
+            break;
+          }
+          case "link": {
+            n += t.link(s);
+            break;
+          }
+          case "image": {
+            n += t.image(s);
+            break;
+          }
+          case "checkbox": {
+            n += t.checkbox(s);
+            break;
+          }
+          case "strong": {
+            n += t.strong(s);
+            break;
+          }
+          case "em": {
+            n += t.em(s);
+            break;
+          }
+          case "codespan": {
+            n += t.codespan(s);
+            break;
+          }
+          case "br": {
+            n += t.br(s);
+            break;
+          }
+          case "del": {
+            n += t.del(s);
+            break;
+          }
+          case "text": {
+            n += t.text(s);
+            break;
+          }
+          default: {
+            let a = 'Token with "' + s.type + '" type was not found.';
+            if (this.options.silent) return console.error(a), "";
+            throw new Error(a);
+          }
+        }
+      }
+      return n;
+    }
+  };
+  var P = class {
+    options;
+    block;
+    constructor(e) {
+      this.options = e || O;
+    }
+    static passThroughHooks = /* @__PURE__ */ new Set(["preprocess", "postprocess", "processAllTokens", "emStrongMask"]);
+    static passThroughHooksRespectAsync = /* @__PURE__ */ new Set(["preprocess", "postprocess", "processAllTokens"]);
+    preprocess(e) {
+      return e;
+    }
+    postprocess(e) {
+      return e;
+    }
+    processAllTokens(e) {
+      return e;
+    }
+    emStrongMask(e) {
+      return e;
+    }
+    provideLexer(e = this.block) {
+      return e ? x.lex : x.lexInline;
+    }
+    provideParser(e = this.block) {
+      return e ? b.parse : b.parseInline;
+    }
+  };
+  var D2 = class {
+    defaults = M();
+    options = this.setOptions;
+    parse = this.parseMarkdown(true);
+    parseInline = this.parseMarkdown(false);
+    Parser = b;
+    Renderer = y;
+    TextRenderer = $;
+    Lexer = x;
+    Tokenizer = w;
+    Hooks = P;
+    constructor(...e) {
+      this.use(...e);
+    }
+    walkTokens(e, t) {
+      let n = [];
+      for (let r of e) switch (n = n.concat(t.call(this, r)), r.type) {
+        case "table": {
+          let i = r;
+          for (let s of i.header) n = n.concat(this.walkTokens(s.tokens, t));
+          for (let s of i.rows) for (let a of s) n = n.concat(this.walkTokens(a.tokens, t));
+          break;
+        }
+        case "list": {
+          let i = r;
+          n = n.concat(this.walkTokens(i.items, t));
+          break;
+        }
+        default: {
+          let i = r;
+          this.defaults.extensions?.childTokens?.[i.type] ? this.defaults.extensions.childTokens[i.type].forEach((s) => {
+            let a = i[s].flat(1 / 0);
+            n = n.concat(this.walkTokens(a, t));
+          }) : i.tokens && (n = n.concat(this.walkTokens(i.tokens, t)));
+        }
+      }
+      return n;
+    }
+    use(...e) {
+      let t = this.defaults.extensions || { renderers: {}, childTokens: {} };
+      return e.forEach((n) => {
+        let r = { ...n };
+        if (r.async = this.defaults.async || r.async || false, n.extensions && (n.extensions.forEach((i) => {
+          if (!i.name) throw new Error("extension name required");
+          if ("renderer" in i) {
+            let s = t.renderers[i.name];
+            s ? t.renderers[i.name] = function(...a) {
+              let o = i.renderer.apply(this, a);
+              return o === false && (o = s.apply(this, a)), o;
+            } : t.renderers[i.name] = i.renderer;
+          }
+          if ("tokenizer" in i) {
+            if (!i.level || i.level !== "block" && i.level !== "inline") throw new Error("extension level must be 'block' or 'inline'");
+            let s = t[i.level];
+            s ? s.unshift(i.tokenizer) : t[i.level] = [i.tokenizer], i.start && (i.level === "block" ? t.startBlock ? t.startBlock.push(i.start) : t.startBlock = [i.start] : i.level === "inline" && (t.startInline ? t.startInline.push(i.start) : t.startInline = [i.start]));
+          }
+          "childTokens" in i && i.childTokens && (t.childTokens[i.name] = i.childTokens);
+        }), r.extensions = t), n.renderer) {
+          let i = this.defaults.renderer || new y(this.defaults);
+          for (let s in n.renderer) {
+            if (!(s in i)) throw new Error(`renderer '${s}' does not exist`);
+            if (["options", "parser"].includes(s)) continue;
+            let a = s, o = n.renderer[a], l = i[a];
+            i[a] = (...p) => {
+              let c = o.apply(i, p);
+              return c === false && (c = l.apply(i, p)), c || "";
+            };
+          }
+          r.renderer = i;
+        }
+        if (n.tokenizer) {
+          let i = this.defaults.tokenizer || new w(this.defaults);
+          for (let s in n.tokenizer) {
+            if (!(s in i)) throw new Error(`tokenizer '${s}' does not exist`);
+            if (["options", "rules", "lexer"].includes(s)) continue;
+            let a = s, o = n.tokenizer[a], l = i[a];
+            i[a] = (...p) => {
+              let c = o.apply(i, p);
+              return c === false && (c = l.apply(i, p)), c;
+            };
+          }
+          r.tokenizer = i;
+        }
+        if (n.hooks) {
+          let i = this.defaults.hooks || new P();
+          for (let s in n.hooks) {
+            if (!(s in i)) throw new Error(`hook '${s}' does not exist`);
+            if (["options", "block"].includes(s)) continue;
+            let a = s, o = n.hooks[a], l = i[a];
+            P.passThroughHooks.has(s) ? i[a] = (p) => {
+              if (this.defaults.async && P.passThroughHooksRespectAsync.has(s)) return (async () => {
+                let d = await o.call(i, p);
+                return l.call(i, d);
+              })();
+              let c = o.call(i, p);
+              return l.call(i, c);
+            } : i[a] = (...p) => {
+              if (this.defaults.async) return (async () => {
+                let d = await o.apply(i, p);
+                return d === false && (d = await l.apply(i, p)), d;
+              })();
+              let c = o.apply(i, p);
+              return c === false && (c = l.apply(i, p)), c;
+            };
+          }
+          r.hooks = i;
+        }
+        if (n.walkTokens) {
+          let i = this.defaults.walkTokens, s = n.walkTokens;
+          r.walkTokens = function(a) {
+            let o = [];
+            return o.push(s.call(this, a)), i && (o = o.concat(i.call(this, a))), o;
+          };
+        }
+        this.defaults = { ...this.defaults, ...r };
+      }), this;
+    }
+    setOptions(e) {
+      return this.defaults = { ...this.defaults, ...e }, this;
+    }
+    lexer(e, t) {
+      return x.lex(e, t ?? this.defaults);
+    }
+    parser(e, t) {
+      return b.parse(e, t ?? this.defaults);
+    }
+    parseMarkdown(e) {
+      return (n, r) => {
+        let i = { ...r }, s = { ...this.defaults, ...i }, a = this.onError(!!s.silent, !!s.async);
+        if (this.defaults.async === true && i.async === false) return a(new Error("marked(): The async option was set to true by an extension. Remove async: false from the parse options object to return a Promise."));
+        if (typeof n > "u" || n === null) return a(new Error("marked(): input parameter is undefined or null"));
+        if (typeof n != "string") return a(new Error("marked(): input parameter is of type " + Object.prototype.toString.call(n) + ", string expected"));
+        if (s.hooks && (s.hooks.options = s, s.hooks.block = e), s.async) return (async () => {
+          let o = s.hooks ? await s.hooks.preprocess(n) : n, p = await (s.hooks ? await s.hooks.provideLexer(e) : e ? x.lex : x.lexInline)(o, s), c = s.hooks ? await s.hooks.processAllTokens(p) : p;
+          s.walkTokens && await Promise.all(this.walkTokens(c, s.walkTokens));
+          let h2 = await (s.hooks ? await s.hooks.provideParser(e) : e ? b.parse : b.parseInline)(c, s);
+          return s.hooks ? await s.hooks.postprocess(h2) : h2;
+        })().catch(a);
+        try {
+          s.hooks && (n = s.hooks.preprocess(n));
+          let l = (s.hooks ? s.hooks.provideLexer(e) : e ? x.lex : x.lexInline)(n, s);
+          s.hooks && (l = s.hooks.processAllTokens(l)), s.walkTokens && this.walkTokens(l, s.walkTokens);
+          let c = (s.hooks ? s.hooks.provideParser(e) : e ? b.parse : b.parseInline)(l, s);
+          return s.hooks && (c = s.hooks.postprocess(c)), c;
+        } catch (o) {
+          return a(o);
+        }
+      };
+    }
+    onError(e, t) {
+      return (n) => {
+        if (n.message += `
+Please report this to https://github.com/markedjs/marked.`, e) {
+          let r = "<p>An error occurred:</p><pre>" + T2(n.message + "", true) + "</pre>";
+          return t ? Promise.resolve(r) : r;
+        }
+        if (t) return Promise.reject(n);
+        throw n;
+      };
+    }
+  };
+  var L = new D2();
+  function g(u3, e) {
+    return L.parse(u3, e);
+  }
+  g.options = g.setOptions = function(u3) {
+    return L.setOptions(u3), g.defaults = L.defaults, G(g.defaults), g;
+  };
+  g.getDefaults = M;
+  g.defaults = O;
+  g.use = function(...u3) {
+    return L.use(...u3), g.defaults = L.defaults, G(g.defaults), g;
+  };
+  g.walkTokens = function(u3, e) {
+    return L.walkTokens(u3, e);
+  };
+  g.parseInline = L.parseInline;
+  g.Parser = b;
+  g.parser = b.parse;
+  g.Renderer = y;
+  g.TextRenderer = $;
+  g.Lexer = x;
+  g.lexer = x.lex;
+  g.Tokenizer = w;
+  g.Hooks = P;
+  g.parse = g;
+  var Qt = g.options;
+  var jt = g.setOptions;
+  var Ft = g.use;
+  var Ut = g.walkTokens;
+  var Kt = g.parseInline;
+  var Xt = b.parse;
+  var Jt = x.lex;
+
+  // node_modules/@tiptap/markdown/dist/index.js
+  var TRAILING_BLANK_LINES = /\n[^\S\n]*(?:\n[^\S\n]*)+$/;
+  function extractAbsorbedBlankLines(tokens) {
+    return tokens.flatMap((token, index) => {
+      var _tokens;
+      if (token.type === "space" || ((_tokens = tokens[index + 1]) === null || _tokens === void 0 ? void 0 : _tokens.type) === "space") return [token];
+      const trailingBlankLines = (token.raw || "").match(TRAILING_BLANK_LINES);
+      if (!trailingBlankLines) return [token];
+      return [{
+        ...token,
+        raw: (token.raw || "").slice(0, -trailingBlankLines[0].length)
+      }, {
+        type: "space",
+        raw: trailingBlankLines[0]
+      }];
+    });
+  }
+  function wrapInMarkdownBlock(prefix, content2) {
+    const output = content2.split("\n").flatMap((line) => [line, ""]).map((line) => `${prefix}${line}`).join("\n");
+    return output.slice(0, output.length - 1);
+  }
+  function findMarksToClose(currentMarks, nextNode) {
+    const marksToClose = [];
+    Array.from(currentMarks.entries()).forEach(([markType, currentMark]) => {
+      if (!nextNode) {
+        marksToClose.push(markType);
+        return;
+      }
+      if (!(nextNode.marks || []).find((mark) => mark.type === markType && attrsEqual(mark.attrs, currentMark.attrs))) marksToClose.push(markType);
+    });
+    return marksToClose;
+  }
+  function findMarksToOpen(activeMarks, currentMarks) {
+    const marksToOpen = [];
+    Array.from(currentMarks.entries()).forEach(([markType, mark]) => {
+      const activeMark = activeMarks.get(markType);
+      if (!activeMark || !attrsEqual(activeMark.attrs, mark.attrs)) marksToOpen.push({
+        type: markType,
+        mark
+      });
+    });
+    return marksToOpen;
+  }
+  function findMarksToCloseAtEnd(activeMarks, currentMarks, nextNode, markSetsEqual) {
+    const isLastNode = !nextNode;
+    const nextNodeHasNoMarks = nextNode && (!nextNode.marks || nextNode.marks.length === 0);
+    const nextNodeHasDifferentMarks = nextNode && nextNode.marks && !markSetsEqual(currentMarks, new Map(nextNode.marks.map((mark) => [mark.type, mark])));
+    const marksToCloseAtEnd = [];
+    if (isLastNode || nextNodeHasNoMarks || nextNodeHasDifferentMarks) {
+      if (nextNode && nextNode.marks) Array.from(activeMarks.entries()).reverse().forEach(([markType, activeMark]) => {
+        if (!nextNode.marks.find((m2) => m2.type === markType && attrsEqual(m2.attrs, activeMark.attrs))) marksToCloseAtEnd.push(markType);
+      });
+      else if (isLastNode || nextNodeHasNoMarks) marksToCloseAtEnd.push(...Array.from(activeMarks.keys()).reverse());
+    }
+    return marksToCloseAtEnd;
+  }
+  function closeMarksBeforeNode(activeMarks, getMarkClosing) {
+    let beforeMarkdown = "";
+    Array.from(activeMarks.keys()).reverse().forEach((markType) => {
+      const closeMarkdown = getMarkClosing(markType, activeMarks.get(markType));
+      if (closeMarkdown) beforeMarkdown = closeMarkdown + beforeMarkdown;
+    });
+    activeMarks.clear();
+    return beforeMarkdown;
+  }
+  function reopenMarksAfterNode(marksToReopen, activeMarks, getMarkOpening) {
+    let afterMarkdown = "";
+    Array.from(marksToReopen.entries()).forEach(([markType, mark]) => {
+      const openMarkdown = getMarkOpening(markType, mark);
+      if (openMarkdown) afterMarkdown += openMarkdown;
+      activeMarks.set(markType, mark);
+    });
+    return afterMarkdown;
+  }
+  function isTaskItem(item) {
+    const match = (item.raw || item.text || "").match(/^(\s*)[-+*]\s+\[([ xX])\]\s+/);
+    if (match) return {
+      isTask: true,
+      checked: match[2].toLowerCase() === "x",
+      indentLevel: match[1].length
+    };
+    return {
+      isTask: false,
+      indentLevel: 0
+    };
+  }
+  function assumeContentType(content2, contentType) {
+    if (typeof content2 !== "string") return "json";
+    return contentType;
+  }
+  function collectMarkSpanTexts(nodes) {
+    const spanTexts = nodes.map(() => /* @__PURE__ */ new Map());
+    const openRuns = /* @__PURE__ */ new Map();
+    const flush = (markType) => {
+      const run3 = openRuns.get(markType);
+      if (!run3) return;
+      run3.indexes.forEach((index) => spanTexts[index].set(markType, run3.text));
+      openRuns.delete(markType);
+    };
+    nodes.forEach((node, index) => {
+      if (node.type !== "text") {
+        Array.from(openRuns.keys()).forEach(flush);
+        return;
+      }
+      const markTypes = new Set((node.marks || []).map((mark) => mark.type));
+      Array.from(openRuns.keys()).filter((markType) => !markTypes.has(markType)).forEach(flush);
+      markTypes.forEach((markType) => {
+        const run3 = openRuns.get(markType) || {
+          indexes: [],
+          text: ""
+        };
+        run3.indexes.push(index);
+        run3.text += node.text || "";
+        openRuns.set(markType, run3);
+      });
+    });
+    Array.from(openRuns.keys()).forEach(flush);
+    return spanTexts;
+  }
+  var STANDARD_HTML_TAGS = /* @__PURE__ */ new Set([
+    "a",
+    "abbr",
+    "address",
+    "area",
+    "article",
+    "aside",
+    "audio",
+    "b",
+    "base",
+    "bdi",
+    "bdo",
+    "blockquote",
+    "body",
+    "br",
+    "button",
+    "canvas",
+    "caption",
+    "cite",
+    "code",
+    "col",
+    "colgroup",
+    "data",
+    "datalist",
+    "dd",
+    "del",
+    "details",
+    "dfn",
+    "dialog",
+    "div",
+    "dl",
+    "dt",
+    "em",
+    "embed",
+    "fieldset",
+    "figcaption",
+    "figure",
+    "footer",
+    "form",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "head",
+    "header",
+    "hgroup",
+    "hr",
+    "html",
+    "i",
+    "iframe",
+    "img",
+    "input",
+    "ins",
+    "kbd",
+    "label",
+    "legend",
+    "li",
+    "link",
+    "main",
+    "map",
+    "mark",
+    "menu",
+    "meta",
+    "meter",
+    "nav",
+    "noscript",
+    "object",
+    "ol",
+    "optgroup",
+    "option",
+    "output",
+    "p",
+    "param",
+    "picture",
+    "pre",
+    "progress",
+    "q",
+    "rp",
+    "rt",
+    "ruby",
+    "s",
+    "samp",
+    "script",
+    "search",
+    "section",
+    "select",
+    "slot",
+    "small",
+    "source",
+    "span",
+    "strong",
+    "style",
+    "sub",
+    "summary",
+    "sup",
+    "svg",
+    "circle",
+    "clippath",
+    "defs",
+    "ellipse",
+    "foreignobject",
+    "g",
+    "image",
+    "line",
+    "lineargradient",
+    "mask",
+    "path",
+    "polygon",
+    "polyline",
+    "radialgradient",
+    "rect",
+    "stop",
+    "switch",
+    "symbol",
+    "textpath",
+    "tspan",
+    "use",
+    "table",
+    "tbody",
+    "td",
+    "template",
+    "textarea",
+    "tfoot",
+    "th",
+    "thead",
+    "time",
+    "title",
+    "tr",
+    "track",
+    "u",
+    "ul",
+    "var",
+    "video",
+    "wbr"
+  ]);
+  var HTML_TAG_NAME_PATTERN = /<\/?([a-zA-Z][\w-]*)/g;
+  function extractHtmlTagNames(html) {
+    const tagNames = [];
+    let match;
+    while ((match = HTML_TAG_NAME_PATTERN.exec(html)) !== null) tagNames.push(match[1].toLowerCase());
+    return tagNames;
+  }
+  function isHtmlUnknownTagName(tagName) {
+    const lower = tagName.toLowerCase();
+    if (lower.includes("-")) return false;
+    return !STANDARD_HTML_TAGS.has(lower);
+  }
+  function htmlContainsUnrecognizedTag(html, schemaTags) {
+    return extractHtmlTagNames(html).some((tagName) => {
+      if (!isHtmlUnknownTagName(tagName)) return false;
+      return !schemaTags.has(tagName);
+    });
+  }
+  var MarkdownManager = class {
+    /**
+    * Create a MarkdownManager.
+    * @param options.marked Optional marked instance to use (injected).
+    * @param options.markedOptions Optional options to pass to marked.setOptions
+    * @param options.indentation Indentation settings (style and size).
+    * @param options.extensions An array of Tiptap extensions to register for markdown parsing and rendering.
+    */
+    constructor(options) {
+      var _options$marked, _options$indentation$, _options$indentation, _options$indentation$2, _options$indentation2;
+      this.activeParseLexer = null;
+      this.extensionRanks = /* @__PURE__ */ new Map();
+      this.baseExtensions = [];
+      this.extensions = [];
+      this.codeTypes = /* @__PURE__ */ new Set();
+      this.schemaParseDomTagsCache = null;
+      this.inlineNodeTypesCache = null;
+      this.lastParseResult = null;
+      this.markedInstance = (_options$marked = options === null || options === void 0 ? void 0 : options.marked) !== null && _options$marked !== void 0 ? _options$marked : g;
+      this.indentStyle = (_options$indentation$ = options === null || options === void 0 || (_options$indentation = options.indentation) === null || _options$indentation === void 0 ? void 0 : _options$indentation.style) !== null && _options$indentation$ !== void 0 ? _options$indentation$ : "space";
+      this.indentSize = (_options$indentation$2 = options === null || options === void 0 || (_options$indentation2 = options.indentation) === null || _options$indentation2 === void 0 ? void 0 : _options$indentation2.size) !== null && _options$indentation$2 !== void 0 ? _options$indentation$2 : 2;
+      this.baseExtensions = (options === null || options === void 0 ? void 0 : options.extensions) || [];
+      if ((options === null || options === void 0 ? void 0 : options.markedOptions) && typeof this.markedInstance.setOptions === "function") this.markedInstance.setOptions(options.markedOptions);
+      this.registry = /* @__PURE__ */ new Map();
+      this.nodeTypeRegistry = /* @__PURE__ */ new Map();
+      if (options === null || options === void 0 ? void 0 : options.extensions) {
+        this.baseExtensions = options.extensions;
+        sortExtensions(flattenExtensions(options.extensions)).forEach((ext) => this.registerExtension(ext));
+      }
+    }
+    /** Returns the underlying marked instance. */
+    get instance() {
+      return this.markedInstance;
+    }
+    /** Returns the correct indentCharacter (space or tab) */
+    get indentCharacter() {
+      return this.indentStyle === "space" ? " " : "	";
+    }
+    /** Returns the correct indentString repeated X times */
+    get indentString() {
+      return this.indentCharacter.repeat(this.indentSize);
+    }
+    /** Helper to quickly check whether a marked instance is available. */
+    hasMarked() {
+      return !!this.markedInstance;
+    }
+    /**
+    * Register a Tiptap extension (Node/Mark/Extension). This will read
+    * `markdownName`, `parseMarkdown`, `renderMarkdown` and `priority` from the
+    * extension config (using the same resolution used across the codebase).
+    */
+    registerExtension(extension) {
+      var _getExtensionField, _markdownCfg$indentsC;
+      this.extensions.push(extension);
+      const isCode = callOrReturn(getExtensionField(extension, "code"));
+      const name = extension.name;
+      const extensionContext = {
+        name,
+        options: extension.options,
+        storage: extension.storage
+      };
+      if (isCode) this.codeTypes.add(name);
+      if (!this.extensionRanks.has(name)) this.extensionRanks.set(name, this.extensionRanks.size);
+      const tokenName = getExtensionField(extension, "markdownTokenName", extensionContext) || name;
+      const parseMarkdown = getExtensionField(extension, "parseMarkdown", extensionContext);
+      const renderMarkdown = getExtensionField(extension, "renderMarkdown", extensionContext);
+      const tokenizer = getExtensionField(extension, "markdownTokenizer", extensionContext);
+      const markdownCfg = (_getExtensionField = getExtensionField(extension, "markdownOptions", extensionContext)) !== null && _getExtensionField !== void 0 ? _getExtensionField : null;
+      const spec = {
+        tokenName,
+        nodeName: name,
+        parseMarkdown,
+        renderMarkdown,
+        isIndenting: (_markdownCfg$indentsC = markdownCfg === null || markdownCfg === void 0 ? void 0 : markdownCfg.indentsContent) !== null && _markdownCfg$indentsC !== void 0 ? _markdownCfg$indentsC : false,
+        htmlReopen: markdownCfg === null || markdownCfg === void 0 ? void 0 : markdownCfg.htmlReopen,
+        tokenizer
+      };
+      if (tokenName && parseMarkdown) {
+        const parseExisting = this.registry.get(tokenName) || [];
+        parseExisting.push(spec);
+        this.registry.set(tokenName, parseExisting);
+      }
+      if (renderMarkdown) {
+        const renderExisting = this.nodeTypeRegistry.get(name) || [];
+        renderExisting.push(spec);
+        this.nodeTypeRegistry.set(name, renderExisting);
+      }
+      if (tokenizer && this.hasMarked()) this.registerTokenizer(tokenizer);
+    }
+    createLexer() {
+      return new this.markedInstance.Lexer(this.markedInstance.defaults);
+    }
+    createTokenizerHelpers(lexer) {
+      return {
+        inlineTokens: (src) => lexer.inlineTokens(src),
+        blockTokens: (src) => lexer.blockTokens(src)
+      };
+    }
+    tokenizeInline(src) {
+      var _this$activeParseLexe;
+      return ((_this$activeParseLexe = this.activeParseLexer) !== null && _this$activeParseLexe !== void 0 ? _this$activeParseLexe : this.createLexer()).inlineTokens(src);
+    }
+    /**
+    * Register a custom tokenizer with marked.js for parsing non-standard markdown syntax.
+    */
+    registerTokenizer(tokenizer) {
+      if (!this.hasMarked()) return;
+      const { name, start, level = "inline", tokenize: tokenize2 } = tokenizer;
+      const createTokenizerHelpers = this.createTokenizerHelpers.bind(this);
+      const createLexer = this.createLexer.bind(this);
+      let startCb;
+      if (!start) startCb = (src) => {
+        const result = tokenize2(src, [], this.createTokenizerHelpers(this.createLexer()));
+        if (result && result.raw) return src.indexOf(result.raw);
+        return -1;
+      };
+      else startCb = typeof start === "function" ? start : (src) => src.indexOf(start);
+      const markedExtension = {
+        name,
+        level,
+        start: startCb,
+        tokenizer(src, tokens) {
+          const helper = this.lexer ? createTokenizerHelpers(this.lexer) : createTokenizerHelpers(createLexer());
+          const result = tokenize2(src, tokens, helper);
+          if (result && result.type) return {
+            ...result,
+            type: result.type || name,
+            raw: result.raw || "",
+            tokens: result.tokens || []
+          };
+        },
+        childTokens: []
+      };
+      this.markedInstance.use({ extensions: [markedExtension] });
+    }
+    /** Get registered handlers for a token type and try each until one succeeds. */
+    getHandlersForToken(type) {
+      try {
+        return this.registry.get(type) || [];
+      } catch {
+        return [];
+      }
+    }
+    /** Get the first handler for a token type (for backwards compatibility). */
+    getHandlerForToken(type) {
+      const markdownHandlers = this.getHandlersForToken(type);
+      if (markdownHandlers.length > 0) return markdownHandlers[0];
+      const nodeTypeHandlers = this.getHandlersForNodeType(type);
+      return nodeTypeHandlers.length > 0 ? nodeTypeHandlers[0] : void 0;
+    }
+    /** Get registered handlers for a node type (for rendering). */
+    getHandlersForNodeType(type) {
+      try {
+        return this.nodeTypeRegistry.get(type) || [];
+      } catch {
+        return [];
+      }
+    }
+    /**
+    * Serialize a ProseMirror-like JSON document (or node array) to a Markdown string
+    * using registered renderers and fallback renderers.
+    */
+    serialize(docOrContent) {
+      if (!docOrContent) return "";
+      const result = this.renderNodes(docOrContent, docOrContent);
+      return this.isEmptyOutput(result) ? "" : result;
+    }
+    /**
+    * Check if the markdown output represents an empty document.
+    * Empty documents may contain only &nbsp; entities or non-breaking space characters
+    * which are used by the Paragraph extension to preserve blank lines.
+    */
+    isEmptyOutput(markdown) {
+      if (!markdown || markdown.trim() === "") return true;
+      return markdown.replace(/&nbsp;/g, "").replace(/\u00A0/g, "").trim() === "";
+    }
+    /**
+    * Parse markdown string into Tiptap JSON document using registered extension handlers.
+    */
+    parse(markdown) {
+      if (!this.hasMarked()) throw new Error("No marked instance available for parsing");
+      const previousParseLexer = this.activeParseLexer;
+      const parseLexer = this.createLexer();
+      this.activeParseLexer = parseLexer;
+      try {
+        const tokens = parseLexer.lex(markdown);
+        return {
+          type: "doc",
+          content: this.parseTokens(tokens, true)
+        };
+      } finally {
+        this.activeParseLexer = previousParseLexer;
+      }
+    }
+    /**
+    * Convert an array of marked tokens into Tiptap JSON nodes using registered extension handlers.
+    */
+    parseTokens(tokens, parseImplicitEmptyParagraphs = false) {
+      const normalizedTokens = parseImplicitEmptyParagraphs ? extractAbsorbedBlankLines(tokens) : tokens;
+      const nonSpaceTokenIndexes = normalizedTokens.reduce((indexes, token, index) => {
+        if (token.type !== "space") indexes.push(index);
+        return indexes;
+      }, []);
+      let previousNonSpaceTokenIndex = -1;
+      let nextNonSpaceTokenPointer = 0;
+      return normalizedTokens.flatMap((token, index) => {
+        while (nextNonSpaceTokenPointer < nonSpaceTokenIndexes.length && nonSpaceTokenIndexes[nextNonSpaceTokenPointer] < index) {
+          previousNonSpaceTokenIndex = nonSpaceTokenIndexes[nextNonSpaceTokenPointer];
+          nextNonSpaceTokenPointer += 1;
+        }
+        if (parseImplicitEmptyParagraphs && token.type === "space") {
+          var _nonSpaceTokenIndexes;
+          const nextNonSpaceTokenIndex = (_nonSpaceTokenIndexes = nonSpaceTokenIndexes[nextNonSpaceTokenPointer]) !== null && _nonSpaceTokenIndexes !== void 0 ? _nonSpaceTokenIndexes : -1;
+          return this.createImplicitEmptyParagraphsFromSpace(token, previousNonSpaceTokenIndex, nextNonSpaceTokenIndex);
+        }
+        const parsed = this.parseToken(token, parseImplicitEmptyParagraphs);
+        if (parsed === null) return [];
+        return Array.isArray(parsed) ? parsed : [parsed];
+      });
+    }
+    createImplicitEmptyParagraphsFromSpace(token, previousNonSpaceTokenIndex, nextNonSpaceTokenIndex) {
+      const separatorCount = this.countParagraphSeparators(token.raw || "");
+      if (separatorCount === 0) return [];
+      const emptyParagraphCount = Math.max(separatorCount - (previousNonSpaceTokenIndex === -1 || nextNonSpaceTokenIndex === -1 ? 0 : 1), 0);
+      return Array.from({ length: emptyParagraphCount }, () => ({
+        type: "paragraph",
+        content: []
+      }));
+    }
+    countParagraphSeparators(raw) {
+      return (raw.replace(/\r\n/g, "\n").match(/\n\n/g) || []).length;
+    }
+    /**
+    * Parse a single token into Tiptap JSON using the appropriate registered handler.
+    */
+    parseToken(token, parseImplicitEmptyParagraphs = false) {
+      if (!token.type) return null;
+      if (token.type === "list") return this.parseListToken(token);
+      const handlers2 = this.getHandlersForToken(token.type);
+      const helpers = this.createParseHelpers();
+      if (handlers2.find((handler) => {
+        if (!handler.parseMarkdown) return false;
+        const parseResult = handler.parseMarkdown(token, helpers);
+        const normalized = this.normalizeParseResult(parseResult);
+        if (normalized && (!Array.isArray(normalized) || normalized.length > 0)) {
+          this.lastParseResult = normalized;
+          return true;
+        }
+        return false;
+      }) && this.lastParseResult) {
+        const toReturn = this.lastParseResult;
+        this.lastParseResult = null;
+        return toReturn;
+      }
+      return this.parseFallbackToken(token, parseImplicitEmptyParagraphs);
+    }
+    /**
+    * Parse a list token, handling mixed bullet and task list items by splitting them into separate lists.
+    * This ensures that consecutive task items and bullet items are grouped and parsed as separate list nodes.
+    *
+    * @param token The list token to parse
+    * @returns Array of parsed list nodes, or null if parsing fails
+    */
+    parseListToken(token) {
+      if (!token.items || token.items.length === 0) return this.parseTokenWithHandlers(token);
+      const hasTask = token.items.some((item) => isTaskItem(item).isTask);
+      const hasNonTask = token.items.some((item) => !isTaskItem(item).isTask);
+      if (!hasTask || !hasNonTask || this.getHandlersForToken("taskList").length === 0) return this.parseTokenWithHandlers(token);
+      const groups = [];
+      let currentGroup = [];
+      let currentType = null;
+      for (let i = 0; i < token.items.length; i += 1) {
+        const item = token.items[i];
+        const { isTask, checked, indentLevel } = isTaskItem(item);
+        let processedItem = item;
+        if (isTask) {
+          const lines = (item.raw || item.text || "").split("\n");
+          const firstLineMatch = lines[0].match(/^\s*[-+*]\s+\[([ xX])\]\s+(.*)$/);
+          const mainContent = firstLineMatch ? firstLineMatch[2] : "";
+          let nestedTokens = [];
+          if (lines.length > 1) {
+            if (lines.slice(1).join("\n").trim()) {
+              const nestedLines = lines.slice(1);
+              const nonEmptyLines = nestedLines.filter((line) => line.trim());
+              if (nonEmptyLines.length > 0) {
+                const minIndent = Math.min(...nonEmptyLines.map((line) => line.length - line.trimStart().length));
+                const nestedContent = nestedLines.map((line) => {
+                  if (!line.trim()) return "";
+                  return line.slice(minIndent);
+                }).join("\n").trim();
+                if (nestedContent) nestedTokens = this.markedInstance.lexer(`${nestedContent}
+`);
+              }
+            }
+          }
+          processedItem = {
+            type: "taskItem",
+            raw: "",
+            mainContent,
+            indentLevel,
+            checked: checked !== null && checked !== void 0 ? checked : false,
+            text: mainContent,
+            tokens: this.tokenizeInline(mainContent),
+            nestedTokens
+          };
+        }
+        const itemType = isTask ? "taskList" : "list";
+        if (currentType !== itemType) {
+          if (currentGroup.length > 0) groups.push({
+            type: currentType,
+            items: currentGroup
+          });
+          currentGroup = [processedItem];
+          currentType = itemType;
+        } else currentGroup.push(processedItem);
+      }
+      if (currentGroup.length > 0) groups.push({
+        type: currentType,
+        items: currentGroup
+      });
+      const results = [];
+      for (let i = 0; i < groups.length; i += 1) {
+        const group = groups[i];
+        const subToken = {
+          ...token,
+          type: group.type,
+          items: group.items
+        };
+        const parsed = this.parseToken(subToken);
+        if (parsed) {
+          if (Array.isArray(parsed)) results.push(...parsed);
+          else results.push(parsed);
+        }
+      }
+      return results.length > 0 ? results : null;
+    }
+    /**
+    * Parse a token using registered handlers (extracted for reuse).
+    */
+    parseTokenWithHandlers(token) {
+      if (!token.type) return null;
+      const handlers2 = this.getHandlersForToken(token.type);
+      const helpers = this.createParseHelpers();
+      if (handlers2.find((handler) => {
+        if (!handler.parseMarkdown) return false;
+        const parseResult = handler.parseMarkdown(token, helpers);
+        const normalized = this.normalizeParseResult(parseResult);
+        if (normalized && (!Array.isArray(normalized) || normalized.length > 0)) {
+          this.lastParseResult = normalized;
+          return true;
+        }
+        return false;
+      }) && this.lastParseResult) {
+        const toReturn = this.lastParseResult;
+        this.lastParseResult = null;
+        return toReturn;
+      }
+      return this.parseFallbackToken(token);
+    }
+    /**
+    * Creates helper functions for parsing markdown tokens.
+    * @returns An object containing helper functions for parsing.
+    */
+    createParseHelpers() {
+      return {
+        parseInline: (tokens) => this.parseInlineTokens(tokens),
+        tokenizeInline: (src) => this.tokenizeInline(src),
+        parseChildren: (tokens) => this.parseTokens(tokens),
+        parseBlockChildren: (tokens) => this.parseTokens(tokens, true),
+        createTextNode: (text2, marks) => {
+          return {
+            type: "text",
+            text: text2,
+            marks: marks || void 0
+          };
+        },
+        createNode: (type, attrs, content2) => {
+          const node = {
+            type,
+            attrs: attrs || void 0,
+            content: content2 || void 0
+          };
+          if (!attrs || Object.keys(attrs).length === 0) delete node.attrs;
+          return node;
+        },
+        applyMark: (markType, content2, attrs) => ({
+          mark: markType,
+          content: content2,
+          attrs: attrs && Object.keys(attrs).length > 0 ? attrs : void 0
+        })
+      };
+    }
+    /**
+    * Escape special regex characters in a string.
+    */
+    escapeRegex(str) {
+      return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    }
+    /**
+    * Parse inline tokens (bold, italic, links, etc.) into text nodes with marks.
+    * This is the complex part that handles mark nesting and boundaries.
+    */
+    parseInlineTokens(tokens) {
+      const result = [];
+      for (let i = 0; i < tokens.length; i += 1) {
+        const token = tokens[i];
+        if (token.type === "text") result.push({
+          type: "text",
+          text: decodeHtmlEntities(token.text || "")
+        });
+        else if (token.type === "escape") result.push({
+          type: "text",
+          text: token.text || ""
+        });
+        else if (token.type === "html") {
+          var _ref, _token$raw;
+          const raw = ((_ref = (_token$raw = token.raw) !== null && _token$raw !== void 0 ? _token$raw : token.text) !== null && _ref !== void 0 ? _ref : "").toString();
+          const isClosing = /^<\/[\s]*[\w-]+/i.test(raw);
+          const openMatch = raw.match(/^<[\s]*([\w-]+)(\s|>|\/|$)/i);
+          if (!isClosing && openMatch && !/\/>$/.test(raw)) {
+            const tagName = openMatch[1];
+            const escapedTagName = this.escapeRegex(tagName);
+            const closingRegex = new RegExp(`^<\\/\\s*${escapedTagName}\\b`, "i");
+            let foundIndex = -1;
+            const parts = [raw];
+            for (let j2 = i + 1; j2 < tokens.length; j2 += 1) {
+              var _ref2, _t$raw;
+              const t = tokens[j2];
+              const tRaw = ((_ref2 = (_t$raw = t.raw) !== null && _t$raw !== void 0 ? _t$raw : t.text) !== null && _ref2 !== void 0 ? _ref2 : "").toString();
+              parts.push(tRaw);
+              if (t.type === "html" && closingRegex.test(tRaw)) {
+                foundIndex = j2;
+                break;
+              }
+            }
+            if (foundIndex !== -1) {
+              const mergedRaw = parts.join("");
+              const mergedToken = {
+                type: "html",
+                raw: mergedRaw,
+                text: mergedRaw,
+                block: false
+              };
+              const parsed = this.parseHTMLToken(mergedToken);
+              if (parsed) {
+                const normalized = this.normalizeParseResult(parsed);
+                if (Array.isArray(normalized)) result.push(...normalized);
+                else if (normalized) result.push(normalized);
+              }
+              i = foundIndex;
+              continue;
+            }
+          }
+          const parsedSingle = this.parseHTMLToken(token);
+          if (parsedSingle) {
+            const normalized = this.normalizeParseResult(parsedSingle);
+            if (Array.isArray(normalized)) result.push(...normalized);
+            else if (normalized) result.push(normalized);
+          }
+        } else if (token.type) {
+          const markHandler = this.getHandlerForToken(token.type);
+          if (markHandler && markHandler.parseMarkdown) {
+            const helpers = this.createParseHelpers();
+            const parsed = markHandler.parseMarkdown(token, helpers);
+            if (this.isMarkResult(parsed)) {
+              const markedContent = this.applyMarkToContent(parsed.mark, parsed.content, parsed.attrs);
+              result.push(...markedContent);
+            } else {
+              const normalized = this.normalizeParseResult(parsed);
+              if (Array.isArray(normalized)) result.push(...normalized);
+              else if (normalized) result.push(normalized);
+            }
+          } else if (token.tokens) result.push(...this.parseInlineTokens(token.tokens));
+        }
+      }
+      for (let i = result.length - 1; i > 0; i -= 1) {
+        const current2 = result[i];
+        const previous = result[i - 1];
+        if (current2.type === "text" && previous.type === "text") {
+          const currentMarks = current2.marks || [];
+          const previousMarks = previous.marks || [];
+          if (marksEqual(currentMarks, previousMarks)) {
+            previous.text = (previous.text || "") + (current2.text || "");
+            result.splice(i, 1);
+          }
+        }
+      }
+      return result;
+    }
+    /**
+    * Apply a mark to content nodes.
+    */
+    applyMarkToContent(markType, content2, attrs) {
+      return content2.map((node) => {
+        if (node.type === "text") {
+          const existingMarks = node.marks || [];
+          const newMark = attrs ? {
+            type: markType,
+            attrs
+          } : { type: markType };
+          return {
+            ...node,
+            marks: [...existingMarks, newMark]
+          };
+        }
+        return {
+          ...node,
+          content: node.content ? this.applyMarkToContent(markType, node.content, attrs) : void 0
+        };
+      });
+    }
+    isMarkResult(result) {
+      return result && typeof result === "object" && "mark" in result;
+    }
+    /**
+    * Normalize parse results to ensure they're valid JSONContent.
+    */
+    normalizeParseResult(result) {
+      if (!result) return null;
+      if (this.isMarkResult(result)) return result.content;
+      return result;
+    }
+    /**
+    * Fallback parsing for common tokens when no specific handler is registered.
+    */
+    parseFallbackToken(token, parseImplicitEmptyParagraphs = false) {
+      switch (token.type) {
+        case "paragraph":
+          return {
+            type: "paragraph",
+            content: token.tokens ? this.parseInlineTokens(token.tokens) : []
+          };
+        case "heading":
+          return {
+            type: "heading",
+            attrs: { level: token.depth || 1 },
+            content: token.tokens ? this.parseInlineTokens(token.tokens) : []
+          };
+        case "text":
+          return {
+            type: "text",
+            text: decodeHtmlEntities(token.text || "")
+          };
+        case "html":
+          return this.parseHTMLToken(token);
+        case "escape":
+          return {
+            type: "text",
+            text: token.text || ""
+          };
+        case "space":
+          return null;
+        default:
+          if (token.tokens) return this.parseTokens(token.tokens, parseImplicitEmptyParagraphs);
+          return null;
+      }
+    }
+    /**
+    * Parse an HTML token from marked into JSONContent using the registered
+    * extensions' `parseHTML` rules. Falls back to literal text when the HTML
+    * has nothing for the schema to keep.
+    *
+    * @param token Marked HTML token (block or inline).
+    * @example
+    *   parseHTMLToken({ type: 'html', raw: '<em>hi</em>', block: false })
+    *   // → text node with an italic mark
+    */
+    parseHTMLToken(token) {
+      const html = token.text || token.raw || "";
+      if (!html.trim()) return null;
+      if (this.isUnrecognizedHtml(html)) return this.htmlAsLiteralText(html, !!token.block);
+      if (typeof window === "undefined" || typeof window.DOMParser === "undefined") return this.htmlAsLiteralText(html, !!token.block);
+      try {
+        const parsed = generateJSON(html, this.baseExtensions);
+        if (parsed.type === "doc" && parsed.content) {
+          if (token.block) return parsed.content;
+          const inlineContent = this.toInlineContent(parsed.content);
+          return inlineContent.length > 0 ? inlineContent : null;
+        }
+        return parsed;
+      } catch (error) {
+        throw new Error(`Failed to parse HTML in markdown: ${error}`);
+      }
+    }
+    /**
+    * Keep only the inline nodes of parsed HTML content, unwrapping the block
+    * nodes around them. Inline HTML sits inside a textblock, where a block node
+    * would make the document invalid for the schema.
+    *
+    * @param content Content array of a parsed HTML fragment.
+    * @example
+    *   toInlineContent([{ type: 'paragraph', content: [{ type: 'text', text: 'hi' }] }])
+    *   // → [{ type: 'text', text: 'hi' }]
+    */
+    toInlineContent(content2) {
+      const inlineTypes = this.getInlineNodeTypes();
+      return content2.flatMap((node) => {
+        if (node.type && inlineTypes.has(node.type)) return [node];
+        return node.content ? this.toInlineContent(node.content) : [];
+      });
+    }
+    /**
+    * Collect the names of the node types the schema treats as inline. Result is
+    * cached for the lifetime of the manager since extensions don't change after
+    * registration.
+    *
+    * @example
+    *   getInlineNodeTypes().has('text') // → true
+    */
+    getInlineNodeTypes() {
+      if (this.inlineNodeTypesCache) return this.inlineNodeTypesCache;
+      const types = /* @__PURE__ */ new Set(["text"]);
+      try {
+        const schema = getSchema(this.baseExtensions);
+        Object.values(schema.nodes).forEach((type) => {
+          if (type.isInline) types.add(type.name);
+        });
+      } catch {
+      }
+      this.inlineNodeTypesCache = types;
+      return types;
+    }
+    /**
+    * Returns true when the HTML contains a tag that is neither a standard
+    * HTML/SVG element nor declared in a registered extension's parseDOM rules.
+    *
+    * Recognized but empty elements such as `<em></em>` or `<span></span>`,
+    * and hyphenated custom elements like `<my-mention>`, are not considered
+    * unrecognized.
+    *
+    * @param html Raw HTML string from a marked token.
+    * @example
+    *   isUnrecognizedHtml('<enter foo bar>')  // → true
+    *   isUnrecognizedHtml('<em></em>')        // → false (empty, but real tag)
+    *   isUnrecognizedHtml('<em>hi</em>')      // → false
+    *   isUnrecognizedHtml('<my-el></my-el>')  // → false (valid custom element)
+    *   isUnrecognizedHtml('<br>')             // → false
+    */
+    isUnrecognizedHtml(html) {
+      return htmlContainsUnrecognizedTag(html, this.getSchemaParseDomTags());
+    }
+    /**
+    * Collect the lower-cased tag names declared by the registered extensions'
+    * parseDOM rules, so custom node/mark elements that use non-hyphenated,
+    * non-standard tag names are treated as recognized HTML. Result is cached for the
+    * lifetime of the manager since extensions don't change after registration.
+    *
+    * @example
+    *   // After registering an extension with parseDOM [{ tag: 'something' }]
+    *   getSchemaParseDomTags().has('something') // → true
+    */
+    getSchemaParseDomTags() {
+      if (this.schemaParseDomTagsCache) return this.schemaParseDomTagsCache;
+      const tags = /* @__PURE__ */ new Set();
+      try {
+        const schema = getSchema(this.baseExtensions);
+        const collect = (spec) => {
+          const parseDOM = spec === null || spec === void 0 ? void 0 : spec.parseDOM;
+          if (!Array.isArray(parseDOM)) return;
+          parseDOM.forEach((rule) => {
+            if (typeof (rule === null || rule === void 0 ? void 0 : rule.tag) === "string") {
+              const match = rule.tag.match(/^[a-zA-Z][\w-]*/);
+              if (match) tags.add(match[0].toLowerCase());
+            }
+          });
+        };
+        Object.values(schema.nodes).forEach((type) => collect(type.spec));
+        Object.values(schema.marks).forEach((type) => collect(type.spec));
+      } catch {
+      }
+      this.schemaParseDomTagsCache = tags;
+      return tags;
+    }
+    /**
+    * Build a JSONContent that preserves the original HTML markup as literal
+    * text. Used when the HTML would otherwise be silently dropped during
+    * schema-aware parsing.
+    *
+    * @param html Raw HTML string to preserve verbatim.
+    * @param isBlock Whether to wrap the text in a paragraph node (block tokens)
+    *   or return it as a bare text node (inline tokens).
+    * @example
+    *   htmlAsLiteralText('<enter foo>', true)
+    *   // → { type: 'paragraph', content: [{ type: 'text', text: '<enter foo>' }] }
+    */
+    htmlAsLiteralText(html, isBlock) {
+      const text2 = html.replace(/\s+$/, "");
+      if (!text2) return null;
+      if (isBlock) return {
+        type: "paragraph",
+        content: [{
+          type: "text",
+          text: text2
+        }]
+      };
+      return {
+        type: "text",
+        text: text2
+      };
+    }
+    /**
+    * Encode HTML entities in text unless the node is inside a code context
+    * (code mark or code-block parent) where literal characters should be preserved.
+    * Also backslash-escape markdown-significant characters in non-code text to
+    * prevent them from being misinterpreted as formatting delimiters.
+    */
+    encodeTextForMarkdown(text2, node, parentNode2) {
+      if ((parentNode2 === null || parentNode2 === void 0 ? void 0 : parentNode2.type) != null && this.codeTypes.has(parentNode2.type) || (node.marks || []).some((m2) => this.codeTypes.has(typeof m2 === "string" ? m2 : m2.type))) return text2;
+      return this.escapeMarkdownSyntax(encodeHtmlEntities(text2));
+    }
+    /**
+    * Backslash-escape characters that have special meaning in markdown inline
+    * syntax. This prevents literal characters in text nodes from being
+    * misinterpreted as formatting delimiters when the output is parsed again.
+    *
+    * The set covers the most common inline markdown syntax characters.
+    * Characters inside code blocks/code marks are skipped by the caller
+    * (`encodeTextForMarkdown`) via the existing `isInsideCode` guard.
+    */
+    escapeMarkdownSyntax(text2) {
+      return text2.replace(/([\\`*_[\]~])/g, "\\$1");
+    }
+    renderNodeToMarkdown(node, parentNode2, index = 0, level = 0, meta = {}) {
+      var _handler$renderMarkdo;
+      if (node.type === "text") return this.encodeTextForMarkdown(node.text || "", node, parentNode2);
+      if (!node.type) return "";
+      const handler = this.getHandlerForToken(node.type);
+      if (!handler) return "";
+      const previousNode = Array.isArray(parentNode2 === null || parentNode2 === void 0 ? void 0 : parentNode2.content) && index > 0 ? parentNode2.content[index - 1] : void 0;
+      const helpers = {
+        renderChildren: (nodes, separator) => {
+          const childLevel = handler.isIndenting ? level + 1 : level;
+          if (!Array.isArray(nodes) && nodes.content) return this.renderNodes(nodes.content, node, separator || "", index, childLevel);
+          return this.renderNodes(nodes, node, separator || "", index, childLevel);
+        },
+        renderChild: (childNode, childIndex) => {
+          const childLevel = handler.isIndenting ? level + 1 : level;
+          return this.renderNodeToMarkdown(childNode, node, childIndex, childLevel);
+        },
+        indent: (content2) => {
+          return this.indentString + content2;
+        },
+        wrapInBlock: wrapInMarkdownBlock
+      };
+      const context = {
+        index,
+        level,
+        parentType: parentNode2 === null || parentNode2 === void 0 ? void 0 : parentNode2.type,
+        previousNode,
+        meta: {
+          parentAttrs: parentNode2 === null || parentNode2 === void 0 ? void 0 : parentNode2.attrs,
+          ...meta
+        }
+      };
+      return ((_handler$renderMarkdo = handler.renderMarkdown) === null || _handler$renderMarkdo === void 0 ? void 0 : _handler$renderMarkdo.call(handler, node, helpers, context)) || "";
+    }
+    /**
+    * Render a node or an array of nodes. Parent type controls how children
+    * are joined (which determines newline insertion between children).
+    */
+    renderNodes(nodeOrNodes, parentNode2, separator = "", index = 0, level = 0) {
+      if (!Array.isArray(nodeOrNodes)) {
+        if (!nodeOrNodes.type) return "";
+        return this.renderNodeToMarkdown(nodeOrNodes, parentNode2, index, level);
+      }
+      return this.renderNodesWithMarkBoundaries(nodeOrNodes, parentNode2, separator, level);
+    }
+    /**
+    * Render an array of nodes while properly tracking mark boundaries.
+    * This handles cases where marks span across multiple text nodes.
+    */
+    renderNodesWithMarkBoundaries(nodes, parentNode2, separator = "", level = 0) {
+      const result = [];
+      const activeMarks = /* @__PURE__ */ new Map();
+      const reopenWithHtmlOnNextOpen = /* @__PURE__ */ new Set();
+      const markOpeningModes = /* @__PURE__ */ new Map();
+      const markSpanTexts = collectMarkSpanTexts(nodes);
+      nodes.forEach((node, i) => {
+        const nextNode = i < nodes.length - 1 ? nodes[i + 1] : null;
+        if (!node.type) return;
+        if (node.type === "text") {
+          let textContent = this.encodeTextForMarkdown(node.text || "", node, parentNode2);
+          let currentMarks = new Map((node.marks || []).map((mark) => [mark.type, mark]));
+          let marksToOpen = this.getMarksToOpenForSerialization(activeMarks, currentMarks, nextNode);
+          let marksToClose = findMarksToClose(currentMarks, nextNode);
+          if (textContent.length > 0 && textContent.trim().length === 0 && currentMarks.size > 0) {
+            const transientMarks = new Set(marksToClose.filter((markType) => !activeMarks.has(markType)));
+            if (transientMarks.size > 0) {
+              currentMarks = new Map(Array.from(currentMarks).filter(([markType]) => !transientMarks.has(markType)));
+              marksToOpen = this.getMarksToOpenForSerialization(activeMarks, currentMarks, nextNode);
+              marksToClose = findMarksToClose(currentMarks, nextNode);
+            }
+          }
+          const activeMarksClosingHere = marksToClose.filter((markType) => activeMarks.has(markType));
+          const hasCrossedBoundary = activeMarksClosingHere.length > 0 && marksToOpen.length > 0;
+          let middleTrailingWhitespace = "";
+          if (marksToClose.length > 0 && !hasCrossedBoundary) {
+            const middleTrailingMatch = textContent.match(/(\s+)$/);
+            if (middleTrailingMatch) {
+              middleTrailingWhitespace = middleTrailingMatch[1];
+              textContent = textContent.slice(0, -middleTrailingWhitespace.length);
+            }
+          }
+          if (!hasCrossedBoundary) marksToClose.slice().reverse().forEach((markType) => {
+            var _markSpanTexts$i;
+            if (!activeMarks.has(markType)) return;
+            const mark = currentMarks.get(markType);
+            const closeMarkdown = this.getMarkClosing(markType, mark, markOpeningModes.get(markType), (_markSpanTexts$i = markSpanTexts[i]) === null || _markSpanTexts$i === void 0 ? void 0 : _markSpanTexts$i.get(markType));
+            if (closeMarkdown) textContent += closeMarkdown;
+            if (activeMarks.has(markType)) {
+              activeMarks.delete(markType);
+              markOpeningModes.delete(markType);
+            }
+          });
+          let leadingWhitespace = "";
+          if (marksToOpen.length > 0) {
+            const leadingMatch = textContent.match(/^(\s+)/);
+            if (leadingMatch) {
+              leadingWhitespace = leadingMatch[1];
+              textContent = textContent.slice(leadingWhitespace.length);
+            }
+          }
+          marksToOpen.forEach(({ type, mark }) => {
+            var _markSpanTexts$i2;
+            const openingMode = reopenWithHtmlOnNextOpen.has(type) ? "html" : "markdown";
+            const openMarkdown = this.getMarkOpening(type, mark, openingMode, (_markSpanTexts$i2 = markSpanTexts[i]) === null || _markSpanTexts$i2 === void 0 ? void 0 : _markSpanTexts$i2.get(type));
+            if (openMarkdown) textContent = openMarkdown + textContent;
+            markOpeningModes.set(type, openingMode);
+            reopenWithHtmlOnNextOpen.delete(type);
+          });
+          if (!hasCrossedBoundary) marksToOpen.slice().reverse().forEach(({ type, mark }) => {
+            activeMarks.set(type, mark);
+          });
+          textContent = leadingWhitespace + textContent;
+          let marksToCloseAtEnd;
+          if (hasCrossedBoundary) {
+            const nextMarkTypes = new Set(((nextNode === null || nextNode === void 0 ? void 0 : nextNode.marks) || []).map((mark) => mark.type));
+            marksToOpen.forEach(({ type }) => {
+              if (nextMarkTypes.has(type) && this.getHtmlReopenTags(type)) reopenWithHtmlOnNextOpen.add(type);
+            });
+            const activeMarkKeys = Array.from(activeMarks.keys());
+            const activeMarksClosingHereLifo = activeMarksClosingHere.slice().sort((a, b2) => activeMarkKeys.indexOf(b2) - activeMarkKeys.indexOf(a));
+            marksToCloseAtEnd = [...marksToOpen.map((m2) => m2.type), ...activeMarksClosingHereLifo];
+          } else marksToCloseAtEnd = findMarksToCloseAtEnd(activeMarks, currentMarks, nextNode, this.markSetsEqual.bind(this));
+          let trailingWhitespace = "";
+          if (marksToCloseAtEnd.length > 0) {
+            const trailingMatch = textContent.match(/(\s+)$/);
+            if (trailingMatch) {
+              trailingWhitespace = trailingMatch[1];
+              textContent = textContent.slice(0, -trailingWhitespace.length);
+            }
+          }
+          marksToCloseAtEnd.forEach((markType) => {
+            var _activeMarks$get, _markSpanTexts$i3;
+            const mark = (_activeMarks$get = activeMarks.get(markType)) !== null && _activeMarks$get !== void 0 ? _activeMarks$get : currentMarks.get(markType);
+            const closeMarkdown = this.getMarkClosing(markType, mark, markOpeningModes.get(markType), (_markSpanTexts$i3 = markSpanTexts[i]) === null || _markSpanTexts$i3 === void 0 ? void 0 : _markSpanTexts$i3.get(markType));
+            if (closeMarkdown) textContent += closeMarkdown;
+            activeMarks.delete(markType);
+            markOpeningModes.delete(markType);
+          });
+          textContent += trailingWhitespace;
+          textContent += middleTrailingWhitespace;
+          result.push(textContent);
+        } else {
+          const nodeMarkTypes = new Set((node.marks || []).map((mark) => mark.type));
+          const marksToReopen = /* @__PURE__ */ new Map();
+          const openingModesToReopen = /* @__PURE__ */ new Map();
+          activeMarks.forEach((mark, type) => {
+            if (nodeMarkTypes.has(type)) {
+              var _markOpeningModes$get;
+              marksToReopen.set(type, mark);
+              openingModesToReopen.set(type, (_markOpeningModes$get = markOpeningModes.get(type)) !== null && _markOpeningModes$get !== void 0 ? _markOpeningModes$get : "markdown");
+            }
+          });
+          const beforeMarkdown = closeMarksBeforeNode(activeMarks, (markType, mark) => {
+            var _markSpanTexts;
+            return this.getMarkClosing(markType, mark, markOpeningModes.get(markType), (_markSpanTexts = markSpanTexts[i - 1]) === null || _markSpanTexts === void 0 ? void 0 : _markSpanTexts.get(markType));
+          });
+          markOpeningModes.clear();
+          const nodeContent = this.renderNodeToMarkdown(node, parentNode2, i, level);
+          const afterMarkdown = node.type === "hardBreak" ? "" : reopenMarksAfterNode(marksToReopen, activeMarks, (markType, mark) => {
+            var _openingModesToReopen, _markSpanTexts2;
+            const openingMode = (_openingModesToReopen = openingModesToReopen.get(markType)) !== null && _openingModesToReopen !== void 0 ? _openingModesToReopen : "markdown";
+            markOpeningModes.set(markType, openingMode);
+            return this.getMarkOpening(markType, mark, openingMode, (_markSpanTexts2 = markSpanTexts[i + 1]) === null || _markSpanTexts2 === void 0 ? void 0 : _markSpanTexts2.get(markType));
+          });
+          result.push(beforeMarkdown + nodeContent + afterMarkdown);
+        }
+      });
+      if (separator === "") {
+        let previous = -1;
+        result.forEach((piece, i) => {
+          if (!piece) return;
+          if (previous >= 0 && piece.startsWith("[")) {
+            const trailing = /(\\*)!$/.exec(result[previous]);
+            if (trailing && trailing[1].length % 2 === 0) result[previous] = `${result[previous].slice(0, -1)}\\!`;
+          }
+          previous = i;
+        });
+      }
+      return result.join(separator);
+    }
+    /**
+    * Get the opening markdown syntax for a mark type.
+    */
+    getMarkOpening(markType, mark, openingMode = "markdown", markText) {
+      if (openingMode === "html") {
+        var _this$getHtmlReopenTa;
+        return ((_this$getHtmlReopenTa = this.getHtmlReopenTags(markType)) === null || _this$getHtmlReopenTa === void 0 ? void 0 : _this$getHtmlReopenTa.open) || "";
+      }
+      const handlers2 = this.getHandlersForNodeType(markType);
+      const handler = handlers2.length > 0 ? handlers2[0] : void 0;
+      if (!handler || !handler.renderMarkdown) return "";
+      const placeholder = "\uE000__TIPTAP_MARKDOWN_PLACEHOLDER__\uE001";
+      const syntheticNode = {
+        type: markType,
+        attrs: mark.attrs || {},
+        content: [{
+          type: "text",
+          text: placeholder
+        }]
+      };
+      try {
+        const rendered = handler.renderMarkdown(syntheticNode, {
+          renderChildren: () => placeholder,
+          renderChild: () => placeholder,
+          indent: (content2) => content2,
+          wrapInBlock: (prefix, content2) => prefix + content2
+        }, {
+          index: 0,
+          level: 0,
+          parentType: "text",
+          meta: { markText }
+        });
+        const placeholderIndex = rendered.indexOf(placeholder);
+        return placeholderIndex >= 0 ? rendered.substring(0, placeholderIndex) : "";
+      } catch (err) {
+        throw new Error(`Failed to get mark opening for ${markType}: ${err}`);
+      }
+    }
+    /**
+    * Get the closing markdown syntax for a mark type.
+    */
+    getMarkClosing(markType, mark, openingMode = "markdown", markText) {
+      if (openingMode === "html") {
+        var _this$getHtmlReopenTa2;
+        return ((_this$getHtmlReopenTa2 = this.getHtmlReopenTags(markType)) === null || _this$getHtmlReopenTa2 === void 0 ? void 0 : _this$getHtmlReopenTa2.close) || "";
+      }
+      const handlers2 = this.getHandlersForNodeType(markType);
+      const handler = handlers2.length > 0 ? handlers2[0] : void 0;
+      if (!handler || !handler.renderMarkdown) return "";
+      const placeholder = "\uE000__TIPTAP_MARKDOWN_PLACEHOLDER__\uE001";
+      const syntheticNode = {
+        type: markType,
+        attrs: mark.attrs || {},
+        content: [{
+          type: "text",
+          text: placeholder
+        }]
+      };
+      try {
+        const rendered = handler.renderMarkdown(syntheticNode, {
+          renderChildren: () => placeholder,
+          renderChild: () => placeholder,
+          indent: (content2) => content2,
+          wrapInBlock: (prefix, content2) => prefix + content2
+        }, {
+          index: 0,
+          level: 0,
+          parentType: "text",
+          meta: { markText }
+        });
+        const placeholderIndex = rendered.indexOf(placeholder);
+        const placeholderEnd = placeholderIndex + 33;
+        return placeholderIndex >= 0 ? rendered.substring(placeholderEnd) : "";
+      } catch (err) {
+        throw new Error(`Failed to get mark closing for ${markType}: ${err}`);
+      }
+    }
+    /**
+    * Returns the inline HTML tags an extension exposes for overlap-boundary
+    * reopen handling, if that mark explicitly opted into HTML reopen mode.
+    */
+    getHtmlReopenTags(markType) {
+      const handlers2 = this.getHandlersForNodeType(markType);
+      const handler = handlers2.length > 0 ? handlers2[0] : void 0;
+      return handler === null || handler === void 0 ? void 0 : handler.htmlReopen;
+    }
+    /**
+    * Check if two mark sets are equal (same types and matching attributes).
+    */
+    markSetsEqual(marks1, marks2) {
+      if (marks1.size !== marks2.size) return false;
+      return Array.from(marks1.entries()).every(([type, mark]) => {
+        const otherMark = marks2.get(type);
+        return otherMark && attrsEqual(mark.attrs, otherMark.attrs);
+      });
+    }
+    /**
+    * Decide the order in which marks open on the current text node.
+    *
+    * The returned array is iterated head-first when prepending opening
+    * delimiters, so the first entry becomes the innermost mark in the emitted
+    * markdown and the last becomes the outermost. Two stable signals drive
+    * the order — neither one inspects any rendered markdown:
+    *
+    *   1. Marks that end on this node must be inner relative to marks that
+    *      continue into the next node, otherwise the delimiters interleave
+    *      instead of nesting.
+    *   2. Within each lifetime group, marks are sorted so that lower
+    *      registration ranks (i.e. higher Tiptap extension priorities) end up
+    *      outermost. ProseMirror assigns mark ranks in the same priority-aware
+    *      order Tiptap uses when building the schema, so link (priority 1000)
+    *      naturally wraps bold/italic without the serializer needing to peek
+    *      at how any particular mark renders.
+    */
+    getMarksToOpenForSerialization(activeMarks, currentMarks, nextNode) {
+      const marksToOpen = findMarksToOpen(activeMarks, currentMarks);
+      if (marksToOpen.length <= 1) return marksToOpen;
+      const nextMarks = (nextNode === null || nextNode === void 0 ? void 0 : nextNode.marks) || [];
+      const continuesInNextNode = (markType, attrs) => nextMarks.some((m2) => m2.type === markType && attrsEqual(m2.attrs, attrs));
+      const byRankInnerFirst = (a, b2) => {
+        var _this$extensionRanks$, _this$extensionRanks$2;
+        const rankA = (_this$extensionRanks$ = this.extensionRanks.get(a.type)) !== null && _this$extensionRanks$ !== void 0 ? _this$extensionRanks$ : Number.MAX_SAFE_INTEGER;
+        const rankB = (_this$extensionRanks$2 = this.extensionRanks.get(b2.type)) !== null && _this$extensionRanks$2 !== void 0 ? _this$extensionRanks$2 : Number.MAX_SAFE_INTEGER;
+        if (rankA !== rankB) return rankB - rankA;
+        return a.type.localeCompare(b2.type);
+      };
+      const endingHere = marksToOpen.filter((mark) => !continuesInNextNode(mark.type, mark.mark.attrs)).sort(byRankInnerFirst);
+      const continuing = marksToOpen.filter((mark) => continuesInNextNode(mark.type, mark.mark.attrs)).sort(byRankInnerFirst);
+      return [...endingHere, ...continuing];
+    }
+  };
+  var Markdown = Extension.create({
+    name: "markdown",
+    addOptions() {
+      return {
+        indentation: {
+          style: "space",
+          size: 2
+        },
+        marked: void 0,
+        markedOptions: {}
+      };
+    },
+    addCommands() {
+      return {
+        setContent: (content2, options) => {
+          if (!(options === null || options === void 0 ? void 0 : options.contentType)) return commands_exports.setContent(content2, options);
+          if (assumeContentType(content2, options === null || options === void 0 ? void 0 : options.contentType) !== "markdown" || !this.editor.markdown) return commands_exports.setContent(content2, options);
+          const mdContent = this.editor.markdown.parse(content2);
+          return commands_exports.setContent(mdContent, options);
+        },
+        insertContent: (value, options) => {
+          if (!(options === null || options === void 0 ? void 0 : options.contentType)) return commands_exports.insertContent(value, options);
+          if (assumeContentType(value, options === null || options === void 0 ? void 0 : options.contentType) !== "markdown" || !this.editor.markdown) return commands_exports.insertContent(value, options);
+          const mdContent = this.editor.markdown.parse(value);
+          return commands_exports.insertContent(mdContent, options);
+        },
+        insertContentAt: (position, value, options) => {
+          if (!(options === null || options === void 0 ? void 0 : options.contentType)) return commands_exports.insertContentAt(position, value, options);
+          if (assumeContentType(value, options === null || options === void 0 ? void 0 : options.contentType) !== "markdown" || !this.editor.markdown) return commands_exports.insertContentAt(position, value, options);
+          const mdContent = this.editor.markdown.parse(value);
+          return commands_exports.insertContentAt(position, mdContent, options);
+        }
+      };
+    },
+    addStorage() {
+      return { manager: new MarkdownManager({
+        indentation: this.options.indentation,
+        marked: this.options.marked,
+        markedOptions: this.options.markedOptions,
+        extensions: []
+      }) };
+    },
+    onBeforeCreate() {
+      var _json$content;
+      if (this.editor.markdown) {
+        console.error("[tiptap][markdown]: There is already a `markdown` property on the editor instance. This might lead to unexpected behavior.");
+        return;
+      }
+      this.storage.manager = new MarkdownManager({
+        indentation: this.options.indentation,
+        marked: this.options.marked,
+        markedOptions: this.options.markedOptions,
+        extensions: this.editor.extensionManager.baseExtensions
+      });
+      this.editor.markdown = this.storage.manager;
+      this.editor.getMarkdown = () => {
+        return this.storage.manager.serialize(this.editor.getJSON());
+      };
+      if (!this.editor.options.contentType) return;
+      if (assumeContentType(this.editor.options.content, this.editor.options.contentType) !== "markdown") return;
+      if (!this.editor.markdown) throw new Error('[tiptap][markdown]: The `contentType` option is set to "markdown", but the Markdown extension is not added to the editor. Please add the Markdown extension to use this feature.');
+      if (this.editor.options.content === void 0 || typeof this.editor.options.content !== "string") throw new Error('[tiptap][markdown]: The `contentType` option is set to "markdown", but the initial content is not a string. Please provide the initial content as a markdown string.');
+      const json = this.editor.markdown.parse(this.editor.options.content);
+      if ((_json$content = json.content) === null || _json$content === void 0 ? void 0 : _json$content.length) this.editor.options.content = json;
+    }
+  });
+
+  // frontend/document-schema.mjs
+  var documentBlockTypes = [
+    "paragraph",
+    "heading",
+    "bulletList",
+    "orderedList",
+    "listItem",
+    "blockquote",
+    "codeBlock",
+    "horizontalRule",
+    "blockMath",
+    "table",
+    "tableRow",
+    "tableCell",
+    "tableHeader"
+  ];
+  var safeCellColor = (value) => typeof value === "string" && /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(value) ? value : null;
+  var cellBackground = {
+    default: null,
+    parseHTML: (element) => safeCellColor(element.getAttribute("data-background")),
+    renderHTML: (attributes) => {
+      const color = safeCellColor(attributes.background);
+      return color ? { "data-background": color, style: `background-color: ${color}` } : {};
+    }
+  };
+  var BackgroundTableCell = TableCell.extend({ addAttributes() {
+    return { ...this.parent?.(), background: cellBackground };
+  } });
+  var BackgroundTableHeader = TableHeader.extend({ addAttributes() {
+    return { ...this.parent?.(), background: cellBackground };
+  } });
+  function createDocumentExtensions({ editable = true, onMathClick = () => {
+  } } = {}) {
+    return [
+      src_default.configure({ heading: { levels: [1, 2, 3, 4, 5, 6] } }),
+      UniqueID.configure({ types: documentBlockTypes, updateDocument: editable }),
+      TableKit.configure({ tableCell: false, tableHeader: false }),
+      BackgroundTableCell,
+      BackgroundTableHeader,
+      Mathematics.configure({
+        katexOptions: { throwOnError: false, trust: false, maxExpand: 1e3, maxSize: 20 },
+        inlineOptions: { onClick: onMathClick },
+        blockOptions: { onClick: onMathClick }
+      }),
+      Markdown
+    ];
+  }
+
   // frontend/document-editor-src.js
   var pending = null;
   var current = null;
@@ -43065,22 +43113,8 @@ Please report this to https://github.com/markedjs/marked.`, e) {
   })();
   var draftKey = (id) => `yantu:document-draft:${id}:${tabId}`;
   var snapshot = (value) => JSON.stringify(value);
-  var blockTypes = /* @__PURE__ */ new Set(["paragraph", "heading", "bulletList", "orderedList", "listItem", "blockquote", "codeBlock", "horizontalRule", "blockMath", "table", "tableRow", "tableCell", "tableHeader"]);
-  var safeCellColor = (value) => typeof value === "string" && /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(value) ? value : null;
-  var cellBackground = {
-    default: null,
-    parseHTML: (element) => safeCellColor(element.getAttribute("data-background")),
-    renderHTML: (attributes) => {
-      const color = safeCellColor(attributes.background);
-      return color ? { "data-background": color, style: `background-color: ${color}` } : {};
-    }
-  };
-  var BackgroundTableCell = TableCell.extend({ addAttributes() {
-    return { ...this.parent?.(), background: cellBackground };
-  } });
-  var BackgroundTableHeader = TableHeader.extend({ addAttributes() {
-    return { ...this.parent?.(), background: cellBackground };
-  } });
+  var blockTypes = new Set(documentBlockTypes);
+  var validBlockId = (value) => typeof value === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(value);
   var randomBlockId = () => crypto.randomUUID?.() || "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (letter) => {
     const value = Math.floor(Math.random() * 16);
     return (letter === "x" ? value : value & 3 | 8).toString(16);
@@ -43105,7 +43139,7 @@ Please report this to https://github.com/markedjs/marked.`, e) {
     editor.state.doc.descendants((node, pos) => {
       if (!blockTypes.has(node.type.name)) return;
       let id = node.attrs.id;
-      if (typeof id !== "string" || seen.has(id)) {
+      if (!validBlockId(id) || seen.has(id)) {
         id = randomBlockId();
         transaction.setNodeMarkup(pos, void 0, { ...node.attrs, id }, node.marks);
       }
@@ -43335,6 +43369,38 @@ Please report this to https://github.com/markedjs/marked.`, e) {
     else current.editor.commands.setContent(value, { emitUpdate: false });
     outlineRows();
   }
+  async function convertDocument() {
+    const workspace = current;
+    if (!workspace?.doc.canConvert || workspace.conflict) return;
+    const button = document.querySelector('.document-compatibility [data-structured-action="convert-document"]');
+    if (button) button.disabled = true;
+    status("\u8F6C\u6362\u4E2D\u2026");
+    try {
+      repairBlockIds(workspace.editor);
+      const value = content(workspace);
+      const saved = await api(`/resources/${enc(workspace.resource.id)}/document`, "PUT", {
+        version: workspace.doc.version,
+        content: value
+      });
+      workspace.doc.version = saved.version;
+      workspace.lastSaved = snapshot(value);
+      workspace.doc.canEdit = true;
+      workspace.doc.canConvert = false;
+      workspace.doc.compatibilityIssue = "";
+      if (current !== workspace) return;
+      workspace.editor.setEditable(true);
+      document.querySelectorAll("[data-document-title]").forEach((input) => {
+        input.readOnly = false;
+      });
+      syncTitle(workspace.resource.title);
+      document.querySelector(".document-compatibility")?.remove();
+      status("\u5DF2\u8F6C\u6362\u5E76\u4FDD\u5B58\u5230\u4E91\u7AEF");
+    } catch (error) {
+      if (current !== workspace) return;
+      status(error.status === 409 ? "\u4E91\u7AEF\u5DF2\u6709\u66F4\u65B0\uFF0C\u8BF7\u5237\u65B0\u540E\u518D\u8F6C\u6362" : `\u8F6C\u6362\u672A\u5B8C\u6210\uFF0C\u539F\u6587\u4EF6\u672A\u4FEE\u6539\uFF1A${error.message}`, true);
+      if (button) button.disabled = false;
+    }
+  }
   function formulaDialog(node = null, pos = null) {
     if (!current?.doc.canEdit) return;
     const dialog = document.querySelector("#structuredFormulaDialog");
@@ -43492,19 +43558,7 @@ Please report this to https://github.com/markedjs/marked.`, e) {
           return false;
         }
       },
-      extensions: [
-        src_default.configure({ heading: { levels: [1, 2, 3, 4, 5, 6] } }),
-        UniqueID.configure({ types: ["paragraph", "heading", "bulletList", "orderedList", "listItem", "blockquote", "codeBlock", "horizontalRule", "blockMath", "table", "tableRow", "tableCell", "tableHeader"], updateDocument: doc3.canEdit }),
-        TableKit.configure({ tableCell: false, tableHeader: false }),
-        BackgroundTableCell,
-        BackgroundTableHeader,
-        Mathematics.configure({
-          katexOptions: { throwOnError: false, trust: false, maxExpand: 1e3, maxSize: 20 },
-          inlineOptions: { onClick: (node, pos) => formulaDialog(node, pos) },
-          blockOptions: { onClick: (node, pos) => formulaDialog(node, pos) }
-        }),
-        Markdown
-      ],
+      extensions: createDocumentExtensions({ editable: doc3.canEdit, onMathClick: (node, pos) => formulaDialog(node, pos) }),
       content: typeof doc3.content === "string" ? doc3.content : doc3.content,
       contentType: typeof doc3.content === "string" ? "markdown" : "json",
       onUpdate: () => {
@@ -43574,7 +43628,8 @@ Please report this to https://github.com/markedjs/marked.`, e) {
     const paperTitle = editable && resource.title === untitledTitle ? "" : resource.title;
     const owner = doc3.owner || resource.owner || "\u672A\u77E5\u4F5C\u8005";
     const back = state.driveReturn || "resources";
-    return `<div class="document-workspace structured-workspace"><header class="document-topbar"><div class="document-top-left"><a class="document-home" href="#${esc(back)}" aria-label="\u8FD4\u56DE\u6211\u7684\u4E91\u76D8">${icon("back")}</a><span class="document-mark">${icon("file")}</span><div class="document-heading"><div class="document-title-top"><input id="documentTitle" data-document-title value="${esc(resource.title)}" maxlength="200" aria-label="\u6587\u6863\u6807\u9898" ${editable ? "" : "readonly"}></div><span id="documentSaveStatus">${editable ? "\u5DF2\u4FDD\u5B58\u5230\u4E91\u7AEF" : "\u53EA\u8BFB\u6587\u6863"}</span></div></div><div class="document-top-actions">${editable ? btn("\u5206\u4EAB", "cloud-shares", resource.id, "primary") : ""}<button type="button" class="btn document-more" data-action="cloud-resource-more" data-id="${esc(resource.id)}" aria-haspopup="menu">\xB7\xB7\xB7</button></div></header><div class="document-toolbar"><span>\u6587\u6863</span><a href="/api/v1/resources/${enc(resource.id)}/download">\u4E0B\u8F7D\u539F\u6587\u4EF6</a></div><div class="document-recovery" id="structuredRecovery" hidden><strong>\u672C\u5730\u8BB0\u5F55</strong><span></span><button type="button" class="btn" data-structured-action="view-draft">\u67E5\u770B</button><button type="button" class="btn" data-structured-action="restore-draft">\u6062\u590D</button><button type="button" class="btn" data-structured-action="discard-draft">\u820D\u5F03</button></div><div class="document-conflict" id="documentConflict" hidden><strong>\u4E91\u7AEF\u5DF2\u6709\u66F4\u65B0</strong><span>\u81EA\u52A8\u4FDD\u5B58\u5DF2\u6682\u505C\uFF0C\u672C\u5730\u8BB0\u5F55\u5DF2\u4FDD\u7559\u3002</span><button type="button" class="btn" data-structured-action="download-draft">\u4E0B\u8F7D\u672C\u5730\u8BB0\u5F55</button><button type="button" class="btn" data-structured-action="reload-cloud">\u91CD\u65B0\u8BFB\u53D6\u4E91\u7AEF</button></div><div class="document-body"><aside class="document-outline" id="documentOutlinePanel"><div class="document-outline-header"><h2>\u76EE\u5F55</h2><button type="button" class="document-outline-collapse" data-structured-action="outline" aria-label="\u6536\u8D77\u76EE\u5F55">\xAB</button></div><ul id="documentOutline"></ul></aside><main class="document-stage"><div class="document-paper"><h1 class="document-paper-title"><input data-document-title value="${esc(paperTitle)}" placeholder="${editable ? "\u8BF7\u8F93\u5165\u6807\u9898" : ""}" maxlength="200" aria-label="\u6587\u6863\u6807\u9898" ${editable ? "" : "readonly"}></h1><div class="document-paper-byline"><span class="document-author-avatar" aria-hidden="true">${esc(Array.from(owner)[0] || "?")}</span><span class="document-author-name">${esc(owner)}</span><span class="document-byline-divider"></span><time id="documentModifiedAt" datetime="${esc(doc3.modifiedAt || "")}">${workspaceModifiedLabel(doc3.modifiedAt)}</time></div><div id="structuredEditor" class="document-rendered" aria-label="\u6587\u6863\u6B63\u6587"></div></div></main></div><div id="structuredSelectionTools" class="document-selection-tools" hidden><button type="button" data-editor-command="bold" title="\u52A0\u7C97 Ctrl+B"><b>B</b></button><button type="button" data-editor-command="h1">H1</button><button type="button" data-editor-command="h2">H2</button></div><div id="structuredSlashMenu" class="document-slash-menu" hidden><div class="document-slash-heading">\u5E38\u7528</div><button type="button" data-editor-command="formula" data-alias="gs eq formula"><span>\u{1D453}\u{1D465}</span>\u516C\u5F0F</button><button type="button" data-editor-command="h1" data-alias="h1 title"><span>H\u2081</span>\u4E00\u7EA7\u6807\u9898</button><button type="button" data-editor-command="h2" data-alias="h2 subtitle"><span>H\u2082</span>\u4E8C\u7EA7\u6807\u9898</button><button type="button" data-editor-command="bullet" data-alias="list bullet"><span>\u2261</span>\u9879\u76EE\u7B26\u53F7</button><button type="button" data-editor-command="quote" data-alias="quote"><span>\u275D</span>\u5F15\u7528</button></div><dialog id="structuredFormulaDialog" class="document-equation-dialog"><div class="document-equation-head"><strong>\u516C\u5F0F</strong><button type="button" data-structured-action="cancel-formula" aria-label="\u5173\u95ED">\xD7</button></div><div class="document-equation-kinds"><label><input type="radio" name="mathKind" value="inline" checked>\u884C\u5185\u516C\u5F0F</label><label><input type="radio" name="mathKind" value="block">\u72EC\u7ACB\u516C\u5F0F</label></div><textarea aria-label="LaTeX \u516C\u5F0F\u6E90\u7801" placeholder="\u4F8B\u5982 \\frac{a}{b}+x^2" spellcheck="false"></textarea><div class="document-equation-actions"><button type="button" class="btn" data-structured-action="cancel-formula">\u53D6\u6D88</button><button type="button" class="btn primary" data-structured-action="save-formula">\u5B8C\u6210</button></div></dialog><dialog id="structuredDraftDialog" class="document-local-dialog"><div class="document-local-head"><strong>\u672C\u5730\u8BB0\u5F55</strong><button type="button" data-structured-action="close-draft" aria-label="\u5173\u95ED">\xD7</button></div><textarea readonly aria-label="\u672C\u5730\u8BB0\u5F55\u5185\u5BB9"></textarea><div class="document-local-actions"><button type="button" class="btn" data-structured-action="download-draft">\u4E0B\u8F7D\u8BB0\u5F55</button></div></dialog></div>`;
+    const compatibilityNotice = doc3.compatibilityIssue ? `<div class="document-recovery document-compatibility"><strong>\u68C0\u67E5\u65E7\u5185\u5BB9</strong><span>${esc(doc3.compatibilityIssue)}${doc3.canConvert ? "\u3002\u539F\u6587\u4EF6\u4ECD\u53EF\u4E0B\u8F7D\u67E5\u770B\u3002" : "\u3002"}</span>${doc3.canConvert ? '<button type="button" class="btn" data-structured-action="convert-document">\u786E\u8BA4\u8F6C\u6362\u5E76\u7F16\u8F91</button>' : ""}</div>` : "";
+    return `<div class="document-workspace structured-workspace"><header class="document-topbar"><div class="document-top-left"><a class="document-home" href="#${esc(back)}" aria-label="\u8FD4\u56DE\u6211\u7684\u4E91\u76D8">${icon("back")}</a><span class="document-mark">${icon("file")}</span><div class="document-heading"><div class="document-title-top"><input id="documentTitle" data-document-title value="${esc(resource.title)}" maxlength="200" aria-label="\u6587\u6863\u6807\u9898" ${editable ? "" : "readonly"}></div><span id="documentSaveStatus">${editable ? "\u5DF2\u4FDD\u5B58\u5230\u4E91\u7AEF" : "\u53EA\u8BFB\u6587\u6863"}</span></div></div><div class="document-top-actions">${editable ? btn("\u5206\u4EAB", "cloud-shares", resource.id, "primary") : ""}<button type="button" class="btn document-more" data-action="cloud-resource-more" data-id="${esc(resource.id)}" aria-haspopup="menu">\xB7\xB7\xB7</button></div></header><div class="document-toolbar"><span>\u6587\u6863</span><a href="/api/v1/resources/${enc(resource.id)}/download">\u4E0B\u8F7D\u539F\u6587\u4EF6</a></div><div class="document-recovery" id="structuredRecovery" hidden><strong>\u672C\u5730\u8BB0\u5F55</strong><span></span><button type="button" class="btn" data-structured-action="view-draft">\u67E5\u770B</button><button type="button" class="btn" data-structured-action="restore-draft">\u6062\u590D</button><button type="button" class="btn" data-structured-action="discard-draft">\u820D\u5F03</button></div><div class="document-conflict" id="documentConflict" hidden><strong>\u4E91\u7AEF\u5DF2\u6709\u66F4\u65B0</strong><span>\u81EA\u52A8\u4FDD\u5B58\u5DF2\u6682\u505C\uFF0C\u672C\u5730\u8BB0\u5F55\u5DF2\u4FDD\u7559\u3002</span><button type="button" class="btn" data-structured-action="download-draft">\u4E0B\u8F7D\u672C\u5730\u8BB0\u5F55</button><button type="button" class="btn" data-structured-action="reload-cloud">\u91CD\u65B0\u8BFB\u53D6\u4E91\u7AEF</button></div>${compatibilityNotice}<div class="document-body"><aside class="document-outline" id="documentOutlinePanel"><div class="document-outline-header"><h2>\u76EE\u5F55</h2><button type="button" class="document-outline-collapse" data-structured-action="outline" aria-label="\u6536\u8D77\u76EE\u5F55">\xAB</button></div><ul id="documentOutline"></ul></aside><main class="document-stage"><div class="document-paper"><h1 class="document-paper-title"><input data-document-title value="${esc(paperTitle)}" placeholder="${editable ? "\u8BF7\u8F93\u5165\u6807\u9898" : ""}" maxlength="200" aria-label="\u6587\u6863\u6807\u9898" ${editable ? "" : "readonly"}></h1><div class="document-paper-byline"><span class="document-author-avatar" aria-hidden="true">${esc(Array.from(owner)[0] || "?")}</span><span class="document-author-name">${esc(owner)}</span><span class="document-byline-divider"></span><time id="documentModifiedAt" datetime="${esc(doc3.modifiedAt || "")}">${workspaceModifiedLabel(doc3.modifiedAt)}</time></div><div id="structuredEditor" class="document-rendered" aria-label="\u6587\u6863\u6B63\u6587"></div></div></main></div><div id="structuredSelectionTools" class="document-selection-tools" hidden><button type="button" data-editor-command="bold" title="\u52A0\u7C97 Ctrl+B"><b>B</b></button><button type="button" data-editor-command="h1">H1</button><button type="button" data-editor-command="h2">H2</button></div><div id="structuredSlashMenu" class="document-slash-menu" hidden><div class="document-slash-heading">\u5E38\u7528</div><button type="button" data-editor-command="formula" data-alias="gs eq formula"><span>\u{1D453}\u{1D465}</span>\u516C\u5F0F</button><button type="button" data-editor-command="h1" data-alias="h1 title"><span>H\u2081</span>\u4E00\u7EA7\u6807\u9898</button><button type="button" data-editor-command="h2" data-alias="h2 subtitle"><span>H\u2082</span>\u4E8C\u7EA7\u6807\u9898</button><button type="button" data-editor-command="bullet" data-alias="list bullet"><span>\u2261</span>\u9879\u76EE\u7B26\u53F7</button><button type="button" data-editor-command="quote" data-alias="quote"><span>\u275D</span>\u5F15\u7528</button></div><dialog id="structuredFormulaDialog" class="document-equation-dialog"><div class="document-equation-head"><strong>\u516C\u5F0F</strong><button type="button" data-structured-action="cancel-formula" aria-label="\u5173\u95ED">\xD7</button></div><div class="document-equation-kinds"><label><input type="radio" name="mathKind" value="inline" checked>\u884C\u5185\u516C\u5F0F</label><label><input type="radio" name="mathKind" value="block">\u72EC\u7ACB\u516C\u5F0F</label></div><textarea aria-label="LaTeX \u516C\u5F0F\u6E90\u7801" placeholder="\u4F8B\u5982 \\frac{a}{b}+x^2" spellcheck="false"></textarea><div class="document-equation-actions"><button type="button" class="btn" data-structured-action="cancel-formula">\u53D6\u6D88</button><button type="button" class="btn primary" data-structured-action="save-formula">\u5B8C\u6210</button></div></dialog><dialog id="structuredDraftDialog" class="document-local-dialog"><div class="document-local-head"><strong>\u672C\u5730\u8BB0\u5F55</strong><button type="button" data-structured-action="close-draft" aria-label="\u5173\u95ED">\xD7</button></div><textarea readonly aria-label="\u672C\u5730\u8BB0\u5F55\u5185\u5BB9"></textarea><div class="document-local-actions"><button type="button" class="btn" data-structured-action="download-draft">\u4E0B\u8F7D\u8BB0\u5F55</button></div></dialog></div>`;
   }
   document.addEventListener("mousedown", (event) => {
     if (event.target.closest("#structuredSelectionTools button,#structuredSlashMenu button")) event.preventDefault();
@@ -43603,6 +43658,10 @@ Please report this to https://github.com/markedjs/marked.`, e) {
       return;
     }
     const action = event.target.closest("[data-structured-action]")?.dataset.structuredAction;
+    if (action === "convert-document") {
+      convertDocument();
+      return;
+    }
     if (action === "outline") {
       const panel = document.querySelector("#documentOutlinePanel");
       panel.classList.toggle("is-collapsed");

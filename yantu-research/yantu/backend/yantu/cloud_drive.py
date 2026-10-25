@@ -335,11 +335,24 @@ def register_cloud_drive(app, ctx):
                 content = raw.decode('utf-8-sig')
         except (UnicodeError, ValueError, KeyError, TypeError, HTTPException):
             raise HTTPException(415, '文件编码或文档结构无法读取')
+        compatibility_issue = ''
+        can_convert = False
+        if kind == 'document':
+            if isinstance(content, str):
+                compatibility_issue = '旧版 Markdown 文档需要确认转换后才能继续编辑'
+                can_convert = True
+            else:
+                try:
+                    validate_document(content, for_editor=True)
+                except HTTPException:
+                    compatibility_issue = '此文档包含与当前编辑器不一致的旧结构，暂不能安全转换，请下载原文件核对'
         modified_at = db.scalar(select(ResourceVersion.created_at).where(
             ResourceVersion.resource_id == row.id
         ).order_by(ResourceVersion.version.desc()).limit(1))
         return result({'id': row.id, 'title': row.title, 'kind': kind or 'text', 'content': content,
-                       'version': row.version, 'canEdit': row.owner_id == user.id,
+                       'version': row.version, 'canEdit': row.owner_id == user.id and not compatibility_issue,
+                       'canConvert': row.owner_id == user.id and can_convert,
+                       'compatibilityIssue': compatibility_issue,
                        'owner': user.display_name if row.owner_id == user.id else ctx['name'](db, row.owner_id),
                        'modifiedAt': iso(modified_at)})
 

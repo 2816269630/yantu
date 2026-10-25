@@ -15,11 +15,12 @@ async function main(){
  let holdNativeSave=false,releaseNativeSave,nativeSaveStarted=false;
  let holdTitleSave=false,releaseTitleSave,titleSaveStarted=false;
  let nativeContent='# 主线\n## 1. 乘法公式\n### 1.1 完全平方公式\n正文中有 $E=mc^2$ 和 [参考资料](https://example.org/paper)\n$$\\frac{a}{b}$$\n\n| 项目 | 结果 |\n| --- | --- |\n| 实验 A | 通过 |';const requests=[];
+ let legacyContent='# 旧标题\n正文',legacyVersion=1;
  const file={id:'file1',title:'科研笔记.txt',fileName:'科研笔记.txt',type:'note',ownerId:'me',owner:'本人',version:1,size:10,createdAt:'2026-10-22T10:00:00Z',visibility:'private',canEdit:true,previewable:true,previewType:'text/plain',permissions:{canShare:true},kind:'file'};
  const shared={...file,id:'shared1',title:'共享记录.txt',fileName:'共享记录.txt',ownerId:'other',owner:'共享成员',canEdit:false,folderId:null};
  const folders=[{id:'folder1',name:'验收资料',parentId:null,createdAt:'2026-10-22T09:00:00Z'},{id:'folder2',name:'右键子目录',parentId:'folder1',createdAt:'2026-10-22T09:30:00Z'}];
  w.fetch=async (url,options={})=>{requests.push({url,options});const u=new URL(url,'http://localhost');const p=u.pathname.replace('/api/v1','');let value;let status=200;
-  if(p==='/system/status')value={initialized:true,version:'0.3.4'};
+  if(p==='/system/status')value={initialized:true,version:'0.3.5'};
   else if(p==='/me')value={id:'me',displayName:'测试成员',email:'test@example.com'};
   else if(p==='/me/teams')value={items:team?[{id:'t1',name:'测试组',role:'student'}]:[]};
   else if(p==='/me/notifications')value={items:[]};
@@ -46,6 +47,14 @@ async function main(){
    else {nativeContent=request.content;nativeVersion++;value={id:'native1',version:nativeVersion,modifiedAt:new Date().toISOString()};}
   }
   else if(p==='/resources/native1/document')value={id:'native1',title:nativeTitle,kind:'document',content:nativeContent,version:nativeVersion,canEdit:true,owner:'本人',modifiedAt:new Date().toISOString()};
+  else if(p==='/resources/legacy1')value={...file,id:'legacy1',title:'旧文档',fileName:'旧文档.ytdoc'};
+  else if(p==='/resources/legacy1/document'&&options.method==='PUT'){
+   const request=JSON.parse(options.body);legacyContent=request.content;legacyVersion++;value={id:'legacy1',version:legacyVersion,modifiedAt:new Date().toISOString()};
+  }
+  else if(p==='/resources/legacy1/document'){
+   const needsReview=typeof legacyContent==='string';
+   value={id:'legacy1',title:'旧文档',kind:'document',content:legacyContent,version:legacyVersion,canEdit:!needsReview,canConvert:needsReview,compatibilityIssue:needsReview?'旧版 Markdown 文档需要确认转换后才能继续编辑':'',owner:'本人'};
+  }
   else if(p==='/resources/file1/document'&&options.method==='PUT'&&conflictOnSave)status=409;
   else if(p==='/resources/file1/document')value={id:'file1',title:file.title,kind:'text',content:'初始正文',version:1,canEdit:file.ownerId==='me',owner:'本人'};
   else if(p==='/resources/file1/versions')value={items:[]};
@@ -187,6 +196,17 @@ async function main(){
  assert.ok(w.document.querySelector('#documentConflict [data-structured-action="download-draft"]'),'原生文档冲突可下载本地记录');
  w.confirm=()=>true;
  w.testApp.navigate('resources');await until(()=>w.document.querySelector('.drive-layout'));
+ w.testApp.navigate('resource/legacy1');await until(()=>w.document.querySelector('.document-compatibility'));
+ assert.equal(w.document.querySelector('#structuredEditor .tiptap').getAttribute('contenteditable'),'false','旧版文档确认转换前只读');
+ assert.equal(legacyVersion,1,'仅查看旧文档不触发写入');
+ w.document.querySelector('[data-structured-action="convert-document"]').click();
+ await until(()=>legacyVersion===2&&w.document.querySelector('#structuredEditor .tiptap').getAttribute('contenteditable')==='true');
+ assert.equal(legacyContent.schemaVersion,2,'确认后才保存结构化内容');
+ assert.equal(w.document.querySelector('.document-compatibility'),null,'转换成功后提示消失');
+ w.testApp.navigate('resources');await until(()=>w.document.querySelector('.drive-layout'));
+ w.testApp.navigate('resource/legacy1');await until(()=>w.document.querySelector('.document-workspace'));
+ assert.equal(w.document.querySelector('.document-compatibility'),null,'转换后的文档重开可直接编辑');
+ w.testApp.navigate('resources');await until(()=>w.document.querySelector('.drive-layout'));
  w.document.dispatchEvent(new w.KeyboardEvent('keydown',{key:'f',ctrlKey:true,bubbles:true,cancelable:true}));
  const searchPopover=w.document.querySelector('#driveSearchPopover');
  assert.equal(searchPopover.hidden,false,'Ctrl+F 打开文件搜索');
@@ -284,7 +304,7 @@ async function main(){
  assert.ok(w.document.querySelector('.task-empty'),'没有任务时显示完整空状态');
  assert.equal(w.document.querySelectorAll('.section-tabs a').length,3);
  assert.equal(requests.some(x=>x.url.includes('/me/review-queue')),false,'学生查看任务时不能被反馈权限错误阻断');
- assert.ok(w.document.querySelector('footer').textContent.includes('v0.3.4'),'页面展示后端版本');
+ assert.ok(w.document.querySelector('footer').textContent.includes('v0.3.5'),'页面展示后端版本');
  w.testApp.navigate('routes');await until(()=>w.document.querySelector('#routeCards'));
  const routeSearch=w.document.querySelector('[data-filter=routes]');
  routeSearch.value='论文';routeSearch.dispatchEvent(new w.Event('input',{bubbles:true}));

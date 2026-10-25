@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, inspect, text
 
 from yantu.app import create_app
-from yantu.document_model import validate_document
+from yantu.document_model import new_document, validate_document
 from yantu.migrations import migrate
 from yantu.models import Base
 
@@ -159,7 +159,7 @@ def test_native_documents_and_text_workspace(drive):
         assert opened['modifiedAt']
         content = ({'schemaVersion': 2, 'type': 'doc', 'content': [
             {'type': 'heading', 'attrs': {'level': 1, 'id': str(uuid4())}, 'content': [{'type': 'text', 'text': '研究问题'}]},
-            {'type': 'paragraph', 'attrs': {'id': str(uuid4())}, 'content': [{'type': 'text', 'text': '这是正文', 'marks': [{'type': 'link', 'attrs': {'href': 'https://example.com'}}]}]},
+            {'type': 'paragraph', 'attrs': {'id': str(uuid4())}, 'content': [{'type': 'text', 'text': '这是正文', 'marks': [{'type': 'link', 'attrs': {'href': 'https://example.com', 'target': '_blank', 'rel': 'noopener noreferrer nofollow', 'class': None, 'title': None}}]}]},
             {'type': 'blockMath', 'attrs': {'latex': r'\\frac{a}{b}', 'id': str(uuid4())}}]} if kind == 'document' else
                    [['数据', '42']] if kind == 'sheet' else [{'title': '第一页', 'body': '结论'}])
         saved = data(c.put(endpoint, headers=owner, json={'version': 1, 'content': content}))
@@ -235,7 +235,9 @@ def test_document_model_v2_tables_ids_links_and_v1_read_compatibility(drive):
     }}, ensure_ascii=False).encode('utf-8')
     old = data(upload(c, owner, key='legacy-document-v1', content=legacy_bytes, filename='旧版.ytdoc'), 201)
     endpoint = '/api/v1/resources/'+old['id']+'/document'
-    assert data(c.get(endpoint, headers=owner))['content']['schemaVersion'] == 1
+    legacy_read = data(c.get(endpoint, headers=owner))
+    assert legacy_read['content']['schemaVersion'] == 1 and legacy_read['canEdit']
+    assert not legacy_read['compatibilityIssue']
     assert c.put(endpoint, headers=owner, json={'version': 1, 'content': {'schemaVersion': 1, 'type': 'doc', 'content': [{'type': 'paragraph'}]}}).status_code == 400
 
     identifier = lambda: str(uuid4())
@@ -243,12 +245,12 @@ def test_document_model_v2_tables_ids_links_and_v1_read_compatibility(drive):
                                     'content': [{'type': 'text', 'text': text_value}]}
     table = {'type': 'table', 'attrs': {'id': identifier()}, 'content': [
         {'type': 'tableRow', 'attrs': {'id': identifier()}, 'content': [
-            {'type': 'tableHeader', 'attrs': {'id': identifier(), 'colspan': 1, 'rowspan': 1, 'colwidth': None, 'align': None}, 'content': [paragraph('项目')]},
-            {'type': 'tableHeader', 'attrs': {'id': identifier(), 'colspan': 1, 'rowspan': 1, 'colwidth': None, 'align': None}, 'content': [paragraph('结果')]},
+            {'type': 'tableHeader', 'attrs': {'id': identifier(), 'colspan': 1, 'rowspan': 1, 'colwidth': None, 'align': None, 'background': None}, 'content': [paragraph('项目')]},
+            {'type': 'tableHeader', 'attrs': {'id': identifier(), 'colspan': 1, 'rowspan': 1, 'colwidth': None, 'align': None, 'background': None}, 'content': [paragraph('结果')]},
         ]},
         {'type': 'tableRow', 'attrs': {'id': identifier()}, 'content': [
-            {'type': 'tableCell', 'attrs': {'id': identifier(), 'colspan': 1, 'rowspan': 1, 'colwidth': None, 'align': None}, 'content': [paragraph('实验 A')]},
-            {'type': 'tableCell', 'attrs': {'id': identifier(), 'colspan': 1, 'rowspan': 1, 'colwidth': None, 'align': None}, 'content': [paragraph('通过')]},
+            {'type': 'tableCell', 'attrs': {'id': identifier(), 'colspan': 1, 'rowspan': 1, 'colwidth': None, 'align': None, 'background': None}, 'content': [paragraph('实验 A')]},
+            {'type': 'tableCell', 'attrs': {'id': identifier(), 'colspan': 1, 'rowspan': 1, 'colwidth': None, 'align': None, 'background': None}, 'content': [paragraph('通过')]},
         ]},
     ]}
     linked = paragraph('参考来源')
@@ -276,7 +278,10 @@ def test_document_model_v2_tables_ids_links_and_v1_read_compatibility(drive):
     old_irregular = data(upload(c, owner, key='legacy-irregular-table',
                                 content=json.dumps({'kind': 'document', 'content': missing_cell}, ensure_ascii=False).encode('utf-8'),
                                 filename='旧表格.ytdoc'), 201)
-    assert data(c.get('/api/v1/resources/'+old_irregular['id']+'/document', headers=owner))['content'] == missing_cell
+    irregular_read = data(c.get('/api/v1/resources/'+old_irregular['id']+'/document', headers=owner))
+    assert irregular_read['content'] == missing_cell
+    assert not irregular_read['canEdit'] and not irregular_read['canConvert']
+    assert irregular_read['compatibilityIssue']
     merged_cell = json.loads(json.dumps(missing_cell, ensure_ascii=False))
     merged_cell['content'][1]['content'][0]['content'][0]['attrs']['rowspan'] = 2
     assert validate_document(merged_cell, for_write=True)[0] == merged_cell
@@ -284,6 +289,31 @@ def test_document_model_v2_tables_ids_links_and_v1_read_compatibility(drive):
     broken['content'][1]['content'][0]['content'][0]['content'] = [{'type': 'text', 'text': '非法嵌套'}]
     assert c.put(endpoint, headers=owner, json={'version': 2, 'content': broken}).status_code == 400
     assert data(c.get(endpoint, headers=owner))['version'] == 2
+
+
+def test_legacy_markdown_requires_review_before_structured_edit(drive, tmp_path):
+    c, actors, _, _ = drive
+    owner = actors[0][1]
+    old = data(upload(c, owner, key='legacy-markdown', filename='旧文档.ytdoc',
+                      content=json.dumps({'kind': 'document', 'content': '# 旧标题\n正文'}, ensure_ascii=False).encode('utf-8')), 201)
+    endpoint = '/api/v1/resources/'+old['id']+'/document'
+    preview = data(c.get(endpoint, headers=owner))
+    assert preview['content'] == '# 旧标题\n正文'
+    assert not preview['canEdit'] and preview['canConvert']
+    assert preview['compatibilityIssue']
+
+    converted = new_document()
+    converted['content'][0]['content'] = [{'type': 'text', 'text': '正文'}]
+    assert data(c.put(endpoint, headers=owner, json={'version': preview['version'], 'content': converted}))['version'] == 2
+    reopened = data(c.get(endpoint, headers=owner))
+    assert reopened['content'] == converted and reopened['canEdit']
+    assert not reopened['canConvert'] and not reopened['compatibilityIssue']
+    import sqlite3
+    with sqlite3.connect(tmp_path / 'drive.db') as source:
+        versions = source.execute('select version, storage_name from yt_resource_versions where resource_id=? order by version',
+                                  (old['id'],)).fetchall()
+    assert [version for version, _ in versions] == [1, 2]
+    assert json.loads((tmp_path / 'uploads' / versions[0][1]).read_text(encoding='utf-8'))['content'] == '# 旧标题\n正文'
 
 
 def test_document_title_rejects_stale_tab(drive):
