@@ -1,6 +1,6 @@
 {
   "name": "yantu",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "private": true,
   "scripts": {
     "build:editor": "esbuild frontend/document-editor-src.js --bundle --format=iife --target=es2022 --outfile=frontend/document-editor.js",
@@ -13,6 +13,8 @@
   "dependencies": {
     "@tiptap/core": "3.32.0",
     "@tiptap/extension-mathematics": "3.32.0",
+    "@tiptap/extension-table": "3.32.0",
+    "@tiptap/extension-unique-id": "3.32.0",
     "@tiptap/markdown": "3.32.0",
     "@tiptap/pm": "3.32.0",
     "@tiptap/starter-kit": "3.32.0",

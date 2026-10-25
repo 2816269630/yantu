@@ -101,6 +101,18 @@ body.document-mode .content>footer{display:none}
 .structured-workspace #structuredSlashMenu,.structured-workspace #structuredSelectionTools{z-index:1200}
 .structured-workspace #structuredDraftDialog textarea{display:block;width:100%;min-height:320px;margin-top:18px;font:13px/1.6 Consolas,monospace}
 .structured-workspace #structuredFormulaDialog textarea{display:block;width:100%;min-height:110px;padding:12px;margin:14px 0;border:1px solid #cfd9e8;border-radius:7px;font:15px/1.6 Consolas,monospace}
+.structured-workspace #structuredEditor .tiptap a{color:#2468d9;text-decoration:underline;text-underline-offset:3px}
+.structured-workspace #structuredEditor .tiptap .tableWrapper{max-width:100%;overflow-x:auto;margin:18px 0}
+.structured-workspace #structuredEditor .tiptap table{border-collapse:collapse;table-layout:fixed;width:100%;margin:0}
+.structured-workspace #structuredEditor .tiptap th,.structured-workspace #structuredEditor .tiptap td{min-width:90px;border:1px solid #dce3ee;padding:9px 12px;vertical-align:top;position:relative}
+.structured-workspace #structuredEditor .tiptap th{background:#f6f8fc;font-weight:600}
+.structured-workspace #structuredEditor .tiptap td p,.structured-workspace #structuredEditor .tiptap th p{margin:0}
+.structured-workspace #structuredEditor .tiptap .selectedCell{background:#eaf1ff}
+.document-link-dialog{width:min(430px,calc(100vw - 32px));border:1px solid #dce3ed;border-radius:12px;padding:22px;background:#fff;color:#263244;box-shadow:0 18px 55px rgba(29,45,72,.2)}
+.document-link-dialog::backdrop{background:rgba(25,39,64,.28)}
+.document-link-dialog strong{display:block;font-size:18px;margin-bottom:14px}
+.document-link-dialog input{display:block;width:100%;box-sizing:border-box;padding:11px 12px;border:1px solid #cfd9e8;border-radius:8px;font:inherit}
+.document-link-dialog>div{display:flex;justify-content:flex-end;gap:10px;margin-top:16px}
 .document-local-dialog{width:min(740px,calc(100vw - 32px));max-height:calc(100vh - 40px);border:1px solid #dde4ef;border-radius:12px;padding:24px;background:#fff;color:#293342;box-shadow:0 18px 55px rgba(29,45,72,.2)}
 .document-local-dialog::backdrop{background:rgba(25,39,64,.32)}.document-local-head,.document-local-actions{display:flex;align-items:center;justify-content:space-between;gap:12px}.document-local-head strong{font-size:20px}.document-local-head button{border:0;background:transparent;color:#7b8798;font-size:26px;cursor:pointer}
 .document-local-dialog p{font-size:13px;color:#69788c;line-height:1.6;margin:10px 0 18px}.document-local-dialog label{display:block;color:#526173;font-size:13px;margin:12px 0 6px}.document-local-dialog input,.document-local-dialog textarea{display:block;width:100%;margin-top:7px;border:1px solid #dde4ef;border-radius:7px;padding:10px;background:#f8fafc;color:#253046;font:14px/1.6 inherit}.document-local-dialog textarea{min-height:220px;max-height:45vh;resize:vertical;font-family:Consolas,monospace}.document-local-actions{justify-content:flex-end;margin-top:18px}

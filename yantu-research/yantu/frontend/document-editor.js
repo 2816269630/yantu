@@ -1,5 +1,5 @@
 (() => {
-  // node_modules/.pnpm/@tiptap+core@3.32.0_@tiptap+pm@3.32.0/node_modules/@tiptap/core/dist/rolldown-runtime-D7D4PA-g.js
+  // node_modules/@tiptap/core/dist/rolldown-runtime-D7D4PA-g.js
   var __defProp = Object.defineProperty;
   var __exportAll = (all, no_symbols) => {
     let target = {};
@@ -11,7 +11,7 @@
     return target;
   };
 
-  // node_modules/.pnpm/orderedmap@2.1.1/node_modules/orderedmap/dist/index.js
+  // node_modules/orderedmap/dist/index.js
   function OrderedMap(content2) {
     this.content = content2;
   }
@@ -130,7 +130,7 @@
   };
   var dist_default = OrderedMap;
 
-  // node_modules/.pnpm/prosemirror-model@1.25.12/node_modules/prosemirror-model/dist/index.js
+  // node_modules/prosemirror-model/dist/index.js
   function findDiffStart(a, b2, pos) {
     for (let i = 0; ; i++) {
       if (i == a.childCount || i == b2.childCount)
@@ -1176,7 +1176,7 @@
     }
   };
   var emptyAttrs = /* @__PURE__ */ Object.create(null);
-  var Node = class _Node {
+  var Node2 = class _Node {
     /**
     @internal
     */
@@ -1577,8 +1577,8 @@
       return node;
     }
   };
-  Node.prototype.text = void 0;
-  var TextNode = class _TextNode extends Node {
+  Node2.prototype.text = void 0;
+  var TextNode = class _TextNode extends Node2 {
     /**
     @internal
     */
@@ -2166,7 +2166,7 @@
     create(attrs = null, content2, marks) {
       if (this.isText)
         throw new Error("NodeType.create can't construct text nodes");
-      return new Node(this, this.computeAttrs(attrs), Fragment.from(content2), Mark.setFrom(marks));
+      return new Node2(this, this.computeAttrs(attrs), Fragment.from(content2), Mark.setFrom(marks));
     }
     /**
     Like [`create`](https://prosemirror.net/docs/ref/#model.NodeType.create), but check the given content
@@ -2176,7 +2176,7 @@
     createChecked(attrs = null, content2, marks) {
       content2 = Fragment.from(content2);
       this.checkContent(content2);
-      return new Node(this, this.computeAttrs(attrs), content2, Mark.setFrom(marks));
+      return new Node2(this, this.computeAttrs(attrs), content2, Mark.setFrom(marks));
     }
     /**
     Like [`create`](https://prosemirror.net/docs/ref/#model.NodeType.create), but see if it is
@@ -2199,7 +2199,7 @@
       let after = matched && matched.fillBefore(Fragment.empty, true);
       if (!after)
         return null;
-      return new Node(this, attrs, content2.append(after), Mark.setFrom(marks));
+      return new Node2(this, attrs, content2.append(after), Mark.setFrom(marks));
     }
     /**
     Returns true if the given fragment is valid content for this node
@@ -2388,7 +2388,7 @@
         let type = this.marks[prop], excl = type.spec.excludes;
         type.excluded = excl == null ? [type] : excl == "" ? [] : gatherMarks(this, excl.split(" "));
       }
-      this.nodeFromJSON = (json) => Node.fromJSON(this, json);
+      this.nodeFromJSON = (json) => Node2.fromJSON(this, json);
       this.markFromJSON = (json) => Mark.fromJSON(this, json);
       this.topNodeType = this.nodes[this.spec.topNode || "doc"];
       this.cached.wrappings = /* @__PURE__ */ Object.create(null);
@@ -3340,7 +3340,7 @@
     return { dom, contentDOM };
   }
 
-  // node_modules/.pnpm/prosemirror-transform@1.12.4/node_modules/prosemirror-transform/dist/index.js
+  // node_modules/prosemirror-transform/dist/index.js
   var lower16 = 65535;
   var factor16 = Math.pow(2, 16);
   function makeRecover(index, offset) {
@@ -5259,7 +5259,7 @@
     }
   };
 
-  // node_modules/.pnpm/prosemirror-state@1.4.4/node_modules/prosemirror-state/dist/index.js
+  // node_modules/prosemirror-state/dist/index.js
   var classesById = /* @__PURE__ */ Object.create(null);
   var Selection = class {
     /**
@@ -6106,7 +6106,7 @@
       let instance = new _EditorState($config);
       $config.fields.forEach((field) => {
         if (field.name == "doc") {
-          instance.doc = Node.fromJSON(config.schema, json.doc);
+          instance.doc = Node2.fromJSON(config.schema, json.doc);
         } else if (field.name == "selection") {
           instance.selection = Selection.fromJSON(instance.doc, json.selection);
         } else if (field.name == "storedMarks") {
@@ -6185,7 +6185,7 @@
     }
   };
 
-  // node_modules/.pnpm/prosemirror-commands@1.7.2/node_modules/prosemirror-commands/dist/index.js
+  // node_modules/prosemirror-commands/dist/index.js
   var deleteSelection = (state2, dispatch) => {
     if (state2.selection.empty)
       return false;
@@ -6713,7 +6713,7 @@
     macBaseKeymap[key] = pcBaseKeymap[key];
   var mac = typeof navigator != "undefined" ? /Mac|iP(hone|[oa]d)/.test(navigator.platform) : typeof os != "undefined" && os.platform ? os.platform() == "darwin" : false;
 
-  // node_modules/.pnpm/prosemirror-schema-list@1.5.1/node_modules/prosemirror-schema-list/dist/index.js
+  // node_modules/prosemirror-schema-list/dist/index.js
   function wrapInList(listType, attrs = null) {
     return function(state2, dispatch) {
       let { $from, $to } = state2.selection;
@@ -6837,7 +6837,7 @@
     };
   }
 
-  // node_modules/.pnpm/prosemirror-view@1.42.7/node_modules/prosemirror-view/dist/index.js
+  // node_modules/prosemirror-view/dist/index.js
   var domIndex = function(node) {
     for (var index = 0; ; index++) {
       node = node.previousSibling;
@@ -7887,8 +7887,10 @@
         });
       if (!widget.type.spec.raw) {
         let elt = isElt(dom) ? dom : document.createElement("span");
-        if (elt != dom)
+        if (elt != dom) {
           elt.appendChild(dom);
+          dom = elt;
+        }
         if (!elt.hasAttribute("contenteditable"))
           elt.contentEditable = "false";
         elt.classList.add("ProseMirror-widget");
@@ -11375,11 +11377,11 @@
     let { focusNode, focusOffset } = view.domSelectionRange();
     for (let node of addedNodes) {
       if (((_a = node.parentNode) === null || _a === void 0 ? void 0 : _a.nodeName) == "TR") {
-        let nextCell = node.nextSibling;
-        while (nextCell && (nextCell.nodeName != "TD" && nextCell.nodeName != "TH"))
-          nextCell = nextCell.nextSibling;
-        if (nextCell) {
-          let parent = nextCell;
+        let nextCell2 = node.nextSibling;
+        while (nextCell2 && (nextCell2.nodeName != "TD" && nextCell2.nodeName != "TH"))
+          nextCell2 = nextCell2.nextSibling;
+        if (nextCell2) {
+          let parent = nextCell2;
           for (; ; ) {
             let first2 = parent.firstChild;
             if (!first2 || !isElt(first2) || first2.contentEditable == "false" || /^(BR|IMG)$/.test(first2.nodeName))
@@ -12207,7 +12209,7 @@
       throw new RangeError("Plugins passed directly to the view must not have a state component");
   }
 
-  // node_modules/.pnpm/w3c-keyname@2.2.8/node_modules/w3c-keyname/index.js
+  // node_modules/w3c-keyname/index.js
   var base = {
     8: "Backspace",
     9: "Tab",
@@ -12313,7 +12315,7 @@
     return name;
   }
 
-  // node_modules/.pnpm/prosemirror-keymap@1.2.3/node_modules/prosemirror-keymap/dist/index.js
+  // node_modules/prosemirror-keymap/dist/index.js
   var mac4 = typeof navigator != "undefined" && /Mac|iP(hone|[oa]d)/.test(navigator.platform);
   var windows2 = typeof navigator != "undefined" && /Win/.test(navigator.platform);
   function normalizeKeyName(name) {
@@ -12392,7 +12394,7 @@
     };
   }
 
-  // node_modules/.pnpm/rope-sequence@1.3.4/node_modules/rope-sequence/dist/index.js
+  // node_modules/rope-sequence/dist/index.js
   var GOOD_LEAF_SIZE = 200;
   var RopeSequence = function RopeSequence2() {
   };
@@ -12575,7 +12577,7 @@
   })(RopeSequence);
   var dist_default2 = RopeSequence;
 
-  // node_modules/.pnpm/prosemirror-history@1.5.1/node_modules/prosemirror-history/dist/index.js
+  // node_modules/prosemirror-history/dist/index.js
   var max_empty_items = 500;
   var Branch = class _Branch {
     constructor(items, eventCount) {
@@ -12935,7 +12937,7 @@
     return tr2.getMeta(historyKey) != null;
   }
 
-  // node_modules/.pnpm/@tiptap+core@3.32.0_@tiptap+pm@3.32.0/node_modules/@tiptap/core/dist/index.js
+  // node_modules/@tiptap/core/dist/index.js
   function createChainableState(config) {
     const { state: state2, transaction } = config;
     let { selection } = transaction;
@@ -13827,6 +13829,16 @@
       });
     });
     return transform;
+  }
+  function findChildren(node, predicate) {
+    const nodesWithPos = [];
+    node.descendants((child, pos) => {
+      if (predicate(child)) nodesWithPos.push({
+        node: child,
+        pos
+      });
+    });
+    return nodesWithPos;
   }
   function findChildrenInRange(node, range, predicate) {
     const nodesWithPos = [];
@@ -15896,6 +15908,9 @@
   function isPlainObject(value) {
     if (getType(value) !== "Object") return false;
     return value.constructor === Object && Object.getPrototypeOf(value) === Object.prototype;
+  }
+  function isValidCSSStyleValue(value) {
+    return typeof value === "string" && value.trim().length > 0 && !/[;{}]/.test(value);
   }
   function parseIndentedBlocks(src, config, lexer) {
     const lines = src.split("\n");
@@ -17990,7 +18005,7 @@ img.ProseMirror-separator {
       undoable: config.undoable
     });
   }
-  var Node2 = class Node3 extends Extendable {
+  var Node3 = class Node4 extends Extendable {
     constructor(..._args) {
       super(..._args);
       this.type = "node";
@@ -18001,7 +18016,7 @@ img.ProseMirror-separator {
     */
     static create(config = {}) {
       const resolvedConfig = typeof config === "function" ? config() : config;
-      return new Node3(resolvedConfig);
+      return new Node4(resolvedConfig);
     }
     configure(options) {
       return super.configure(options);
@@ -18038,7 +18053,7 @@ img.ProseMirror-separator {
     });
   }
 
-  // node_modules/.pnpm/@tiptap+core@3.32.0_@tiptap+pm@3.32.0/node_modules/@tiptap/core/dist/jsx-runtime/jsx-runtime.js
+  // node_modules/@tiptap/core/dist/jsx-runtime/jsx-runtime.js
   var jsxElements = /* @__PURE__ */ new WeakSet();
   var jsxFragments = /* @__PURE__ */ new WeakSet();
   function createJSXElement(spec) {
@@ -18089,7 +18104,7 @@ img.ProseMirror-separator {
   }
   var h = (tag, attributes) => render(tag, attributes);
 
-  // node_modules/.pnpm/@tiptap+extension-blockquot_c0ae741fdee47c89bff938e5384455e2/node_modules/@tiptap/extension-blockquote/dist/index.js
+  // node_modules/@tiptap/extension-blockquote/dist/index.js
   var handleBackspace = (editor, type) => {
     var _previous$lastChild;
     const { state: state2 } = editor;
@@ -18118,7 +18133,7 @@ img.ProseMirror-separator {
     });
   };
   var inputRegex = /^\s*>\s$/;
-  var Blockquote = Node2.create({
+  var Blockquote = Node3.create({
     name: "blockquote",
     addOptions() {
       return { HTMLAttributes: {} };
@@ -18183,7 +18198,7 @@ ${prefix}
     }
   });
 
-  // node_modules/.pnpm/@tiptap+extension-bold@3.32_dbcf5fd776d85de00b8de8e4cc9dd38e/node_modules/@tiptap/extension-bold/dist/index.js
+  // node_modules/@tiptap/extension-bold/dist/index.js
   var starInputRegex = /(?:^|\s)(\*\*(?!\s+\*\*)((?:[^*]+))\*\*(?!\s+\*\*))$/;
   var starPasteRegex = /(?:^|\s)(\*\*(?!\s+\*\*)((?:[^*]+))\*\*(?!\s+\*\*))/g;
   var underscoreInputRegex = /(?:^|\s)(__(?!\s+__)((?:[^_]+))__(?!\s+__))$/;
@@ -18266,7 +18281,7 @@ ${prefix}
     }
   });
 
-  // node_modules/.pnpm/@tiptap+extension-code@3.32_131c05d2ad7750e724370f9ab761da04/node_modules/@tiptap/extension-code/dist/index.js
+  // node_modules/@tiptap/extension-code/dist/index.js
   var inputRegexMatch = (text2) => {
     const match = /`([^`]+)`(?!`)$/.exec(text2);
     if (!match) return null;
@@ -18360,11 +18375,11 @@ ${prefix}
     }
   });
 
-  // node_modules/.pnpm/@tiptap+extension-code-bloc_ed8bb123a74f08db36b5a90d0eba830b/node_modules/@tiptap/extension-code-block/dist/index.js
+  // node_modules/@tiptap/extension-code-block/dist/index.js
   var DEFAULT_TAB_SIZE = 4;
   var backtickInputRegex = /^```([a-z]+)?[\s\n]$/;
   var tildeInputRegex = /^~~~([a-z]+)?[\s\n]$/;
-  var CodeBlock = Node2.create({
+  var CodeBlock = Node3.create({
     name: "codeBlock",
     addOptions() {
       return {
@@ -18592,8 +18607,8 @@ ${prefix}
     }
   });
 
-  // node_modules/.pnpm/@tiptap+extension-document@_cfc0dae284609373d2e4d64d94b17751/node_modules/@tiptap/extension-document/dist/index.js
-  var Document = Node2.create({
+  // node_modules/@tiptap/extension-document/dist/index.js
+  var Document = Node3.create({
     name: "doc",
     topNode: true,
     content: "block+",
@@ -18603,8 +18618,8 @@ ${prefix}
     }
   });
 
-  // node_modules/.pnpm/@tiptap+extension-hard-brea_b4599b86e50fa50c4b0f5515f68e44cc/node_modules/@tiptap/extension-hard-break/dist/index.js
-  var HardBreak = Node2.create({
+  // node_modules/@tiptap/extension-hard-break/dist/index.js
+  var HardBreak = Node3.create({
     name: "hardBreak",
     markdownTokenName: "br",
     addOptions() {
@@ -18657,8 +18672,8 @@ ${prefix}
     }
   });
 
-  // node_modules/.pnpm/@tiptap+extension-heading@3_2072354207f8a1f10ac69a4fedb8051c/node_modules/@tiptap/extension-heading/dist/index.js
-  var Heading = Node2.create({
+  // node_modules/@tiptap/extension-heading/dist/index.js
+  var Heading = Node3.create({
     name: "heading",
     addOptions() {
       return {
@@ -18734,8 +18749,8 @@ ${prefix}
     }
   });
 
-  // node_modules/.pnpm/@tiptap+extension-horizonta_4fe8d4c8ee741acbf900ff18fbc87d78/node_modules/@tiptap/extension-horizontal-rule/dist/index.js
-  var HorizontalRule = Node2.create({
+  // node_modules/@tiptap/extension-horizontal-rule/dist/index.js
+  var HorizontalRule = Node3.create({
     name: "horizontalRule",
     addOptions() {
       return {
@@ -18795,7 +18810,7 @@ ${prefix}
     }
   });
 
-  // node_modules/.pnpm/@tiptap+extension-italic@3._158577593ac79ee0b609fe42e4fc9b13/node_modules/@tiptap/extension-italic/dist/index.js
+  // node_modules/@tiptap/extension-italic/dist/index.js
   var starInputRegex2 = /(?:^|\s)(\*(?!\s+\*)((?:[^*]+))\*(?!\s+\*))$/;
   var starPasteRegex2 = /(?:^|\s)(\*(?!\s+\*)((?:[^*]+))\*(?!\s+\*))/g;
   var underscoreInputRegex2 = /(?:^|\s)(_(?!\s+_)((?:[^_]+))_(?!\s+_))$/;
@@ -18876,7 +18891,7 @@ ${prefix}
     }
   });
 
-  // node_modules/.pnpm/linkifyjs@4.4.0/node_modules/linkifyjs/dist/linkify.mjs
+  // node_modules/linkifyjs/dist/linkify.mjs
   var encodedTlds = "aaa1rp3bb0ott3vie4c1le2ogado5udhabi7c0ademy5centure6ountant0s9o1tor4d0s1ult4e0g1ro2tna4f0l1rica5g0akhan5ency5i0g1rbus3force5tel5kdn3l0ibaba4pay4lfinanz6state5y2sace3tom5m0azon4ericanexpress7family11x2fam3ica3sterdam8nalytics7droid5quan4z2o0l2partments8p0le4q0uarelle8r0ab1mco4chi3my2pa2t0e3s0da2ia2sociates9t0hleta5torney7u0ction5di0ble3o3spost5thor3o0s4w0s2x0a2z0ure5ba0by2idu3namex4d1k2r0celona5laycard4s5efoot5gains6seball5ketball8uhaus5yern5b0c1t1va3cg1n2d1e0ats2uty4er2rlin4st0buy5t2f1g1h0arti5i0ble3d1ke2ng0o3o1z2j1lack0friday9ockbuster8g1omberg7ue3m0s1w2n0pparibas9o0ats3ehringer8fa2m1nd2o0k0ing5sch2tik2on4t1utique6x2r0adesco6idgestone9oadway5ker3ther5ussels7s1t1uild0ers6siness6y1zz3v1w1y1z0h3ca0b1fe2l0l1vinklein9m0era3p2non3petown5ital0one8r0avan4ds2e0er0s4s2sa1e1h1ino4t0ering5holic7ba1n1re3c1d1enter4o1rn3f0a1d2g1h0anel2nel4rity4se2t2eap3intai5ristmas6ome4urch5i0priani6rcle4sco3tadel4i0c2y3k1l0aims4eaning6ick2nic1que6othing5ud3ub0med6m1n1o0ach3des3ffee4llege4ogne5m0mbank4unity6pany2re3uter5sec4ndos3struction8ulting7tact3ractors9oking4l1p2rsica5untry4pon0s4rses6pa2r0edit0card4union9icket5own3s1uise0s6u0isinella9v1w1x1y0mru3ou3z2dad1nce3ta1e1ing3sun4y2clk3ds2e0al0er2s3gree4livery5l1oitte5ta3mocrat6ntal2ist5si0gn4v2hl2iamonds6et2gital5rect0ory7scount3ver5h2y2j1k1m1np2o0cs1tor4g1mains5t1wnload7rive4tv2ubai3pont4rban5vag2r2z2earth3t2c0o2deka3u0cation8e1g1mail3erck5nergy4gineer0ing9terprises10pson4quipment8r0icsson6ni3s0q1tate5t1u0rovision8s2vents5xchange6pert3osed4ress5traspace10fage2il1rwinds6th3mily4n0s2rm0ers5shion4t3edex3edback6rrari3ero6i0delity5o2lm2nal1nce1ial7re0stone6mdale6sh0ing5t0ness6j1k1lickr3ghts4r2orist4wers5y2m1o0o0d1tball6rd1ex2sale4um3undation8x2r0ee1senius7l1ogans4ntier7tr2ujitsu5n0d2rniture7tbol5yi3ga0l0lery3o1up4me0s3p1rden4y2b0iz3d0n2e0a1nt0ing5orge5f1g0ee3h1i0ft0s3ves2ing5l0ass3e1obal2o4m0ail3bh2o1x2n1odaddy5ld0point6f2odyear5g0le4p1t1v2p1q1r0ainger5phics5tis4een3ipe3ocery4up4s1t1u0cci3ge2ide2tars5ru3w1y2hair2mburg5ngout5us3bo2dfc0bank7ealth0care8lp1sinki6re1mes5iphop4samitsu7tachi5v2k0t2m1n1ockey4ldings5iday5medepot5goods5s0ense7nda3rse3spital5t0ing5t0els3mail5use3w2r1sbc3t1u0ghes5yatt3undai7ibm2cbc2e1u2d1e0ee3fm2kano4l1m0amat4db2mo0bilien9n0c1dustries8finiti5o2g1k1stitute6urance4e4t0ernational10uit4vestments10o1piranga7q1r0ish4s0maili5t0anbul7t0au2v3jaguar4va3cb2e0ep2tzt3welry6io2ll2m0p2nj2o0bs1urg4t1y2p0morgan6rs3uegos6kaufen5ddi3e0rryhotels6properties14fh2g1h1i0a1ds2m1ndle4tchen5wi3m1n1oeln3matsu5sher5p0mg2n2r0d1ed3uokgroup8w1y0oto4z2la0caixa5mborghini8er3nd0rover6xess5salle5t0ino3robe5w0yer5b1c1ds2ease3clerc5frak4gal2o2xus4gbt3i0dl2fe0insurance9style7ghting6ke2lly3mited4o2ncoln4k2ve1ing5k1lc1p2oan0s3cker3us3l1ndon4tte1o3ve3pl0financial11r1s1t0d0a3u0ndbeck6xe1ury5v1y2ma0drid4if1son4keup4n0agement7go3p1rket0ing3s4riott5shalls7ttel5ba2c0kinsey7d1e0d0ia3et2lbourne7me1orial6n0u2rck0msd7g1h1iami3crosoft7l1ni1t2t0subishi9k1l0b1s2m0a2n1o0bi0le4da2e1i1m1nash3ey2ster5rmon3tgage6scow4to0rcycles9v0ie4p1q1r1s0d2t0n1r2u0seum3ic4v1w1x1y1z2na0b1goya4me2vy3ba2c1e0c1t0bank4flix4work5ustar5w0s2xt0direct7us4f0l2g0o2hk2i0co2ke1on3nja3ssan1y5l1o0kia3rton4w0ruz3tv4p1r0a1w2tt2u1yc2z2obi1server7ffice5kinawa6layan0group9lo3m0ega4ne1g1l0ine5oo2pen3racle3nge4g0anic5igins6saka4tsuka4t2vh3pa0ge2nasonic7ris2s1tners4s1y3y2ccw3e0t2f0izer5g1h0armacy6d1ilips5one2to0graphy6s4ysio5ics1tet2ures6d1n0g1k2oneer5zza4k1l0ace2y0station9umbing5s3m1n0c2ohl2ker3litie5rn2st3r0axi3ess3ime3o0d0uctions8f1gressive8mo2perties3y5tection8u0dential9s1t1ub2w0c2y2qa1pon3uebec3st5racing4dio4e0ad1lestate6tor2y4cipes5d0umbrella9hab3ise0n3t2liance6n0t0als5pair3ort3ublican8st0aurant8view0s5xroth6ich0ardli6oh3l1o1p2o0cks3deo3gers4om3s0vp3u0gby3hr2n2w0e2yukyu6sa0arland6fe0ty4kura4le1on3msclub4ung5ndvik0coromant12ofi4p1rl2s1ve2xo3b0i1s2c0b1haeffler7midt4olarships8ol3ule3warz5ience5ot3d1e0arch3t2cure1ity6ek2lect4ner3rvices6ven3w1x0y3fr2g1h0angrila6rp3ell3ia1ksha5oes2p0ping5uji3w3i0lk2na1gles5te3j1k0i0n2y0pe4l0ing4m0art3ile4n0cf3o0ccer3ial4ftbank4ware6hu2lar2utions7ng1y2y2pa0ce3ort2t3r0l2s1t0ada2ples4r1tebank4farm7c0group6ockholm6rage3e3ream4udio2y3yle4u0cks3pplies3y2ort5rf1gery5zuki5v1watch4iss4x1y0dney4stems6z2tab1ipei4lk2obao4rget4tamotors6r2too4x0i3c0i2d0k2eam2ch0nology8l1masek5nnis4va3f1g1h0d1eater2re6iaa2ckets5enda4ps2res2ol4j0maxx4x2k0maxx5l1m0all4n1o0day3kyo3ols3p1ray3shiba5tal3urs3wn2yota3s3r0ade1ing4ining5vel0ers0insurance16ust3v2t1ube2i1nes3shu4v0s2w1z2ua1bank3s2g1k1nicom3versity8o2ol2ps2s1y1z2va0cations7na1guard7c1e0gas3ntures6risign5m\xF6gensberater2ung14sicherung10t2g1i0ajes4deo3g1king4llas4n1p1rgin4sa1ion4va1o3laanderen9n1odka3lvo3te1ing3o2yage5u2wales2mart4ter4ng0gou5tch0es6eather0channel12b0cam3er2site5d0ding5ibo2r3f1hoswho6ien2ki2lliamhill9n0dows4e1ners6me2oodside6rk0s2ld3w2s1tc1f3xbox3erox4ihuan4n2xx2yz3yachts4hoo3maxun5ndex5e1odobashi7ga2kohama6u0tube6t1un3za0ppos4ra3ero3ip2m1one3uerich6w2";
   var encodedUtlds = "\u03B5\u03BB1\u03C52\u0431\u04331\u0435\u043B3\u0434\u0435\u0442\u04384\u0435\u044E2\u043A\u0430\u0442\u043E\u043B\u0438\u043A6\u043E\u043C3\u043C\u043A\u04342\u043E\u043D1\u0441\u043A\u0432\u04306\u043E\u043D\u043B\u0430\u0439\u043D5\u0440\u04333\u0440\u0443\u04412\u04442\u0441\u0430\u0439\u04423\u0440\u04313\u0443\u043A\u04403\u049B\u0430\u04373\u0570\u0561\u05753\u05D9\u05E9\u05E8\u05D0\u05DC5\u05E7\u05D5\u05DD3\u0627\u0628\u0648\u0638\u0628\u064A5\u0631\u0627\u0645\u0643\u06485\u0644\u0627\u0631\u062F\u06464\u0628\u062D\u0631\u064A\u06465\u062C\u0632\u0627\u0626\u06315\u0633\u0639\u0648\u062F\u064A\u06296\u0639\u0644\u064A\u0627\u06465\u0645\u063A\u0631\u06285\u0645\u0627\u0631\u0627\u062A5\u06CC\u0631\u0627\u06465\u0628\u0627\u0631\u062A2\u0632\u0627\u06314\u064A\u062A\u06433\u06BE\u0627\u0631\u062A5\u062A\u0648\u0646\u06334\u0633\u0648\u062F\u0627\u06463\u0631\u064A\u06295\u0634\u0628\u0643\u06294\u0639\u0631\u0627\u06422\u06282\u0645\u0627\u06464\u0641\u0644\u0633\u0637\u064A\u06466\u0642\u0637\u06313\u0643\u0627\u062B\u0648\u0644\u064A\u06436\u0648\u06453\u0645\u0635\u06312\u0644\u064A\u0633\u064A\u06275\u0648\u0631\u064A\u062A\u0627\u0646\u064A\u06277\u0642\u06394\u0647\u0645\u0631\u0627\u06475\u067E\u0627\u06A9\u0633\u062A\u0627\u06467\u0680\u0627\u0631\u062A4\u0915\u0949\u092E3\u0928\u0947\u091F3\u092D\u093E\u0930\u09240\u092E\u094D3\u094B\u09245\u0938\u0902\u0917\u0920\u09285\u09AC\u09BE\u0982\u09B2\u09BE5\u09AD\u09BE\u09B0\u09A42\u09F0\u09A44\u0A2D\u0A3E\u0A30\u0A244\u0AAD\u0ABE\u0AB0\u0AA44\u0B2D\u0B3E\u0B30\u0B244\u0B87\u0BA8\u0BCD\u0BA4\u0BBF\u0BAF\u0BBE6\u0BB2\u0B99\u0BCD\u0B95\u0BC86\u0B9A\u0BBF\u0B99\u0BCD\u0B95\u0BAA\u0BCD\u0BAA\u0BC2\u0BB0\u0BCD11\u0C2D\u0C3E\u0C30\u0C24\u0C4D5\u0CAD\u0CBE\u0CB0\u0CA44\u0D2D\u0D3E\u0D30\u0D24\u0D025\u0DBD\u0D82\u0D9A\u0DCF4\u0E04\u0E2D\u0E213\u0E44\u0E17\u0E223\u0EA5\u0EB2\u0EA73\u10D2\u10D42\u307F\u3093\u306A3\u30A2\u30DE\u30BE\u30F34\u30AF\u30E9\u30A6\u30C94\u30B0\u30FC\u30B0\u30EB4\u30B3\u30E02\u30B9\u30C8\u30A23\u30BB\u30FC\u30EB3\u30D5\u30A1\u30C3\u30B7\u30E7\u30F36\u30DD\u30A4\u30F3\u30C84\u4E16\u754C2\u4E2D\u4FE11\u56FD1\u570B1\u6587\u7F513\u4E9A\u9A6C\u900A3\u4F01\u4E1A2\u4F5B\u5C712\u4FE1\u606F2\u5065\u5EB72\u516B\u53662\u516C\u53F81\u76CA2\u53F0\u6E7E1\u70632\u5546\u57CE1\u5E971\u68072\u5609\u91CC0\u5927\u9152\u5E975\u5728\u7EBF2\u5927\u62FF2\u5929\u4E3B\u65593\u5A31\u4E502\u5BB6\u96FB2\u5E7F\u4E1C2\u5FAE\u535A2\u6148\u55842\u6211\u7231\u4F603\u624B\u673A2\u62DB\u80582\u653F\u52A11\u5E9C2\u65B0\u52A0\u57612\u95FB2\u65F6\u5C1A2\u66F8\u7C4D2\u673A\u67842\u6DE1\u9A6C\u95213\u6E38\u620F2\u6FB3\u95802\u70B9\u770B2\u79FB\u52A82\u7EC4\u7EC7\u673A\u67844\u7F51\u57401\u5E971\u7AD91\u7EDC2\u8054\u901A2\u8C37\u6B4C2\u8D2D\u72692\u901A\u8CA92\u96C6\u56E22\u96FB\u8A0A\u76C8\u79D14\u98DE\u5229\u6D663\u98DF\u54C12\u9910\u53852\u9999\u683C\u91CC\u62C93\u6E2F2\uB2F7\uB1371\uCEF42\uC0BC\uC1312\uD55C\uAD6D2";
   var numeric = "numeric";
@@ -20068,7 +20083,7 @@ ${prefix}
     return filtered;
   }
 
-  // node_modules/.pnpm/@tiptap+extension-link@3.32_919b5aea12fe43941ada0aeb1a7cb79f/node_modules/@tiptap/extension-link/dist/index.js
+  // node_modules/@tiptap/extension-link/dist/index.js
   var UNICODE_WHITESPACE_PATTERN = "[\0- \xA0\u1680\u180E\u2000-\u2029\u205F\u3000]";
   var UNICODE_WHITESPACE_REGEX = new RegExp(UNICODE_WHITESPACE_PATTERN);
   var UNICODE_WHITESPACE_REGEX_END = new RegExp(`${UNICODE_WHITESPACE_PATTERN}$`);
@@ -20546,11 +20561,11 @@ ${prefix}
     }
   });
 
-  // node_modules/.pnpm/@tiptap+extension-list@3.32_fc2b71f2c357653e16921801727fb1dd/node_modules/@tiptap/extension-list/dist/index.js
+  // node_modules/@tiptap/extension-list/dist/index.js
   var ListItemName$1 = "listItem";
   var TextStyleName$1 = "textStyle";
   var bulletListInputRegex = /^\s*([-+*])\s$/;
-  var BulletList = Node2.create({
+  var BulletList = Node3.create({
     name: "bulletList",
     addOptions() {
       return {
@@ -20835,7 +20850,7 @@ ${prefix}
       text: text2
     }]);
   }
-  var ListItem = Node2.create({
+  var ListItem = Node3.create({
     name: "listItem",
     addOptions() {
       return {
@@ -21335,7 +21350,7 @@ ${prefix}
         return null;
     }
   }
-  var OrderedList = Node2.create({
+  var OrderedList = Node3.create({
     name: "orderedList",
     addOptions() {
       return {
@@ -21497,7 +21512,7 @@ ${prefix}
     var _a11y$checkboxLabel;
     return (a11y === null || a11y === void 0 || (_a11y$checkboxLabel = a11y.checkboxLabel) === null || _a11y$checkboxLabel === void 0 ? void 0 : _a11y$checkboxLabel.call(a11y, node, checked)) || `Task item checkbox for ${node.textContent || "empty task item"}`;
   };
-  var TaskItem = Node2.create({
+  var TaskItem = Node3.create({
     name: "taskItem",
     addOptions() {
       return {
@@ -21664,7 +21679,7 @@ ${prefix}
       })];
     }
   });
-  var TaskList = Node2.create({
+  var TaskList = Node3.create({
     name: "taskList",
     addOptions() {
       return {
@@ -21788,10 +21803,10 @@ ${prefix}
     }
   });
 
-  // node_modules/.pnpm/@tiptap+extension-paragraph_d94c6f91155708a6ebbcb5ccd3da3b7c/node_modules/@tiptap/extension-paragraph/dist/index.js
+  // node_modules/@tiptap/extension-paragraph/dist/index.js
   var EMPTY_PARAGRAPH_MARKDOWN = "&nbsp;";
   var NBSP_CHAR = "\xA0";
-  var Paragraph = Node2.create({
+  var Paragraph = Node3.create({
     name: "paragraph",
     priority: 1e3,
     addOptions() {
@@ -21836,7 +21851,7 @@ ${prefix}
     }
   });
 
-  // node_modules/.pnpm/@tiptap+extension-strike@3._270d3e92bb179cf027200d3a6090c832/node_modules/@tiptap/extension-strike/dist/index.js
+  // node_modules/@tiptap/extension-strike/dist/index.js
   var inputRegex3 = /(?:^|\s)(~~(?!\s+~~)((?:[^~]+))~~(?!\s+~~))$/;
   var pasteRegex = /(?:^|\s)(~~(?!\s+~~)((?:[^~]+))~~(?!\s+~~))/g;
   var Strike = Mark2.create({
@@ -21900,8 +21915,8 @@ ${prefix}
     }
   });
 
-  // node_modules/.pnpm/@tiptap+extension-text@3.32_9d77111d23ec71ebed2821f29c25762f/node_modules/@tiptap/extension-text/dist/index.js
-  var Text2 = Node2.create({
+  // node_modules/@tiptap/extension-text/dist/index.js
+  var Text2 = Node3.create({
     name: "text",
     group: "inline",
     parseMarkdown: (token) => {
@@ -21913,7 +21928,7 @@ ${prefix}
     renderMarkdown: (node) => node.text || ""
   });
 
-  // node_modules/.pnpm/@tiptap+extension-underline_c1d6948ea5ed6ebf0a63b55ab03a4747/node_modules/@tiptap/extension-underline/dist/index.js
+  // node_modules/@tiptap/extension-underline/dist/index.js
   var Underline = Mark2.create({
     name: "underline",
     addOptions() {
@@ -21978,7 +21993,7 @@ ${prefix}
     }
   });
 
-  // node_modules/.pnpm/prosemirror-dropcursor@1.8.4/node_modules/prosemirror-dropcursor/dist/index.js
+  // node_modules/prosemirror-dropcursor/dist/index.js
   function dropCursor(options = {}) {
     return new Plugin({
       view(editorView) {
@@ -22125,7 +22140,7 @@ ${prefix}
     }
   };
 
-  // node_modules/.pnpm/prosemirror-gapcursor@1.4.1/node_modules/prosemirror-gapcursor/dist/index.js
+  // node_modules/prosemirror-gapcursor/dist/index.js
   var GapCursor = class _GapCursor extends Selection {
     /**
     Create a gap cursor.
@@ -22339,7 +22354,7 @@ ${prefix}
     return DecorationSet.create(state2.doc, [Decoration.widget(state2.selection.head, node, { key: "gapcursor" })]);
   }
 
-  // node_modules/.pnpm/@tiptap+extensions@3.32.0_@_0850e0a6bbafcb6792bbe38b521e5f38/node_modules/@tiptap/extensions/dist/index.js
+  // node_modules/@tiptap/extensions/dist/index.js
   var CharacterCount = Extension.create({
     name: "characterCount",
     addOptions() {
@@ -22503,9 +22518,9 @@ ${prefix}
     const isEmptyDoc = editor.isEmpty;
     doc3.nodesBetween(from2, to, (node, pos) => {
       const hasAnchor = anchor >= pos && anchor <= pos + node.nodeSize;
-      const isEmpty = !node.isLeaf && isNodeEmpty(node);
+      const isEmpty2 = !node.isLeaf && isNodeEmpty(node);
       if (!node.type.isTextblock) return options.includeChildren;
-      if ((hasAnchor || !options.showOnlyCurrent) && isEmpty) decorations.push(createPlaceholderDecoration({
+      if ((hasAnchor || !options.showOnlyCurrent) && isEmpty2) decorations.push(createPlaceholderDecoration({
         editor,
         isEmptyDoc,
         dataAttribute,
@@ -22863,7 +22878,7 @@ ${prefix}
     }
   });
 
-  // node_modules/.pnpm/@tiptap+starter-kit@3.32.0/node_modules/@tiptap/starter-kit/dist/index.js
+  // node_modules/@tiptap/starter-kit/dist/index.js
   var StarterKit = Extension.create({
     name: "starterKit",
     addExtensions() {
@@ -22907,7 +22922,7 @@ ${prefix}
   });
   var src_default = StarterKit;
 
-  // node_modules/.pnpm/katex@0.16.28/node_modules/katex/dist/katex.mjs
+  // node_modules/katex/dist/katex.mjs
   var SourceLocation = class _SourceLocation {
     // The + prefix indicates that these fields aren't writeable
     // Lexer holding the input string.
@@ -29524,12 +29539,12 @@ ${prefix}
       case "\\\\cdlongequal":
         return parser.callFunction("\\\\cdlongequal", [], []);
       case "\\Vert": {
-        var arrow2 = {
+        var arrow3 = {
           type: "textord",
           text: "\\Vert",
           mode: "math"
         };
-        return parser.callFunction("\\Big", [arrow2], []);
+        return parser.callFunction("\\Big", [arrow3], []);
       }
       default:
         return {
@@ -29605,10 +29620,10 @@ ${prefix}
           } else {
             throw new ParseError('Expected one of "<>AV=|." after @', rowNodes[j2]);
           }
-          var arrow2 = cdArrow(arrowChar, labels, parser);
+          var arrow3 = cdArrow(arrowChar, labels, parser);
           var wrappedArrow = {
             type: "styling",
-            body: [arrow2],
+            body: [arrow3],
             mode: "math",
             style: "display"
             // CD is always displaystyle.
@@ -37428,8 +37443,8 @@ ${prefix}
     __domTree
   };
 
-  // node_modules/.pnpm/@tiptap+extension-mathemati_82c2394e8a78975eba7d5cab27bd1baa/node_modules/@tiptap/extension-mathematics/dist/index.js
-  var BlockMath = Node2.create({
+  // node_modules/@tiptap/extension-mathematics/dist/index.js
+  var BlockMath = Node3.create({
     name: "blockMath",
     group: "block",
     atom: true,
@@ -37583,7 +37598,7 @@ ${prefix}
     }
     return null;
   };
-  var InlineMath = Node2.create({
+  var InlineMath = Node3.create({
     name: "inlineMath",
     group: "inline",
     inline: true,
@@ -37735,7 +37750,7 @@ ${prefix}
     }
   });
 
-  // node_modules/.pnpm/marked@17.0.6/node_modules/marked/lib/marked.esm.js
+  // node_modules/marked/lib/marked.esm.js
   function M() {
     return { async: false, breaks: false, extensions: null, gfm: true, hooks: null, pedantic: false, renderer: null, silent: false, tokenizer: null, walkTokens: null };
   }
@@ -38943,7 +38958,7 @@ Please report this to https://github.com/markedjs/marked.`, e) {
   var Xt = b.parse;
   var Jt = x.lex;
 
-  // node_modules/.pnpm/@tiptap+markdown@3.32.0_@ti_45c5484b90c6ecb3994867d43dba9576/node_modules/@tiptap/markdown/dist/index.js
+  // node_modules/@tiptap/markdown/dist/index.js
   var TRAILING_BLANK_LINES = /\n[^\S\n]*(?:\n[^\S\n]*)+$/;
   function extractAbsorbedBlankLines(tokens) {
     return tokens.flatMap((token, index) => {
@@ -40317,6 +40332,2722 @@ Please report this to https://github.com/markedjs/marked.`, e) {
     }
   });
 
+  // node_modules/prosemirror-tables/dist/index.js
+  var readFromCache;
+  var addToCache;
+  if (typeof WeakMap != "undefined") {
+    let cache = /* @__PURE__ */ new WeakMap();
+    readFromCache = (key) => cache.get(key);
+    addToCache = (key, value) => {
+      cache.set(key, value);
+      return value;
+    };
+  } else {
+    const cache = [];
+    const cacheSize = 10;
+    let cachePos = 0;
+    readFromCache = (key) => {
+      for (let i = 0; i < cache.length; i += 2) if (cache[i] == key) return cache[i + 1];
+    };
+    addToCache = (key, value) => {
+      if (cachePos == cacheSize) cachePos = 0;
+      cache[cachePos++] = key;
+      return cache[cachePos++] = value;
+    };
+  }
+  var TableMap = class {
+    constructor(width, height, map2, problems) {
+      this.width = width;
+      this.height = height;
+      this.map = map2;
+      this.problems = problems;
+    }
+    findCell(pos) {
+      for (let i = 0; i < this.map.length; i++) {
+        const curPos = this.map[i];
+        if (curPos != pos) continue;
+        const left = i % this.width;
+        const top = i / this.width | 0;
+        let right = left + 1;
+        let bottom = top + 1;
+        for (let j2 = 1; right < this.width && this.map[i + j2] == curPos; j2++) right++;
+        for (let j2 = 1; bottom < this.height && this.map[i + this.width * j2] == curPos; j2++) bottom++;
+        return {
+          left,
+          top,
+          right,
+          bottom
+        };
+      }
+      throw new RangeError(`No cell with offset ${pos} found`);
+    }
+    colCount(pos) {
+      for (let i = 0; i < this.map.length; i++) if (this.map[i] == pos) return i % this.width;
+      throw new RangeError(`No cell with offset ${pos} found`);
+    }
+    nextCell(pos, axis, dir) {
+      const { left, right, top, bottom } = this.findCell(pos);
+      if (axis == "horiz") {
+        if (dir < 0 ? left == 0 : right == this.width) return null;
+        return this.map[top * this.width + (dir < 0 ? left - 1 : right)];
+      } else {
+        if (dir < 0 ? top == 0 : bottom == this.height) return null;
+        return this.map[left + this.width * (dir < 0 ? top - 1 : bottom)];
+      }
+    }
+    rectBetween(a, b2) {
+      const { left: leftA, right: rightA, top: topA, bottom: bottomA } = this.findCell(a);
+      const { left: leftB, right: rightB, top: topB, bottom: bottomB } = this.findCell(b2);
+      return {
+        left: Math.min(leftA, leftB),
+        top: Math.min(topA, topB),
+        right: Math.max(rightA, rightB),
+        bottom: Math.max(bottomA, bottomB)
+      };
+    }
+    cellsInRect(rect) {
+      const result = [];
+      const seen = {};
+      for (let row = rect.top; row < rect.bottom; row++) for (let col = rect.left; col < rect.right; col++) {
+        const index = row * this.width + col;
+        const pos = this.map[index];
+        if (seen[pos]) continue;
+        seen[pos] = true;
+        if (col == rect.left && col && this.map[index - 1] == pos || row == rect.top && row && this.map[index - this.width] == pos) continue;
+        result.push(pos);
+      }
+      return result;
+    }
+    positionAt(row, col, table) {
+      for (let i = 0, rowStart = 0; ; i++) {
+        const rowEnd = rowStart + table.child(i).nodeSize;
+        if (i == row) {
+          let index = col + row * this.width;
+          const rowEndIndex = (row + 1) * this.width;
+          while (index < rowEndIndex && this.map[index] < rowStart) index++;
+          return index == rowEndIndex ? rowEnd - 1 : this.map[index];
+        }
+        rowStart = rowEnd;
+      }
+    }
+    static get(table) {
+      return readFromCache(table) || addToCache(table, computeMap(table));
+    }
+  };
+  function computeMap(table) {
+    if (table.type.spec.tableRole != "table") throw new RangeError("Not a table node: " + table.type.name);
+    const width = findWidth(table), height = table.childCount;
+    const map2 = [];
+    let mapPos = 0;
+    let problems = null;
+    const colWidths = [];
+    for (let i = 0, e = width * height; i < e; i++) map2[i] = 0;
+    for (let row = 0, pos = 0; row < height; row++) {
+      const rowNode = table.child(row);
+      pos++;
+      for (let i = 0; ; i++) {
+        while (mapPos < map2.length && map2[mapPos] != 0) mapPos++;
+        if (i == rowNode.childCount) break;
+        const cellNode = rowNode.child(i);
+        const { colspan, rowspan, colwidth } = cellNode.attrs;
+        for (let h2 = 0; h2 < rowspan; h2++) {
+          if (h2 + row >= height) {
+            (problems || (problems = [])).push({
+              type: "overlong_rowspan",
+              pos,
+              n: rowspan - h2
+            });
+            break;
+          }
+          const start = mapPos + h2 * width;
+          for (let w2 = 0; w2 < colspan; w2++) {
+            if (map2[start + w2] == 0) map2[start + w2] = pos;
+            else (problems || (problems = [])).push({
+              type: "collision",
+              row,
+              pos,
+              n: colspan - w2
+            });
+            const colW = colwidth && colwidth[w2];
+            if (colW) {
+              const widthIndex = (start + w2) % width * 2, prev = colWidths[widthIndex];
+              if (prev == null || prev != colW && colWidths[widthIndex + 1] == 1) {
+                colWidths[widthIndex] = colW;
+                colWidths[widthIndex + 1] = 1;
+              } else if (prev == colW) colWidths[widthIndex + 1]++;
+            }
+          }
+        }
+        mapPos += colspan;
+        pos += cellNode.nodeSize;
+      }
+      const expectedPos = (row + 1) * width;
+      let missing = 0;
+      while (mapPos < expectedPos) if (map2[mapPos++] == 0) missing++;
+      if (missing) (problems || (problems = [])).push({
+        type: "missing",
+        row,
+        n: missing
+      });
+      pos++;
+    }
+    if (width === 0 || height === 0) (problems || (problems = [])).push({ type: "zero_sized" });
+    const tableMap = new TableMap(width, height, map2, problems);
+    let badWidths = false;
+    for (let i = 0; !badWidths && i < colWidths.length; i += 2) if (colWidths[i] != null && colWidths[i + 1] < height) badWidths = true;
+    if (badWidths) findBadColWidths(tableMap, colWidths, table);
+    return tableMap;
+  }
+  function findWidth(table) {
+    let width = -1;
+    let hasRowSpan = false;
+    for (let row = 0; row < table.childCount; row++) {
+      const rowNode = table.child(row);
+      let rowWidth = 0;
+      if (hasRowSpan) for (let j2 = 0; j2 < row; j2++) {
+        const prevRow = table.child(j2);
+        for (let i = 0; i < prevRow.childCount; i++) {
+          const cell = prevRow.child(i);
+          if (j2 + cell.attrs.rowspan > row) rowWidth += cell.attrs.colspan;
+        }
+      }
+      for (let i = 0; i < rowNode.childCount; i++) {
+        const cell = rowNode.child(i);
+        rowWidth += cell.attrs.colspan;
+        if (cell.attrs.rowspan > 1) hasRowSpan = true;
+      }
+      if (width == -1) width = rowWidth;
+      else if (width != rowWidth) width = Math.max(width, rowWidth);
+    }
+    return width;
+  }
+  function findBadColWidths(map2, colWidths, table) {
+    if (!map2.problems) map2.problems = [];
+    const seen = {};
+    for (let i = 0; i < map2.map.length; i++) {
+      const pos = map2.map[i];
+      if (seen[pos]) continue;
+      seen[pos] = true;
+      const node = table.nodeAt(pos);
+      if (!node) throw new RangeError(`No cell with offset ${pos} found`);
+      let updated = null;
+      const attrs = node.attrs;
+      for (let j2 = 0; j2 < attrs.colspan; j2++) {
+        const colWidth = colWidths[(i + j2) % map2.width * 2];
+        if (colWidth != null && (!attrs.colwidth || attrs.colwidth[j2] != colWidth)) (updated || (updated = freshColWidth(attrs)))[j2] = colWidth;
+      }
+      if (updated) map2.problems.unshift({
+        type: "colwidth mismatch",
+        pos,
+        colwidth: updated
+      });
+    }
+  }
+  function freshColWidth(attrs) {
+    if (attrs.colwidth) return attrs.colwidth.slice();
+    const result = [];
+    for (let i = 0; i < attrs.colspan; i++) result.push(0);
+    return result;
+  }
+  function tableNodeTypes(schema) {
+    let result = schema.cached.tableNodeTypes;
+    if (!result) {
+      result = schema.cached.tableNodeTypes = {};
+      for (const name in schema.nodes) {
+        const type = schema.nodes[name], role = type.spec.tableRole;
+        if (role) result[role] = type;
+      }
+    }
+    return result;
+  }
+  var tableEditingKey = new PluginKey("selectingCells");
+  function cellAround($pos) {
+    for (let d = $pos.depth - 1; d > 0; d--) if ($pos.node(d).type.spec.tableRole == "row") return $pos.node(0).resolve($pos.before(d + 1));
+    return null;
+  }
+  function cellWrapping($pos) {
+    for (let d = $pos.depth; d > 0; d--) {
+      const role = $pos.node(d).type.spec.tableRole;
+      if (role === "cell" || role === "header_cell") return $pos.node(d);
+    }
+    return null;
+  }
+  function isInTable(state2) {
+    const $head = state2.selection.$head;
+    for (let d = $head.depth; d > 0; d--) if ($head.node(d).type.spec.tableRole == "row") return true;
+    return false;
+  }
+  function selectionCell(state2) {
+    const sel = state2.selection;
+    if ("$anchorCell" in sel && sel.$anchorCell) return sel.$anchorCell.pos > sel.$headCell.pos ? sel.$anchorCell : sel.$headCell;
+    else if ("node" in sel && sel.node && sel.node.type.spec.tableRole == "cell") return sel.$anchor;
+    const $cell = cellAround(sel.$head) || cellNear(sel.$head);
+    if ($cell) return $cell;
+    throw new RangeError(`No cell found around position ${sel.head}`);
+  }
+  function cellNear($pos) {
+    for (let after = $pos.nodeAfter, pos = $pos.pos; after; after = after.firstChild, pos++) {
+      const role = after.type.spec.tableRole;
+      if (role == "cell" || role == "header_cell") return $pos.doc.resolve(pos);
+    }
+    for (let before = $pos.nodeBefore, pos = $pos.pos; before; before = before.lastChild, pos--) {
+      const role = before.type.spec.tableRole;
+      if (role == "cell" || role == "header_cell") return $pos.doc.resolve(pos - before.nodeSize);
+    }
+  }
+  function pointsAtCell($pos) {
+    return $pos.parent.type.spec.tableRole == "row" && !!$pos.nodeAfter;
+  }
+  function moveCellForward($pos) {
+    return $pos.node(0).resolve($pos.pos + $pos.nodeAfter.nodeSize);
+  }
+  function inSameTable($cellA, $cellB) {
+    return $cellA.depth == $cellB.depth && $cellA.pos >= $cellB.start(-1) && $cellA.pos <= $cellB.end(-1);
+  }
+  function nextCell($pos, axis, dir) {
+    const table = $pos.node(-1);
+    const map2 = TableMap.get(table);
+    const tableStart = $pos.start(-1);
+    const moved = map2.nextCell($pos.pos - tableStart, axis, dir);
+    return moved == null ? null : $pos.node(0).resolve(tableStart + moved);
+  }
+  function removeColSpan(attrs, pos, n = 1) {
+    const result = {
+      ...attrs,
+      colspan: attrs.colspan - n
+    };
+    if (result.colwidth) {
+      result.colwidth = result.colwidth.slice();
+      result.colwidth.splice(pos, n);
+      if (!result.colwidth.some((w2) => w2 > 0)) result.colwidth = null;
+    }
+    return result;
+  }
+  function addColSpan(attrs, pos, n = 1) {
+    const result = {
+      ...attrs,
+      colspan: attrs.colspan + n
+    };
+    if (result.colwidth) {
+      result.colwidth = result.colwidth.slice();
+      for (let i = 0; i < n; i++) result.colwidth.splice(pos, 0, 0);
+    }
+    return result;
+  }
+  function columnIsHeader(map2, table, col) {
+    const headerCell = tableNodeTypes(table.type.schema).header_cell;
+    for (let row = 0; row < map2.height; row++) if (table.nodeAt(map2.map[col + row * map2.width]).type != headerCell) return false;
+    return true;
+  }
+  var CellSelection = class CellSelection2 extends Selection {
+    constructor($anchorCell, $headCell = $anchorCell) {
+      const table = $anchorCell.node(-1);
+      const map2 = TableMap.get(table);
+      const tableStart = $anchorCell.start(-1);
+      const rect = map2.rectBetween($anchorCell.pos - tableStart, $headCell.pos - tableStart);
+      const doc3 = $anchorCell.node(0);
+      const cells = map2.cellsInRect(rect).filter((p) => p != $headCell.pos - tableStart);
+      cells.unshift($headCell.pos - tableStart);
+      const ranges = cells.map((pos) => {
+        const cell = table.nodeAt(pos);
+        if (!cell) throw new RangeError(`No cell with offset ${pos} found`);
+        const from2 = tableStart + pos + 1;
+        return new SelectionRange(doc3.resolve(from2), doc3.resolve(from2 + cell.content.size));
+      });
+      super(ranges[0].$from, ranges[0].$to, ranges);
+      this.$anchorCell = $anchorCell;
+      this.$headCell = $headCell;
+    }
+    map(doc3, mapping) {
+      const $anchorCell = doc3.resolve(mapping.map(this.$anchorCell.pos));
+      const $headCell = doc3.resolve(mapping.map(this.$headCell.pos));
+      if (pointsAtCell($anchorCell) && pointsAtCell($headCell) && inSameTable($anchorCell, $headCell)) {
+        const tableChanged = this.$anchorCell.node(-1) != $anchorCell.node(-1);
+        if (tableChanged && this.isRowSelection()) return CellSelection2.rowSelection($anchorCell, $headCell);
+        else if (tableChanged && this.isColSelection()) return CellSelection2.colSelection($anchorCell, $headCell);
+        else return new CellSelection2($anchorCell, $headCell);
+      }
+      return TextSelection.between($anchorCell, $headCell);
+    }
+    content() {
+      const table = this.$anchorCell.node(-1);
+      const map2 = TableMap.get(table);
+      const tableStart = this.$anchorCell.start(-1);
+      const rect = map2.rectBetween(this.$anchorCell.pos - tableStart, this.$headCell.pos - tableStart);
+      const seen = {};
+      const rows = [];
+      for (let row = rect.top; row < rect.bottom; row++) {
+        const rowContent = [];
+        for (let index = row * map2.width + rect.left, col = rect.left; col < rect.right; col++, index++) {
+          const pos = map2.map[index];
+          if (seen[pos]) continue;
+          seen[pos] = true;
+          const cellRect = map2.findCell(pos);
+          let cell = table.nodeAt(pos);
+          if (!cell) throw new RangeError(`No cell with offset ${pos} found`);
+          const extraLeft = rect.left - cellRect.left;
+          const extraRight = cellRect.right - rect.right;
+          if (extraLeft > 0 || extraRight > 0) {
+            let attrs = cell.attrs;
+            if (extraLeft > 0) attrs = removeColSpan(attrs, 0, extraLeft);
+            if (extraRight > 0) attrs = removeColSpan(attrs, attrs.colspan - extraRight, extraRight);
+            if (cellRect.left < rect.left) {
+              cell = cell.type.createAndFill(attrs);
+              if (!cell) throw new RangeError(`Could not create cell with attrs ${JSON.stringify(attrs)}`);
+            } else cell = cell.type.create(attrs, cell.content);
+          }
+          if (cellRect.top < rect.top || cellRect.bottom > rect.bottom) {
+            const attrs = {
+              ...cell.attrs,
+              rowspan: Math.min(cellRect.bottom, rect.bottom) - Math.max(cellRect.top, rect.top)
+            };
+            if (cellRect.top < rect.top) cell = cell.type.createAndFill(attrs);
+            else cell = cell.type.create(attrs, cell.content);
+          }
+          rowContent.push(cell);
+        }
+        rows.push(table.child(row).copy(Fragment.from(rowContent)));
+      }
+      const fragment = this.isColSelection() && this.isRowSelection() ? table : rows;
+      return new Slice(Fragment.from(fragment), 1, 1);
+    }
+    replace(tr2, content2 = Slice.empty) {
+      const mapFrom = tr2.steps.length, ranges = this.ranges;
+      for (let i = 0; i < ranges.length; i++) {
+        const { $from, $to } = ranges[i], mapping = tr2.mapping.slice(mapFrom);
+        tr2.replace(mapping.map($from.pos), mapping.map($to.pos), i ? Slice.empty : content2);
+      }
+      const sel = Selection.findFrom(tr2.doc.resolve(tr2.mapping.slice(mapFrom).map(this.to)), -1);
+      if (sel) tr2.setSelection(sel);
+    }
+    replaceWith(tr2, node) {
+      this.replace(tr2, new Slice(Fragment.from(node), 0, 0));
+    }
+    forEachCell(f) {
+      const table = this.$anchorCell.node(-1);
+      const map2 = TableMap.get(table);
+      const tableStart = this.$anchorCell.start(-1);
+      const cells = map2.cellsInRect(map2.rectBetween(this.$anchorCell.pos - tableStart, this.$headCell.pos - tableStart));
+      for (let i = 0; i < cells.length; i++) f(table.nodeAt(cells[i]), tableStart + cells[i]);
+    }
+    isColSelection() {
+      const anchorTop = this.$anchorCell.index(-1);
+      const headTop = this.$headCell.index(-1);
+      if (Math.min(anchorTop, headTop) > 0) return false;
+      const anchorBottom = anchorTop + this.$anchorCell.nodeAfter.attrs.rowspan;
+      const headBottom = headTop + this.$headCell.nodeAfter.attrs.rowspan;
+      return Math.max(anchorBottom, headBottom) == this.$headCell.node(-1).childCount;
+    }
+    static colSelection($anchorCell, $headCell = $anchorCell) {
+      const table = $anchorCell.node(-1);
+      const map2 = TableMap.get(table);
+      const tableStart = $anchorCell.start(-1);
+      const anchorRect = map2.findCell($anchorCell.pos - tableStart);
+      const headRect = map2.findCell($headCell.pos - tableStart);
+      const doc3 = $anchorCell.node(0);
+      if (anchorRect.top <= headRect.top) {
+        if (anchorRect.top > 0) $anchorCell = doc3.resolve(tableStart + map2.map[anchorRect.left]);
+        if (headRect.bottom < map2.height) $headCell = doc3.resolve(tableStart + map2.map[map2.width * (map2.height - 1) + headRect.right - 1]);
+      } else {
+        if (headRect.top > 0) $headCell = doc3.resolve(tableStart + map2.map[headRect.left]);
+        if (anchorRect.bottom < map2.height) $anchorCell = doc3.resolve(tableStart + map2.map[map2.width * (map2.height - 1) + anchorRect.right - 1]);
+      }
+      return new CellSelection2($anchorCell, $headCell);
+    }
+    isRowSelection() {
+      const table = this.$anchorCell.node(-1);
+      const map2 = TableMap.get(table);
+      const tableStart = this.$anchorCell.start(-1);
+      const anchorLeft = map2.colCount(this.$anchorCell.pos - tableStart);
+      const headLeft = map2.colCount(this.$headCell.pos - tableStart);
+      if (Math.min(anchorLeft, headLeft) > 0) return false;
+      const anchorRight = anchorLeft + this.$anchorCell.nodeAfter.attrs.colspan;
+      const headRight = headLeft + this.$headCell.nodeAfter.attrs.colspan;
+      return Math.max(anchorRight, headRight) == map2.width;
+    }
+    eq(other) {
+      return other instanceof CellSelection2 && other.$anchorCell.pos == this.$anchorCell.pos && other.$headCell.pos == this.$headCell.pos;
+    }
+    static rowSelection($anchorCell, $headCell = $anchorCell) {
+      const table = $anchorCell.node(-1);
+      const map2 = TableMap.get(table);
+      const tableStart = $anchorCell.start(-1);
+      const anchorRect = map2.findCell($anchorCell.pos - tableStart);
+      const headRect = map2.findCell($headCell.pos - tableStart);
+      const doc3 = $anchorCell.node(0);
+      if (anchorRect.left <= headRect.left) {
+        if (anchorRect.left > 0) $anchorCell = doc3.resolve(tableStart + map2.map[anchorRect.top * map2.width]);
+        if (headRect.right < map2.width) $headCell = doc3.resolve(tableStart + map2.map[map2.width * (headRect.top + 1) - 1]);
+      } else {
+        if (headRect.left > 0) $headCell = doc3.resolve(tableStart + map2.map[headRect.top * map2.width]);
+        if (anchorRect.right < map2.width) $anchorCell = doc3.resolve(tableStart + map2.map[map2.width * (anchorRect.top + 1) - 1]);
+      }
+      return new CellSelection2($anchorCell, $headCell);
+    }
+    toJSON() {
+      return {
+        type: "cell",
+        anchor: this.$anchorCell.pos,
+        head: this.$headCell.pos
+      };
+    }
+    static fromJSON(doc3, json) {
+      return new CellSelection2(doc3.resolve(json.anchor), doc3.resolve(json.head));
+    }
+    static create(doc3, anchorCell, headCell = anchorCell) {
+      return new CellSelection2(doc3.resolve(anchorCell), doc3.resolve(headCell));
+    }
+    getBookmark() {
+      return new CellBookmark(this.$anchorCell.pos, this.$headCell.pos);
+    }
+  };
+  CellSelection.prototype.visible = false;
+  Selection.jsonID("cell", CellSelection);
+  var CellBookmark = class CellBookmark2 {
+    constructor(anchor, head) {
+      this.anchor = anchor;
+      this.head = head;
+    }
+    map(mapping) {
+      return new CellBookmark2(mapping.map(this.anchor), mapping.map(this.head));
+    }
+    resolve(doc3) {
+      const $anchorCell = doc3.resolve(this.anchor), $headCell = doc3.resolve(this.head);
+      if ($anchorCell.parent.type.spec.tableRole == "row" && $headCell.parent.type.spec.tableRole == "row" && $anchorCell.index() < $anchorCell.parent.childCount && $headCell.index() < $headCell.parent.childCount && inSameTable($anchorCell, $headCell)) return new CellSelection($anchorCell, $headCell);
+      else return Selection.near($headCell, 1);
+    }
+  };
+  function drawCellSelection(state2) {
+    if (!(state2.selection instanceof CellSelection)) return null;
+    const cells = [];
+    state2.selection.forEachCell((node, pos) => {
+      cells.push(Decoration.node(pos, pos + node.nodeSize, { class: "selectedCell" }));
+    });
+    return DecorationSet.create(state2.doc, cells);
+  }
+  function isCellBoundarySelection({ $from, $to }) {
+    if ($from.pos == $to.pos || $from.pos < $to.pos - 6) return false;
+    let afterFrom = $from.pos;
+    let beforeTo = $to.pos;
+    let depth = $from.depth;
+    for (; depth >= 0; depth--, afterFrom++) if ($from.after(depth + 1) < $from.end(depth)) break;
+    for (let d = $to.depth; d >= 0; d--, beforeTo--) if ($to.before(d + 1) > $to.start(d)) break;
+    return afterFrom == beforeTo && /row|table/.test($from.node(depth).type.spec.tableRole);
+  }
+  function isTextSelectionAcrossCells({ $from, $to }) {
+    let fromCellBoundaryNode;
+    let toCellBoundaryNode;
+    for (let i = $from.depth; i > 0; i--) {
+      const node = $from.node(i);
+      if (node.type.spec.tableRole === "cell" || node.type.spec.tableRole === "header_cell") {
+        fromCellBoundaryNode = node;
+        break;
+      }
+    }
+    for (let i = $to.depth; i > 0; i--) {
+      const node = $to.node(i);
+      if (node.type.spec.tableRole === "cell" || node.type.spec.tableRole === "header_cell") {
+        toCellBoundaryNode = node;
+        break;
+      }
+    }
+    return fromCellBoundaryNode !== toCellBoundaryNode && $to.parentOffset === 0;
+  }
+  function normalizeSelection(state2, tr2, allowTableNodeSelection) {
+    const sel = (tr2 || state2).selection;
+    const doc3 = (tr2 || state2).doc;
+    let normalize2;
+    let role;
+    if (sel instanceof NodeSelection && (role = sel.node.type.spec.tableRole)) {
+      if (role == "cell" || role == "header_cell") normalize2 = CellSelection.create(doc3, sel.from);
+      else if (role == "row") {
+        const $cell = doc3.resolve(sel.from + 1);
+        normalize2 = CellSelection.rowSelection($cell, $cell);
+      } else if (!allowTableNodeSelection) {
+        const map2 = TableMap.get(sel.node);
+        const start = sel.from + 1;
+        const lastCell = start + map2.map[map2.width * map2.height - 1];
+        normalize2 = CellSelection.create(doc3, start + 1, lastCell);
+      }
+    } else if (sel instanceof TextSelection && isCellBoundarySelection(sel)) normalize2 = TextSelection.create(doc3, sel.from);
+    else if (sel instanceof TextSelection && isTextSelectionAcrossCells(sel)) normalize2 = TextSelection.create(doc3, sel.$from.start(), sel.$from.end());
+    if (normalize2) (tr2 || (tr2 = state2.tr)).setSelection(normalize2);
+    return tr2;
+  }
+  var fixTablesKey = new PluginKey("fix-tables");
+  function changedDescendants(old, cur, offset, f) {
+    const oldSize = old.childCount, curSize = cur.childCount;
+    outer: for (let i = 0, j2 = 0; i < curSize; i++) {
+      const child = cur.child(i);
+      for (let scan = j2, e = Math.min(oldSize, i + 3); scan < e; scan++) if (old.child(scan) == child) {
+        j2 = scan + 1;
+        offset += child.nodeSize;
+        continue outer;
+      }
+      f(child, offset);
+      if (j2 < oldSize && old.child(j2).sameMarkup(child)) changedDescendants(old.child(j2), child, offset + 1, f);
+      else child.nodesBetween(0, child.content.size, f, offset + 1);
+      offset += child.nodeSize;
+    }
+  }
+  function fixTables(state2, oldState) {
+    let tr2;
+    const check = (node, pos) => {
+      if (node.type.spec.tableRole == "table") tr2 = fixTable(state2, node, pos, tr2);
+    };
+    if (!oldState) state2.doc.descendants(check);
+    else if (oldState.doc != state2.doc) changedDescendants(oldState.doc, state2.doc, 0, check);
+    return tr2;
+  }
+  function fixTable(state2, table, tablePos, tr2) {
+    const map2 = TableMap.get(table);
+    if (!map2.problems) return tr2;
+    if (!tr2) tr2 = state2.tr;
+    const mustAdd = [];
+    for (let i = 0; i < map2.height; i++) mustAdd.push(0);
+    for (let i = 0; i < map2.problems.length; i++) {
+      const prob = map2.problems[i];
+      if (prob.type == "collision") {
+        const cell = table.nodeAt(prob.pos);
+        if (!cell) continue;
+        const attrs = cell.attrs;
+        for (let j2 = 0; j2 < attrs.rowspan; j2++) mustAdd[prob.row + j2] += prob.n;
+        tr2.setNodeMarkup(tr2.mapping.map(tablePos + 1 + prob.pos), null, removeColSpan(attrs, attrs.colspan - prob.n, prob.n));
+      } else if (prob.type == "missing") mustAdd[prob.row] += prob.n;
+      else if (prob.type == "overlong_rowspan") {
+        const cell = table.nodeAt(prob.pos);
+        if (!cell) continue;
+        tr2.setNodeMarkup(tr2.mapping.map(tablePos + 1 + prob.pos), null, {
+          ...cell.attrs,
+          rowspan: cell.attrs.rowspan - prob.n
+        });
+      } else if (prob.type == "colwidth mismatch") {
+        const cell = table.nodeAt(prob.pos);
+        if (!cell) continue;
+        tr2.setNodeMarkup(tr2.mapping.map(tablePos + 1 + prob.pos), null, {
+          ...cell.attrs,
+          colwidth: prob.colwidth
+        });
+      } else if (prob.type == "zero_sized") {
+        const pos = tr2.mapping.map(tablePos);
+        tr2.delete(pos, pos + table.nodeSize);
+      }
+    }
+    let first2, last;
+    for (let i = 0; i < mustAdd.length; i++) if (mustAdd[i]) {
+      if (first2 == null) first2 = i;
+      last = i;
+    }
+    for (let i = 0, pos = tablePos + 1; i < map2.height; i++) {
+      const row = table.child(i);
+      const end = pos + row.nodeSize;
+      const add = mustAdd[i];
+      if (add > 0) {
+        let role = "cell";
+        if (row.firstChild) role = row.firstChild.type.spec.tableRole;
+        const nodes = [];
+        for (let j2 = 0; j2 < add; j2++) {
+          const node = tableNodeTypes(state2.schema)[role].createAndFill();
+          if (node) nodes.push(node);
+        }
+        const side = (i == 0 || first2 == i - 1) && last == i ? pos + 1 : end - 1;
+        tr2.insert(tr2.mapping.map(side), nodes);
+      }
+      pos = end;
+    }
+    return tr2.setMeta(fixTablesKey, { fixTables: true });
+  }
+  function selectedRect(state2) {
+    const sel = state2.selection;
+    const $pos = selectionCell(state2);
+    const table = $pos.node(-1);
+    const tableStart = $pos.start(-1);
+    const map2 = TableMap.get(table);
+    return {
+      ...sel instanceof CellSelection ? map2.rectBetween(sel.$anchorCell.pos - tableStart, sel.$headCell.pos - tableStart) : map2.findCell($pos.pos - tableStart),
+      tableStart,
+      map: map2,
+      table
+    };
+  }
+  function addColumn(tr2, { map: map2, tableStart, table }, col) {
+    let refColumn = col > 0 ? -1 : 0;
+    if (columnIsHeader(map2, table, col + refColumn)) refColumn = col == 0 || col == map2.width ? null : 0;
+    for (let row = 0; row < map2.height; row++) {
+      const index = row * map2.width + col;
+      if (col > 0 && col < map2.width && map2.map[index - 1] == map2.map[index]) {
+        const pos = map2.map[index];
+        const cell = table.nodeAt(pos);
+        tr2.setNodeMarkup(tr2.mapping.map(tableStart + pos), null, addColSpan(cell.attrs, col - map2.colCount(pos)));
+        row += cell.attrs.rowspan - 1;
+      } else {
+        const type = refColumn == null ? tableNodeTypes(table.type.schema).cell : table.nodeAt(map2.map[index + refColumn]).type;
+        const pos = map2.positionAt(row, col, table);
+        tr2.insert(tr2.mapping.map(tableStart + pos), type.createAndFill());
+      }
+    }
+    return tr2;
+  }
+  function addColumnBefore(state2, dispatch) {
+    if (!isInTable(state2)) return false;
+    if (dispatch) {
+      const rect = selectedRect(state2);
+      dispatch(addColumn(state2.tr, rect, rect.left));
+    }
+    return true;
+  }
+  function addColumnAfter(state2, dispatch) {
+    if (!isInTable(state2)) return false;
+    if (dispatch) {
+      const rect = selectedRect(state2);
+      dispatch(addColumn(state2.tr, rect, rect.right));
+    }
+    return true;
+  }
+  function removeColumn(tr2, { map: map2, table, tableStart }, col) {
+    const mapStart = tr2.mapping.maps.length;
+    for (let row = 0; row < map2.height; ) {
+      const index = row * map2.width + col;
+      const pos = map2.map[index];
+      const cell = table.nodeAt(pos);
+      const attrs = cell.attrs;
+      if (col > 0 && map2.map[index - 1] == pos || col < map2.width - 1 && map2.map[index + 1] == pos) tr2.setNodeMarkup(tr2.mapping.slice(mapStart).map(tableStart + pos), null, removeColSpan(attrs, col - map2.colCount(pos)));
+      else {
+        const start = tr2.mapping.slice(mapStart).map(tableStart + pos);
+        tr2.delete(start, start + cell.nodeSize);
+      }
+      row += attrs.rowspan;
+    }
+  }
+  function deleteColumn(state2, dispatch) {
+    if (!isInTable(state2)) return false;
+    if (dispatch) {
+      const rect = selectedRect(state2);
+      const tr2 = state2.tr;
+      if (rect.left == 0 && rect.right == rect.map.width) return false;
+      for (let i = rect.right - 1; ; i--) {
+        removeColumn(tr2, rect, i);
+        if (i == rect.left) break;
+        const table = rect.tableStart ? tr2.doc.nodeAt(rect.tableStart - 1) : tr2.doc;
+        if (!table) throw new RangeError("No table found");
+        rect.table = table;
+        rect.map = TableMap.get(table);
+      }
+      dispatch(tr2);
+    }
+    return true;
+  }
+  function rowIsHeader(map2, table, row) {
+    var _table$nodeAt;
+    const headerCell = tableNodeTypes(table.type.schema).header_cell;
+    for (let col = 0; col < map2.width; col++) if (((_table$nodeAt = table.nodeAt(map2.map[col + row * map2.width])) === null || _table$nodeAt === void 0 ? void 0 : _table$nodeAt.type) != headerCell) return false;
+    return true;
+  }
+  function addRow(tr2, { map: map2, tableStart, table }, row) {
+    let rowPos = tableStart;
+    for (let i = 0; i < row; i++) rowPos += table.child(i).nodeSize;
+    const cells = [];
+    let refRow = row > 0 ? -1 : 0;
+    if (rowIsHeader(map2, table, row + refRow)) refRow = row == 0 || row == map2.height ? null : 0;
+    for (let col = 0, index = map2.width * row; col < map2.width; col++, index++) if (row > 0 && row < map2.height && map2.map[index] == map2.map[index - map2.width]) {
+      const pos = map2.map[index];
+      const attrs = table.nodeAt(pos).attrs;
+      tr2.setNodeMarkup(tableStart + pos, null, {
+        ...attrs,
+        rowspan: attrs.rowspan + 1
+      });
+      col += attrs.colspan - 1;
+    } else {
+      var _table$nodeAt2;
+      const type = refRow == null ? tableNodeTypes(table.type.schema).cell : (_table$nodeAt2 = table.nodeAt(map2.map[index + refRow * map2.width])) === null || _table$nodeAt2 === void 0 ? void 0 : _table$nodeAt2.type;
+      const node = type === null || type === void 0 ? void 0 : type.createAndFill();
+      if (node) cells.push(node);
+    }
+    tr2.insert(rowPos, tableNodeTypes(table.type.schema).row.create(null, cells));
+    return tr2;
+  }
+  function addRowBefore(state2, dispatch) {
+    if (!isInTable(state2)) return false;
+    if (dispatch) {
+      const rect = selectedRect(state2);
+      dispatch(addRow(state2.tr, rect, rect.top));
+    }
+    return true;
+  }
+  function addRowAfter(state2, dispatch) {
+    if (!isInTable(state2)) return false;
+    if (dispatch) {
+      const rect = selectedRect(state2);
+      dispatch(addRow(state2.tr, rect, rect.bottom));
+    }
+    return true;
+  }
+  function removeRow(tr2, { map: map2, table, tableStart }, row) {
+    let rowPos = 0;
+    for (let i = 0; i < row; i++) rowPos += table.child(i).nodeSize;
+    const nextRow = rowPos + table.child(row).nodeSize;
+    const mapFrom = tr2.mapping.maps.length;
+    tr2.delete(rowPos + tableStart, nextRow + tableStart);
+    const seen = /* @__PURE__ */ new Set();
+    for (let col = 0, index = row * map2.width; col < map2.width; col++, index++) {
+      const pos = map2.map[index];
+      if (seen.has(pos)) continue;
+      seen.add(pos);
+      if (row > 0 && pos == map2.map[index - map2.width]) {
+        const attrs = table.nodeAt(pos).attrs;
+        tr2.setNodeMarkup(tr2.mapping.slice(mapFrom).map(pos + tableStart), null, {
+          ...attrs,
+          rowspan: attrs.rowspan - 1
+        });
+        col += attrs.colspan - 1;
+      } else if (row < map2.height && pos == map2.map[index + map2.width]) {
+        const cell = table.nodeAt(pos);
+        const attrs = cell.attrs;
+        const copy2 = cell.type.create({
+          ...attrs,
+          rowspan: cell.attrs.rowspan - 1
+        }, cell.content);
+        const newPos = map2.positionAt(row + 1, col, table);
+        tr2.insert(tr2.mapping.slice(mapFrom).map(tableStart + newPos), copy2);
+        col += attrs.colspan - 1;
+      }
+    }
+  }
+  function deleteRow(state2, dispatch) {
+    if (!isInTable(state2)) return false;
+    if (dispatch) {
+      const rect = selectedRect(state2), tr2 = state2.tr;
+      if (rect.top == 0 && rect.bottom == rect.map.height) return false;
+      for (let i = rect.bottom - 1; ; i--) {
+        removeRow(tr2, rect, i);
+        if (i == rect.top) break;
+        const table = rect.tableStart ? tr2.doc.nodeAt(rect.tableStart - 1) : tr2.doc;
+        if (!table) throw new RangeError("No table found");
+        rect.table = table;
+        rect.map = TableMap.get(rect.table);
+      }
+      dispatch(tr2);
+    }
+    return true;
+  }
+  function isEmpty(cell) {
+    const c = cell.content;
+    return c.childCount == 1 && c.child(0).isTextblock && c.child(0).childCount == 0;
+  }
+  function cellsOverlapRectangle({ width, height, map: map2 }, rect) {
+    let indexTop = rect.top * width + rect.left, indexLeft = indexTop;
+    let indexBottom = (rect.bottom - 1) * width + rect.left, indexRight = indexTop + (rect.right - rect.left - 1);
+    for (let i = rect.top; i < rect.bottom; i++) {
+      if (rect.left > 0 && map2[indexLeft] == map2[indexLeft - 1] || rect.right < width && map2[indexRight] == map2[indexRight + 1]) return true;
+      indexLeft += width;
+      indexRight += width;
+    }
+    for (let i = rect.left; i < rect.right; i++) {
+      if (rect.top > 0 && map2[indexTop] == map2[indexTop - width] || rect.bottom < height && map2[indexBottom] == map2[indexBottom + width]) return true;
+      indexTop++;
+      indexBottom++;
+    }
+    return false;
+  }
+  function mergeCells(state2, dispatch) {
+    const sel = state2.selection;
+    if (!(sel instanceof CellSelection) || sel.$anchorCell.pos == sel.$headCell.pos) return false;
+    const rect = selectedRect(state2), { map: map2 } = rect;
+    if (cellsOverlapRectangle(map2, rect)) return false;
+    if (dispatch) {
+      const tr2 = state2.tr;
+      const seen = {};
+      let content2 = Fragment.empty;
+      let mergedPos;
+      let mergedCell;
+      for (let row = rect.top; row < rect.bottom; row++) for (let col = rect.left; col < rect.right; col++) {
+        const cellPos = map2.map[row * map2.width + col];
+        const cell = rect.table.nodeAt(cellPos);
+        if (seen[cellPos] || !cell) continue;
+        seen[cellPos] = true;
+        if (mergedPos == null) {
+          mergedPos = cellPos;
+          mergedCell = cell;
+        } else {
+          if (!isEmpty(cell)) content2 = content2.append(cell.content);
+          const mapped = tr2.mapping.map(cellPos + rect.tableStart);
+          tr2.delete(mapped, mapped + cell.nodeSize);
+        }
+      }
+      if (mergedPos == null || mergedCell == null) return true;
+      tr2.setNodeMarkup(mergedPos + rect.tableStart, null, {
+        ...addColSpan(mergedCell.attrs, mergedCell.attrs.colspan, rect.right - rect.left - mergedCell.attrs.colspan),
+        rowspan: rect.bottom - rect.top
+      });
+      if (content2.size > 0) {
+        const end = mergedPos + 1 + mergedCell.content.size;
+        const start = isEmpty(mergedCell) ? mergedPos + 1 : end;
+        tr2.replaceWith(start + rect.tableStart, end + rect.tableStart, content2);
+      }
+      tr2.setSelection(new CellSelection(tr2.doc.resolve(mergedPos + rect.tableStart)));
+      dispatch(tr2);
+    }
+    return true;
+  }
+  function splitCell(state2, dispatch) {
+    const nodeTypes = tableNodeTypes(state2.schema);
+    return splitCellWithType(({ node }) => {
+      return nodeTypes[node.type.spec.tableRole];
+    })(state2, dispatch);
+  }
+  function splitCellWithType(getCellType) {
+    return (state2, dispatch) => {
+      const sel = state2.selection;
+      let cellNode;
+      let cellPos;
+      if (!(sel instanceof CellSelection)) {
+        var _cellAround;
+        cellNode = cellWrapping(sel.$from);
+        if (!cellNode) return false;
+        cellPos = (_cellAround = cellAround(sel.$from)) === null || _cellAround === void 0 ? void 0 : _cellAround.pos;
+      } else {
+        if (sel.$anchorCell.pos != sel.$headCell.pos) return false;
+        cellNode = sel.$anchorCell.nodeAfter;
+        cellPos = sel.$anchorCell.pos;
+      }
+      if (cellNode == null || cellPos == null) return false;
+      if (cellNode.attrs.colspan == 1 && cellNode.attrs.rowspan == 1) return false;
+      if (dispatch) {
+        let baseAttrs = cellNode.attrs;
+        const attrs = [];
+        const colwidth = baseAttrs.colwidth;
+        if (baseAttrs.rowspan > 1) baseAttrs = {
+          ...baseAttrs,
+          rowspan: 1
+        };
+        if (baseAttrs.colspan > 1) baseAttrs = {
+          ...baseAttrs,
+          colspan: 1
+        };
+        const rect = selectedRect(state2), tr2 = state2.tr;
+        for (let i = 0; i < rect.right - rect.left; i++) attrs.push(colwidth ? {
+          ...baseAttrs,
+          colwidth: colwidth && colwidth[i] ? [colwidth[i]] : null
+        } : baseAttrs);
+        let lastCell;
+        for (let row = rect.top; row < rect.bottom; row++) {
+          let pos = rect.map.positionAt(row, rect.left, rect.table);
+          if (row == rect.top) pos += cellNode.nodeSize;
+          for (let col = rect.left, i = 0; col < rect.right; col++, i++) {
+            if (col == rect.left && row == rect.top) continue;
+            tr2.insert(lastCell = tr2.mapping.map(pos + rect.tableStart, 1), getCellType({
+              node: cellNode,
+              row,
+              col
+            }).createAndFill(attrs[i]));
+          }
+        }
+        tr2.setNodeMarkup(cellPos, getCellType({
+          node: cellNode,
+          row: rect.top,
+          col: rect.left
+        }), attrs[0]);
+        if (sel instanceof CellSelection) tr2.setSelection(new CellSelection(tr2.doc.resolve(sel.$anchorCell.pos), lastCell ? tr2.doc.resolve(lastCell) : void 0));
+        dispatch(tr2);
+      }
+      return true;
+    };
+  }
+  function setCellAttr(name, value) {
+    return function(state2, dispatch) {
+      if (!isInTable(state2)) return false;
+      const $cell = selectionCell(state2);
+      if ($cell.nodeAfter.attrs[name] === value) return false;
+      if (dispatch) {
+        const tr2 = state2.tr;
+        if (state2.selection instanceof CellSelection) state2.selection.forEachCell((node, pos) => {
+          if (node.attrs[name] !== value) tr2.setNodeMarkup(pos, null, {
+            ...node.attrs,
+            [name]: value
+          });
+        });
+        else tr2.setNodeMarkup($cell.pos, null, {
+          ...$cell.nodeAfter.attrs,
+          [name]: value
+        });
+        dispatch(tr2);
+      }
+      return true;
+    };
+  }
+  function deprecated_toggleHeader(type) {
+    return function(state2, dispatch) {
+      if (!isInTable(state2)) return false;
+      if (dispatch) {
+        const types = tableNodeTypes(state2.schema);
+        const rect = selectedRect(state2), tr2 = state2.tr;
+        const cells = rect.map.cellsInRect(type == "column" ? {
+          left: rect.left,
+          top: 0,
+          right: rect.right,
+          bottom: rect.map.height
+        } : type == "row" ? {
+          left: 0,
+          top: rect.top,
+          right: rect.map.width,
+          bottom: rect.bottom
+        } : rect);
+        const nodes = cells.map((pos) => rect.table.nodeAt(pos));
+        for (let i = 0; i < cells.length; i++) if (nodes[i].type == types.header_cell) tr2.setNodeMarkup(rect.tableStart + cells[i], types.cell, nodes[i].attrs);
+        if (tr2.steps.length === 0) for (let i = 0; i < cells.length; i++) tr2.setNodeMarkup(rect.tableStart + cells[i], types.header_cell, nodes[i].attrs);
+        dispatch(tr2);
+      }
+      return true;
+    };
+  }
+  function isHeaderEnabledByType(type, rect, types) {
+    const cellPositions = rect.map.cellsInRect({
+      left: 0,
+      top: 0,
+      right: type == "row" ? rect.map.width : 1,
+      bottom: type == "column" ? rect.map.height : 1
+    });
+    for (let i = 0; i < cellPositions.length; i++) {
+      const cell = rect.table.nodeAt(cellPositions[i]);
+      if (cell && cell.type !== types.header_cell) return false;
+    }
+    return true;
+  }
+  function toggleHeader(type, options) {
+    options = options || { useDeprecatedLogic: false };
+    if (options.useDeprecatedLogic) return deprecated_toggleHeader(type);
+    return function(state2, dispatch) {
+      if (!isInTable(state2)) return false;
+      if (dispatch) {
+        const types = tableNodeTypes(state2.schema);
+        const rect = selectedRect(state2), tr2 = state2.tr;
+        const isHeaderRowEnabled = isHeaderEnabledByType("row", rect, types);
+        const isHeaderColumnEnabled = isHeaderEnabledByType("column", rect, types);
+        const selectionStartsAt = (type === "column" ? isHeaderRowEnabled : type === "row" ? isHeaderColumnEnabled : false) ? 1 : 0;
+        const cellsRect = type == "column" ? {
+          left: 0,
+          top: selectionStartsAt,
+          right: 1,
+          bottom: rect.map.height
+        } : type == "row" ? {
+          left: selectionStartsAt,
+          top: 0,
+          right: rect.map.width,
+          bottom: 1
+        } : rect;
+        const newType = type == "column" ? isHeaderColumnEnabled ? types.cell : types.header_cell : type == "row" ? isHeaderRowEnabled ? types.cell : types.header_cell : types.cell;
+        rect.map.cellsInRect(cellsRect).forEach((relativeCellPos) => {
+          const cellPos = relativeCellPos + rect.tableStart;
+          const cell = tr2.doc.nodeAt(cellPos);
+          if (cell) tr2.setNodeMarkup(cellPos, newType, cell.attrs);
+        });
+        dispatch(tr2);
+      }
+      return true;
+    };
+  }
+  var toggleHeaderRow = toggleHeader("row", { useDeprecatedLogic: true });
+  var toggleHeaderColumn = toggleHeader("column", { useDeprecatedLogic: true });
+  var toggleHeaderCell = toggleHeader("cell", { useDeprecatedLogic: true });
+  function findNextCell($cell, dir) {
+    if (dir < 0) {
+      const before = $cell.nodeBefore;
+      if (before) return $cell.pos - before.nodeSize;
+      for (let row = $cell.index(-1) - 1, rowEnd = $cell.before(); row >= 0; row--) {
+        const rowNode = $cell.node(-1).child(row);
+        const lastChild = rowNode.lastChild;
+        if (lastChild) return rowEnd - 1 - lastChild.nodeSize;
+        rowEnd -= rowNode.nodeSize;
+      }
+    } else {
+      if ($cell.index() < $cell.parent.childCount - 1) return $cell.pos + $cell.nodeAfter.nodeSize;
+      const table = $cell.node(-1);
+      for (let row = $cell.indexAfter(-1), rowStart = $cell.after(); row < table.childCount; row++) {
+        const rowNode = table.child(row);
+        if (rowNode.childCount) return rowStart + 1;
+        rowStart += rowNode.nodeSize;
+      }
+    }
+    return null;
+  }
+  function goToNextCell(direction) {
+    return function(state2, dispatch) {
+      if (!isInTable(state2)) return false;
+      const cell = findNextCell(selectionCell(state2), direction);
+      if (cell == null) return false;
+      if (dispatch) {
+        const $cell = state2.doc.resolve(cell);
+        dispatch(state2.tr.setSelection(TextSelection.between($cell, moveCellForward($cell))).scrollIntoView());
+      }
+      return true;
+    };
+  }
+  function deleteTable(state2, dispatch) {
+    const $pos = state2.selection.$anchor;
+    for (let d = $pos.depth; d > 0; d--) if ($pos.node(d).type.spec.tableRole == "table") {
+      if (dispatch) dispatch(state2.tr.delete($pos.before(d), $pos.after(d)).scrollIntoView());
+      return true;
+    }
+    return false;
+  }
+  function deleteCellSelection(state2, dispatch) {
+    const sel = state2.selection;
+    if (!(sel instanceof CellSelection)) return false;
+    if (dispatch) {
+      const tr2 = state2.tr;
+      const baseContent = tableNodeTypes(state2.schema).cell.createAndFill().content;
+      sel.forEachCell((cell, pos) => {
+        if (!cell.content.eq(baseContent)) tr2.replace(tr2.mapping.map(pos + 1), tr2.mapping.map(pos + cell.nodeSize - 1), new Slice(baseContent, 0, 0));
+      });
+      if (tr2.docChanged) dispatch(tr2);
+    }
+    return true;
+  }
+  function pastedCells(slice2) {
+    if (slice2.size === 0) return null;
+    let { content: content2, openStart, openEnd } = slice2;
+    while (content2.childCount == 1 && (openStart > 0 && openEnd > 0 || content2.child(0).type.spec.tableRole == "table")) {
+      openStart--;
+      openEnd--;
+      content2 = content2.child(0).content;
+    }
+    const first2 = content2.child(0);
+    const role = first2.type.spec.tableRole;
+    const schema = first2.type.schema, rows = [];
+    if (role == "row") for (let i = 0; i < content2.childCount; i++) {
+      let cells = content2.child(i).content;
+      const left = i ? 0 : Math.max(0, openStart - 1);
+      const right = i < content2.childCount - 1 ? 0 : Math.max(0, openEnd - 1);
+      if (left || right) cells = fitSlice(tableNodeTypes(schema).row, new Slice(cells, left, right)).content;
+      rows.push(cells);
+    }
+    else if (role == "cell" || role == "header_cell") rows.push(openStart || openEnd ? fitSlice(tableNodeTypes(schema).row, new Slice(content2, openStart, openEnd)).content : content2);
+    else return null;
+    return ensureRectangular(schema, rows);
+  }
+  function ensureRectangular(schema, rows) {
+    const widths = [];
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      for (let j2 = row.childCount - 1; j2 >= 0; j2--) {
+        const { rowspan, colspan } = row.child(j2).attrs;
+        for (let r = i; r < i + rowspan; r++) widths[r] = (widths[r] || 0) + colspan;
+      }
+    }
+    let width = 0;
+    for (let r = 0; r < widths.length; r++) width = Math.max(width, widths[r]);
+    for (let r = 0; r < widths.length; r++) {
+      if (r >= rows.length) rows.push(Fragment.empty);
+      if (widths[r] < width) {
+        const empty2 = tableNodeTypes(schema).cell.createAndFill();
+        const cells = [];
+        for (let i = widths[r]; i < width; i++) cells.push(empty2);
+        rows[r] = rows[r].append(Fragment.from(cells));
+      }
+    }
+    return {
+      height: rows.length,
+      width,
+      rows
+    };
+  }
+  function fitSlice(nodeType, slice2) {
+    const node = nodeType.createAndFill();
+    return new Transform(node).replace(0, node.content.size, slice2).doc;
+  }
+  function clipCells({ width, height, rows }, newWidth, newHeight) {
+    if (width != newWidth) {
+      const added = [];
+      const newRows = [];
+      for (let row = 0; row < rows.length; row++) {
+        const frag = rows[row], cells = [];
+        for (let col = added[row] || 0, i = 0; col < newWidth; i++) {
+          let cell = frag.child(i % frag.childCount);
+          if (col + cell.attrs.colspan > newWidth) cell = cell.type.createChecked(removeColSpan(cell.attrs, cell.attrs.colspan, col + cell.attrs.colspan - newWidth), cell.content);
+          cells.push(cell);
+          col += cell.attrs.colspan;
+          for (let j2 = 1; j2 < cell.attrs.rowspan; j2++) added[row + j2] = (added[row + j2] || 0) + cell.attrs.colspan;
+        }
+        newRows.push(Fragment.from(cells));
+      }
+      rows = newRows;
+      width = newWidth;
+    }
+    if (height != newHeight) {
+      const newRows = [];
+      for (let row = 0, i = 0; row < newHeight; row++, i++) {
+        const cells = [], source = rows[i % height];
+        for (let j2 = 0; j2 < source.childCount; j2++) {
+          let cell = source.child(j2);
+          if (row + cell.attrs.rowspan > newHeight) cell = cell.type.create({
+            ...cell.attrs,
+            rowspan: Math.max(1, newHeight - cell.attrs.rowspan)
+          }, cell.content);
+          cells.push(cell);
+        }
+        newRows.push(Fragment.from(cells));
+      }
+      rows = newRows;
+      height = newHeight;
+    }
+    return {
+      width,
+      height,
+      rows
+    };
+  }
+  function growTable(tr2, map2, table, start, width, height, mapFrom) {
+    const schema = tr2.doc.type.schema;
+    const types = tableNodeTypes(schema);
+    let empty2;
+    let emptyHead;
+    if (width > map2.width) for (let row = 0, rowEnd = 0; row < map2.height; row++) {
+      const rowNode = table.child(row);
+      rowEnd += rowNode.nodeSize;
+      const cells = [];
+      let add;
+      if (rowNode.lastChild == null || rowNode.lastChild.type == types.cell) add = empty2 || (empty2 = types.cell.createAndFill());
+      else add = emptyHead || (emptyHead = types.header_cell.createAndFill());
+      for (let i = map2.width; i < width; i++) cells.push(add);
+      tr2.insert(tr2.mapping.slice(mapFrom).map(rowEnd - 1 + start), cells);
+    }
+    if (height > map2.height) {
+      const cells = [];
+      for (let i = 0, start$1 = (map2.height - 1) * map2.width; i < Math.max(map2.width, width); i++) {
+        const header = i >= map2.width ? false : table.nodeAt(map2.map[start$1 + i]).type == types.header_cell;
+        cells.push(header ? emptyHead || (emptyHead = types.header_cell.createAndFill()) : empty2 || (empty2 = types.cell.createAndFill()));
+      }
+      const emptyRow = types.row.create(null, Fragment.from(cells)), rows = [];
+      for (let i = map2.height; i < height; i++) rows.push(emptyRow);
+      tr2.insert(tr2.mapping.slice(mapFrom).map(start + table.nodeSize - 2), rows);
+    }
+    return !!(empty2 || emptyHead);
+  }
+  function isolateHorizontal(tr2, map2, table, start, left, right, top, mapFrom) {
+    if (top == 0 || top == map2.height) return false;
+    let found2 = false;
+    for (let col = left; col < right; col++) {
+      const index = top * map2.width + col, pos = map2.map[index];
+      if (map2.map[index - map2.width] == pos) {
+        found2 = true;
+        const cell = table.nodeAt(pos);
+        const { top: cellTop, left: cellLeft } = map2.findCell(pos);
+        tr2.setNodeMarkup(tr2.mapping.slice(mapFrom).map(pos + start), null, {
+          ...cell.attrs,
+          rowspan: top - cellTop
+        });
+        tr2.insert(tr2.mapping.slice(mapFrom).map(map2.positionAt(top, cellLeft, table)), cell.type.createAndFill({
+          ...cell.attrs,
+          rowspan: cellTop + cell.attrs.rowspan - top
+        }));
+        col += cell.attrs.colspan - 1;
+      }
+    }
+    return found2;
+  }
+  function isolateVertical(tr2, map2, table, start, top, bottom, left, mapFrom) {
+    if (left == 0 || left == map2.width) return false;
+    let found2 = false;
+    for (let row = top; row < bottom; row++) {
+      const index = row * map2.width + left, pos = map2.map[index];
+      if (map2.map[index - 1] == pos) {
+        found2 = true;
+        const cell = table.nodeAt(pos);
+        const cellLeft = map2.colCount(pos);
+        const updatePos = tr2.mapping.slice(mapFrom).map(pos + start);
+        tr2.setNodeMarkup(updatePos, null, removeColSpan(cell.attrs, left - cellLeft, cell.attrs.colspan - (left - cellLeft)));
+        tr2.insert(updatePos + cell.nodeSize, cell.type.createAndFill(removeColSpan(cell.attrs, 0, left - cellLeft)));
+        row += cell.attrs.rowspan - 1;
+      }
+    }
+    return found2;
+  }
+  function insertCells(state2, dispatch, tableStart, rect, cells) {
+    let table = tableStart ? state2.doc.nodeAt(tableStart - 1) : state2.doc;
+    if (!table) throw new Error("No table found");
+    let map2 = TableMap.get(table);
+    const { top, left } = rect;
+    const right = left + cells.width, bottom = top + cells.height;
+    const tr2 = state2.tr;
+    let mapFrom = 0;
+    function recomp() {
+      table = tableStart ? tr2.doc.nodeAt(tableStart - 1) : tr2.doc;
+      if (!table) throw new Error("No table found");
+      map2 = TableMap.get(table);
+      mapFrom = tr2.mapping.maps.length;
+    }
+    if (growTable(tr2, map2, table, tableStart, right, bottom, mapFrom)) recomp();
+    if (isolateHorizontal(tr2, map2, table, tableStart, left, right, top, mapFrom)) recomp();
+    if (isolateHorizontal(tr2, map2, table, tableStart, left, right, bottom, mapFrom)) recomp();
+    if (isolateVertical(tr2, map2, table, tableStart, top, bottom, left, mapFrom)) recomp();
+    if (isolateVertical(tr2, map2, table, tableStart, top, bottom, right, mapFrom)) recomp();
+    for (let row = top; row < bottom; row++) {
+      const from2 = map2.positionAt(row, left, table), to = map2.positionAt(row, right, table);
+      tr2.replace(tr2.mapping.slice(mapFrom).map(from2 + tableStart), tr2.mapping.slice(mapFrom).map(to + tableStart), new Slice(cells.rows[row - top], 0, 0));
+    }
+    recomp();
+    tr2.setSelection(new CellSelection(tr2.doc.resolve(tableStart + map2.positionAt(top, left, table)), tr2.doc.resolve(tableStart + map2.positionAt(bottom - 1, right - 1, table))));
+    dispatch(tr2);
+  }
+  var handleKeyDown2 = keydownHandler({
+    ArrowLeft: arrow2("horiz", -1),
+    ArrowRight: arrow2("horiz", 1),
+    ArrowUp: arrow2("vert", -1),
+    ArrowDown: arrow2("vert", 1),
+    "Shift-ArrowLeft": shiftArrow("horiz", -1),
+    "Shift-ArrowRight": shiftArrow("horiz", 1),
+    "Shift-ArrowUp": shiftArrow("vert", -1),
+    "Shift-ArrowDown": shiftArrow("vert", 1),
+    Backspace: deleteCellSelection,
+    "Mod-Backspace": deleteCellSelection,
+    Delete: deleteCellSelection,
+    "Mod-Delete": deleteCellSelection
+  });
+  function maybeSetSelection(state2, dispatch, selection) {
+    if (selection.eq(state2.selection)) return false;
+    if (dispatch) dispatch(state2.tr.setSelection(selection).scrollIntoView());
+    return true;
+  }
+  function arrow2(axis, dir) {
+    return (state2, dispatch, view) => {
+      if (!view) return false;
+      const sel = state2.selection;
+      if (sel instanceof CellSelection) return maybeSetSelection(state2, dispatch, Selection.near(sel.$headCell, dir));
+      if (axis != "horiz" && !sel.empty) return false;
+      const end = atEndOfCell(view, axis, dir);
+      if (end == null) return false;
+      if (axis == "horiz") return maybeSetSelection(state2, dispatch, Selection.near(state2.doc.resolve(sel.head + dir), dir));
+      else {
+        const $cell = state2.doc.resolve(end);
+        const $next = nextCell($cell, axis, dir);
+        let newSel;
+        if ($next) newSel = Selection.near($next, 1);
+        else if (dir < 0) newSel = Selection.near(state2.doc.resolve($cell.before(-1)), -1);
+        else newSel = Selection.near(state2.doc.resolve($cell.after(-1)), 1);
+        return maybeSetSelection(state2, dispatch, newSel);
+      }
+    };
+  }
+  function shiftArrow(axis, dir) {
+    return (state2, dispatch, view) => {
+      if (!view) return false;
+      const sel = state2.selection;
+      let cellSel;
+      if (sel instanceof CellSelection) cellSel = sel;
+      else {
+        const end = atEndOfCell(view, axis, dir);
+        if (end == null) return false;
+        cellSel = new CellSelection(state2.doc.resolve(end));
+      }
+      const $head = nextCell(cellSel.$headCell, axis, dir);
+      if (!$head) return false;
+      return maybeSetSelection(state2, dispatch, new CellSelection(cellSel.$anchorCell, $head));
+    };
+  }
+  function handleTripleClick2(view, pos) {
+    const doc3 = view.state.doc, $cell = cellAround(doc3.resolve(pos));
+    if (!$cell) return false;
+    view.dispatch(view.state.tr.setSelection(new CellSelection($cell)));
+    return true;
+  }
+  function handlePaste(view, _2, slice2) {
+    if (!isInTable(view.state)) return false;
+    let cells = pastedCells(slice2);
+    const sel = view.state.selection;
+    if (sel instanceof CellSelection) {
+      if (!cells) cells = {
+        width: 1,
+        height: 1,
+        rows: [Fragment.from(fitSlice(tableNodeTypes(view.state.schema).cell, slice2))]
+      };
+      const table = sel.$anchorCell.node(-1);
+      const start = sel.$anchorCell.start(-1);
+      const rect = TableMap.get(table).rectBetween(sel.$anchorCell.pos - start, sel.$headCell.pos - start);
+      cells = clipCells(cells, rect.right - rect.left, rect.bottom - rect.top);
+      insertCells(view.state, view.dispatch, start, rect, cells);
+      return true;
+    } else if (cells) {
+      const $cell = selectionCell(view.state);
+      const start = $cell.start(-1);
+      insertCells(view.state, view.dispatch, start, TableMap.get($cell.node(-1)).findCell($cell.pos - start), cells);
+      return true;
+    } else return false;
+  }
+  function handleMouseDown$1(view, startEvent) {
+    var _cellUnderMouse;
+    if (startEvent.button != 0) return;
+    if (startEvent.ctrlKey || startEvent.metaKey) return;
+    const startDOMCell = domInCell(view, startEvent.target);
+    let $anchor;
+    if (startEvent.shiftKey && view.state.selection instanceof CellSelection) {
+      setCellSelection(view.state.selection.$anchorCell, startEvent);
+      startEvent.preventDefault();
+    } else if (startEvent.shiftKey && startDOMCell && ($anchor = cellAround(view.state.selection.$anchor)) != null && ((_cellUnderMouse = cellUnderMouse(view, startEvent)) === null || _cellUnderMouse === void 0 ? void 0 : _cellUnderMouse.pos) != $anchor.pos) {
+      setCellSelection($anchor, startEvent);
+      startEvent.preventDefault();
+    } else if (!startDOMCell) return;
+    function setCellSelection($anchor$1, event) {
+      let $head = cellUnderMouse(view, event);
+      const starting = tableEditingKey.getState(view.state) == null;
+      if (!$head || !inSameTable($anchor$1, $head)) if (starting) $head = $anchor$1;
+      else return;
+      const selection = new CellSelection($anchor$1, $head);
+      if (starting || !view.state.selection.eq(selection)) {
+        const tr2 = view.state.tr.setSelection(selection);
+        if (starting) tr2.setMeta(tableEditingKey, $anchor$1.pos);
+        view.dispatch(tr2);
+      }
+    }
+    function stop() {
+      view.root.removeEventListener("mouseup", stop);
+      view.root.removeEventListener("dragstart", stop);
+      view.root.removeEventListener("mousemove", move);
+      if (tableEditingKey.getState(view.state) != null) view.dispatch(view.state.tr.setMeta(tableEditingKey, -1));
+    }
+    function move(_event) {
+      const event = _event;
+      const anchor = tableEditingKey.getState(view.state);
+      let $anchor$1;
+      if (anchor != null) $anchor$1 = view.state.doc.resolve(anchor);
+      else if (domInCell(view, event.target) != startDOMCell) {
+        $anchor$1 = cellUnderMouse(view, startEvent);
+        if (!$anchor$1) return stop();
+      }
+      if ($anchor$1) setCellSelection($anchor$1, event);
+    }
+    view.root.addEventListener("mouseup", stop);
+    view.root.addEventListener("dragstart", stop);
+    view.root.addEventListener("mousemove", move);
+  }
+  function atEndOfCell(view, axis, dir) {
+    if (!(view.state.selection instanceof TextSelection)) return null;
+    const { $head } = view.state.selection;
+    for (let d = $head.depth - 1; d >= 0; d--) {
+      const parent = $head.node(d);
+      if ((dir < 0 ? $head.index(d) : $head.indexAfter(d)) != (dir < 0 ? 0 : parent.childCount)) return null;
+      if (parent.type.spec.tableRole == "cell" || parent.type.spec.tableRole == "header_cell") {
+        const cellPos = $head.before(d);
+        const dirStr = axis == "vert" ? dir > 0 ? "down" : "up" : dir > 0 ? "right" : "left";
+        return view.endOfTextblock(dirStr) ? cellPos : null;
+      }
+    }
+    return null;
+  }
+  function domInCell(view, dom) {
+    for (; dom && dom != view.dom; dom = dom.parentNode) if (dom.nodeName == "TD" || dom.nodeName == "TH") return dom;
+    return null;
+  }
+  function cellUnderMouse(view, event) {
+    const mousePos = view.posAtCoords({
+      left: event.clientX,
+      top: event.clientY
+    });
+    if (!mousePos) return null;
+    let { inside, pos } = mousePos;
+    return inside >= 0 && cellAround(view.state.doc.resolve(inside)) || cellAround(view.state.doc.resolve(pos));
+  }
+  var TableView = class {
+    constructor(node, defaultCellMinWidth) {
+      this.node = node;
+      this.defaultCellMinWidth = defaultCellMinWidth;
+      this.dom = document.createElement("div");
+      this.dom.className = "tableWrapper";
+      this.table = this.dom.appendChild(document.createElement("table"));
+      this.table.style.setProperty("--default-cell-min-width", `${defaultCellMinWidth}px`);
+      this.colgroup = this.table.appendChild(document.createElement("colgroup"));
+      updateColumnsOnResize(node, this.colgroup, this.table, defaultCellMinWidth);
+      this.contentDOM = this.table.appendChild(document.createElement("tbody"));
+    }
+    update(node) {
+      if (node.type != this.node.type) return false;
+      this.node = node;
+      updateColumnsOnResize(node, this.colgroup, this.table, this.defaultCellMinWidth);
+      return true;
+    }
+    ignoreMutation(record) {
+      return record.type == "attributes" && (record.target == this.table || this.colgroup.contains(record.target));
+    }
+  };
+  function updateColumnsOnResize(node, colgroup, table, defaultCellMinWidth, overrideCol, overrideValue) {
+    let totalWidth = 0;
+    let fixedWidth = true;
+    let nextDOM = colgroup.firstChild;
+    const row = node.firstChild;
+    if (!row) return;
+    for (let i = 0, col = 0; i < row.childCount; i++) {
+      const { colspan, colwidth } = row.child(i).attrs;
+      for (let j2 = 0; j2 < colspan; j2++, col++) {
+        const hasWidth = overrideCol == col ? overrideValue : colwidth && colwidth[j2];
+        const cssWidth = hasWidth ? hasWidth + "px" : "";
+        totalWidth += hasWidth || defaultCellMinWidth;
+        if (!hasWidth) fixedWidth = false;
+        if (!nextDOM) {
+          const col$1 = document.createElement("col");
+          col$1.style.width = cssWidth;
+          colgroup.appendChild(col$1);
+        } else {
+          if (nextDOM.style.width != cssWidth) nextDOM.style.width = cssWidth;
+          nextDOM = nextDOM.nextSibling;
+        }
+      }
+    }
+    while (nextDOM) {
+      var _nextDOM$parentNode;
+      const after = nextDOM.nextSibling;
+      (_nextDOM$parentNode = nextDOM.parentNode) === null || _nextDOM$parentNode === void 0 || _nextDOM$parentNode.removeChild(nextDOM);
+      nextDOM = after;
+    }
+    if (fixedWidth) {
+      table.style.width = totalWidth + "px";
+      table.style.minWidth = "";
+    } else {
+      table.style.width = "";
+      table.style.minWidth = totalWidth + "px";
+    }
+  }
+  var columnResizingPluginKey = new PluginKey("tableColumnResizing");
+  function columnResizing({ handleWidth = 5, cellMinWidth = 25, defaultCellMinWidth = 100, View = TableView, lastColumnResizable = true } = {}) {
+    const plugin = new Plugin({
+      key: columnResizingPluginKey,
+      state: {
+        init(_2, state2) {
+          var _plugin$spec;
+          const nodeViews = (_plugin$spec = plugin.spec) === null || _plugin$spec === void 0 || (_plugin$spec = _plugin$spec.props) === null || _plugin$spec === void 0 ? void 0 : _plugin$spec.nodeViews;
+          const tableName = tableNodeTypes(state2.schema).table.name;
+          if (View && nodeViews) nodeViews[tableName] = (node, view) => {
+            return new View(node, defaultCellMinWidth, view);
+          };
+          return new ResizeState(-1, false);
+        },
+        apply(tr2, prev) {
+          return prev.apply(tr2);
+        }
+      },
+      props: {
+        attributes: (state2) => {
+          const pluginState = columnResizingPluginKey.getState(state2);
+          return pluginState && pluginState.activeHandle > -1 ? { class: "resize-cursor" } : {};
+        },
+        handleDOMEvents: {
+          mousemove: (view, event) => {
+            handleMouseMove(view, event, handleWidth, lastColumnResizable);
+          },
+          mouseleave: (view) => {
+            handleMouseLeave(view);
+          },
+          mousedown: (view, event) => {
+            handleMouseDown(view, event, cellMinWidth, defaultCellMinWidth);
+          }
+        },
+        decorations: (state2) => {
+          const pluginState = columnResizingPluginKey.getState(state2);
+          if (pluginState && pluginState.activeHandle > -1) return handleDecorations(state2, pluginState.activeHandle);
+        },
+        nodeViews: {}
+      }
+    });
+    return plugin;
+  }
+  var ResizeState = class ResizeState2 {
+    constructor(activeHandle, dragging) {
+      this.activeHandle = activeHandle;
+      this.dragging = dragging;
+    }
+    apply(tr2) {
+      const state2 = this;
+      const action = tr2.getMeta(columnResizingPluginKey);
+      if (action && action.setHandle != null) return new ResizeState2(action.setHandle, false);
+      if (action && action.setDragging !== void 0) return new ResizeState2(state2.activeHandle, action.setDragging);
+      if (state2.activeHandle > -1 && tr2.docChanged) {
+        let handle = tr2.mapping.map(state2.activeHandle, -1);
+        if (!pointsAtCell(tr2.doc.resolve(handle))) handle = -1;
+        return new ResizeState2(handle, state2.dragging);
+      }
+      return state2;
+    }
+  };
+  function handleMouseMove(view, event, handleWidth, lastColumnResizable) {
+    if (!view.editable) return;
+    const pluginState = columnResizingPluginKey.getState(view.state);
+    if (!pluginState) return;
+    if (!pluginState.dragging) {
+      const target = domCellAround(event.target);
+      let cell = -1;
+      if (target) {
+        const { left, right } = target.getBoundingClientRect();
+        if (event.clientX - left <= handleWidth) cell = edgeCell(view, event, "left", handleWidth);
+        else if (right - event.clientX <= handleWidth) cell = edgeCell(view, event, "right", handleWidth);
+      }
+      if (cell != pluginState.activeHandle) {
+        if (!lastColumnResizable && cell !== -1) {
+          const $cell = view.state.doc.resolve(cell);
+          const table = $cell.node(-1);
+          const map2 = TableMap.get(table);
+          const tableStart = $cell.start(-1);
+          if (map2.colCount($cell.pos - tableStart) + $cell.nodeAfter.attrs.colspan - 1 == map2.width - 1) return;
+        }
+        updateHandle(view, cell);
+      }
+    }
+  }
+  function handleMouseLeave(view) {
+    if (!view.editable) return;
+    const pluginState = columnResizingPluginKey.getState(view.state);
+    if (pluginState && pluginState.activeHandle > -1 && !pluginState.dragging) updateHandle(view, -1);
+  }
+  function handleMouseDown(view, event, cellMinWidth, defaultCellMinWidth) {
+    var _view$dom$ownerDocume;
+    if (!view.editable) return false;
+    const win = (_view$dom$ownerDocume = view.dom.ownerDocument.defaultView) !== null && _view$dom$ownerDocume !== void 0 ? _view$dom$ownerDocume : window;
+    const pluginState = columnResizingPluginKey.getState(view.state);
+    if (!pluginState || pluginState.activeHandle == -1 || pluginState.dragging) return false;
+    const cell = view.state.doc.nodeAt(pluginState.activeHandle);
+    const width = currentColWidth(view, pluginState.activeHandle, cell.attrs);
+    view.dispatch(view.state.tr.setMeta(columnResizingPluginKey, { setDragging: {
+      startX: event.clientX,
+      startWidth: width
+    } }));
+    function finish(event$1) {
+      win.removeEventListener("mouseup", finish);
+      win.removeEventListener("mousemove", move);
+      const pluginState$1 = columnResizingPluginKey.getState(view.state);
+      if (pluginState$1 === null || pluginState$1 === void 0 ? void 0 : pluginState$1.dragging) {
+        updateColumnWidth(view, pluginState$1.activeHandle, draggedWidth(pluginState$1.dragging, event$1, cellMinWidth));
+        view.dispatch(view.state.tr.setMeta(columnResizingPluginKey, { setDragging: null }));
+      }
+    }
+    function move(event$1) {
+      if (!event$1.which) return finish(event$1);
+      const pluginState$1 = columnResizingPluginKey.getState(view.state);
+      if (!pluginState$1) return;
+      if (pluginState$1.dragging) {
+        const dragged = draggedWidth(pluginState$1.dragging, event$1, cellMinWidth);
+        displayColumnWidth(view, pluginState$1.activeHandle, dragged, defaultCellMinWidth);
+      }
+    }
+    displayColumnWidth(view, pluginState.activeHandle, width, defaultCellMinWidth);
+    win.addEventListener("mouseup", finish);
+    win.addEventListener("mousemove", move);
+    event.preventDefault();
+    return true;
+  }
+  function currentColWidth(view, cellPos, { colspan, colwidth }) {
+    const width = colwidth && colwidth[colwidth.length - 1];
+    if (width) return width;
+    const dom = view.domAtPos(cellPos);
+    let domWidth = dom.node.childNodes[dom.offset].offsetWidth, parts = colspan;
+    if (colwidth) {
+      for (let i = 0; i < colspan; i++) if (colwidth[i]) {
+        domWidth -= colwidth[i];
+        parts--;
+      }
+    }
+    return domWidth / parts;
+  }
+  function domCellAround(target) {
+    while (target && target.nodeName != "TD" && target.nodeName != "TH") target = target.classList && target.classList.contains("ProseMirror") ? null : target.parentNode;
+    return target;
+  }
+  function edgeCell(view, event, side, handleWidth) {
+    const offset = side == "right" ? -handleWidth : handleWidth;
+    const found2 = view.posAtCoords({
+      left: event.clientX + offset,
+      top: event.clientY
+    });
+    if (!found2) return -1;
+    const { pos } = found2;
+    const $cell = cellAround(view.state.doc.resolve(pos));
+    if (!$cell) return -1;
+    if (side == "right") return $cell.pos;
+    const map2 = TableMap.get($cell.node(-1)), start = $cell.start(-1);
+    const index = map2.map.indexOf($cell.pos - start);
+    return index % map2.width == 0 ? -1 : start + map2.map[index - 1];
+  }
+  function draggedWidth(dragging, event, resizeMinWidth) {
+    const offset = event.clientX - dragging.startX;
+    return Math.max(resizeMinWidth, dragging.startWidth + offset);
+  }
+  function updateHandle(view, value) {
+    view.dispatch(view.state.tr.setMeta(columnResizingPluginKey, { setHandle: value }));
+  }
+  function updateColumnWidth(view, cell, width) {
+    const $cell = view.state.doc.resolve(cell);
+    const table = $cell.node(-1), map2 = TableMap.get(table), start = $cell.start(-1);
+    const col = map2.colCount($cell.pos - start) + $cell.nodeAfter.attrs.colspan - 1;
+    const tr2 = view.state.tr;
+    for (let row = 0; row < map2.height; row++) {
+      const mapIndex = row * map2.width + col;
+      if (row && map2.map[mapIndex] == map2.map[mapIndex - map2.width]) continue;
+      const pos = map2.map[mapIndex];
+      const attrs = table.nodeAt(pos).attrs;
+      const index = attrs.colspan == 1 ? 0 : col - map2.colCount(pos);
+      if (attrs.colwidth && attrs.colwidth[index] == width) continue;
+      const colwidth = attrs.colwidth ? attrs.colwidth.slice() : zeroes(attrs.colspan);
+      colwidth[index] = width;
+      tr2.setNodeMarkup(start + pos, null, {
+        ...attrs,
+        colwidth
+      });
+    }
+    if (tr2.docChanged) view.dispatch(tr2);
+  }
+  function displayColumnWidth(view, cell, width, defaultCellMinWidth) {
+    const $cell = view.state.doc.resolve(cell);
+    const table = $cell.node(-1), start = $cell.start(-1);
+    const col = TableMap.get(table).colCount($cell.pos - start) + $cell.nodeAfter.attrs.colspan - 1;
+    let dom = view.domAtPos($cell.start(-1)).node;
+    while (dom && dom.nodeName != "TABLE") dom = dom.parentNode;
+    if (!dom) return;
+    updateColumnsOnResize(table, dom.firstChild, dom, defaultCellMinWidth, col, width);
+  }
+  function zeroes(n) {
+    return Array(n).fill(0);
+  }
+  function handleDecorations(state2, cell) {
+    const decorations = [];
+    const $cell = state2.doc.resolve(cell);
+    const table = $cell.node(-1);
+    if (!table) return DecorationSet.empty;
+    const map2 = TableMap.get(table);
+    const start = $cell.start(-1);
+    const col = map2.colCount($cell.pos - start) + $cell.nodeAfter.attrs.colspan - 1;
+    for (let row = 0; row < map2.height; row++) {
+      const index = col + row * map2.width;
+      if ((col == map2.width - 1 || map2.map[index] != map2.map[index + 1]) && (row == 0 || map2.map[index] != map2.map[index - map2.width])) {
+        var _columnResizingPlugin;
+        const cellPos = map2.map[index];
+        const pos = start + cellPos + table.nodeAt(cellPos).nodeSize - 1;
+        const dom = document.createElement("div");
+        dom.className = "column-resize-handle";
+        if ((_columnResizingPlugin = columnResizingPluginKey.getState(state2)) === null || _columnResizingPlugin === void 0 ? void 0 : _columnResizingPlugin.dragging) decorations.push(Decoration.node(start + cellPos, start + cellPos + table.nodeAt(cellPos).nodeSize, { class: "column-resize-dragging" }));
+        decorations.push(Decoration.widget(pos, dom));
+      }
+    }
+    return DecorationSet.create(state2.doc, decorations);
+  }
+  function tableEditing({ allowTableNodeSelection = false } = {}) {
+    return new Plugin({
+      key: tableEditingKey,
+      state: {
+        init() {
+          return null;
+        },
+        apply(tr2, cur) {
+          const set = tr2.getMeta(tableEditingKey);
+          if (set != null) return set == -1 ? null : set;
+          if (cur == null || !tr2.docChanged) return cur;
+          const { deleted, pos } = tr2.mapping.mapResult(cur);
+          return deleted ? null : pos;
+        }
+      },
+      props: {
+        decorations: drawCellSelection,
+        handleDOMEvents: { mousedown: handleMouseDown$1 },
+        createSelectionBetween(view) {
+          return tableEditingKey.getState(view.state) != null ? view.state.selection : null;
+        },
+        handleTripleClick: handleTripleClick2,
+        handleKeyDown: handleKeyDown2,
+        handlePaste
+      },
+      appendTransaction(_2, oldState, state2) {
+        return normalizeSelection(state2, fixTables(state2, oldState), allowTableNodeSelection);
+      }
+    });
+  }
+
+  // node_modules/@tiptap/extension-table/dist/index.js
+  function normalizeTableCellAlign(value) {
+    if (value === "left" || value === "right" || value === "center") return value;
+    return null;
+  }
+  function parseAlign(element) {
+    const styleAlign = (element.style.textAlign || "").trim().toLowerCase();
+    const attrAlign = (element.getAttribute("align") || "").trim().toLowerCase();
+    return normalizeTableCellAlign(styleAlign || attrAlign);
+  }
+  function normalizeTableCellAlignFromAttributes(attributes) {
+    return normalizeTableCellAlign(attributes === null || attributes === void 0 ? void 0 : attributes.align);
+  }
+  function createAlignAttribute() {
+    return {
+      default: null,
+      parseHTML: (element) => parseAlign(element),
+      renderHTML: (attributes) => {
+        const align = normalizeTableCellAlign(attributes.align);
+        if (!isValidCSSStyleValue(align)) return {};
+        return { style: `text-align: ${align}` };
+      }
+    };
+  }
+  function parseColgroupWidth(element) {
+    var _table$querySelectorA;
+    const row = element.parentElement;
+    const table = element.closest("table");
+    if (!row || !table) return null;
+    const cellIndex = Array.from(row.children).indexOf(element);
+    const width = (_table$querySelectorA = table.querySelectorAll("colgroup > col")[cellIndex]) === null || _table$querySelectorA === void 0 ? void 0 : _table$querySelectorA.getAttribute("width");
+    return width ? [parseInt(width, 10)] : null;
+  }
+  function parseColwidth(element) {
+    const colwidth = element.getAttribute("colwidth");
+    if (colwidth) return colwidth.split(",").map((width) => parseInt(width, 10));
+    return parseColgroupWidth(element);
+  }
+  var COLLAPSIBLE_WHITESPACE = /[ \t\r\n\f]+/g;
+  function isEmptyCellElement(element) {
+    var _element$textContent;
+    if (element.children.length > 0) return false;
+    return ((_element$textContent = element.textContent) !== null && _element$textContent !== void 0 ? _element$textContent : "").replace(COLLAPSIBLE_WHITESPACE, "") === "";
+  }
+  function fillEmptyCellContent(cellType) {
+    const filled = cellType.createAndFill();
+    if (!filled) throw new Error(`[tiptap error]: "${cellType.name}" has no default content to backfill.`);
+    return filled.content;
+  }
+  function omitDefaultSpanAttribute(attributes, renderedAttributes, name) {
+    if (!(name in renderedAttributes)) return;
+    const value = renderedAttributes[name];
+    if (value === 1 || value === "1" || value === null || value === void 0) delete attributes[name];
+  }
+  var TableCell = Node3.create({
+    name: "tableCell",
+    addOptions() {
+      return { HTMLAttributes: {} };
+    },
+    content: "block+",
+    addAttributes() {
+      return {
+        colspan: { default: 1 },
+        rowspan: { default: 1 },
+        colwidth: {
+          default: null,
+          parseHTML: parseColwidth
+        },
+        align: createAlignAttribute()
+      };
+    },
+    tableRole: "cell",
+    isolating: true,
+    parseHTML() {
+      return [{
+        tag: "td",
+        getAttrs: (node) => isEmptyCellElement(node) ? {} : false,
+        getContent: (_node, schema) => fillEmptyCellContent(schema.nodes[this.name])
+      }, { tag: "td" }];
+    },
+    renderHTML({ HTMLAttributes }) {
+      const attributes = mergeAttributes(this.options.HTMLAttributes, HTMLAttributes);
+      omitDefaultSpanAttribute(attributes, HTMLAttributes, "colspan");
+      omitDefaultSpanAttribute(attributes, HTMLAttributes, "rowspan");
+      return [
+        "td",
+        attributes,
+        0
+      ];
+    }
+  });
+  var TableHeader = Node3.create({
+    name: "tableHeader",
+    addOptions() {
+      return { HTMLAttributes: {} };
+    },
+    content: "block+",
+    addAttributes() {
+      return {
+        colspan: { default: 1 },
+        rowspan: { default: 1 },
+        colwidth: {
+          default: null,
+          parseHTML: parseColwidth
+        },
+        align: createAlignAttribute()
+      };
+    },
+    tableRole: "header_cell",
+    isolating: true,
+    parseHTML() {
+      return [{
+        tag: "th",
+        getAttrs: (node) => isEmptyCellElement(node) ? {} : false,
+        getContent: (_node, schema) => fillEmptyCellContent(schema.nodes[this.name])
+      }, { tag: "th" }];
+    },
+    renderHTML({ HTMLAttributes }) {
+      const attributes = mergeAttributes(this.options.HTMLAttributes, HTMLAttributes);
+      omitDefaultSpanAttribute(attributes, HTMLAttributes, "colspan");
+      omitDefaultSpanAttribute(attributes, HTMLAttributes, "rowspan");
+      return [
+        "th",
+        attributes,
+        0
+      ];
+    }
+  });
+  var TableRow = Node3.create({
+    name: "tableRow",
+    addOptions() {
+      return { HTMLAttributes: {} };
+    },
+    content: "(tableCell | tableHeader)*",
+    tableRole: "row",
+    parseHTML() {
+      return [{ tag: "tr" }];
+    },
+    renderHTML({ HTMLAttributes }) {
+      return [
+        "tr",
+        mergeAttributes(this.options.HTMLAttributes, HTMLAttributes),
+        0
+      ];
+    }
+  });
+  function getColStyleDeclaration(minWidth, width) {
+    if (width) return ["width", `${Math.max(width, minWidth)}px`];
+    return ["min-width", `${minWidth}px`];
+  }
+  function updateColumns(node, colgroup, table, cellMinWidth, overrideCol, overrideValue) {
+    let totalWidth = 0;
+    let fixedWidth = true;
+    let nextDOM = colgroup.firstChild;
+    const row = node.firstChild;
+    if (row !== null) for (let i = 0, col = 0; i < row.childCount; i += 1) {
+      const { colspan, colwidth } = row.child(i).attrs;
+      for (let j2 = 0; j2 < colspan; j2 += 1, col += 1) {
+        const hasWidth = overrideCol === col ? overrideValue : colwidth && colwidth[j2];
+        const cssWidth = hasWidth ? `${hasWidth}px` : "";
+        totalWidth += hasWidth || cellMinWidth;
+        if (!hasWidth) fixedWidth = false;
+        if (!nextDOM) {
+          const colElement = document.createElement("col");
+          const [propertyKey, propertyValue] = getColStyleDeclaration(cellMinWidth, hasWidth);
+          colElement.style.setProperty(propertyKey, propertyValue);
+          colgroup.appendChild(colElement);
+        } else {
+          if (nextDOM.style.width !== cssWidth) {
+            const [propertyKey, propertyValue] = getColStyleDeclaration(cellMinWidth, hasWidth);
+            nextDOM.style.setProperty(propertyKey, propertyValue);
+          }
+          nextDOM = nextDOM.nextSibling;
+        }
+      }
+    }
+    while (nextDOM) {
+      var _nextDOM$parentNode;
+      const after = nextDOM.nextSibling;
+      (_nextDOM$parentNode = nextDOM.parentNode) === null || _nextDOM$parentNode === void 0 || _nextDOM$parentNode.removeChild(nextDOM);
+      nextDOM = after;
+    }
+    const hasUserWidth = node.attrs.style && typeof node.attrs.style === "string" && /\bwidth\s*:/i.test(node.attrs.style);
+    if (fixedWidth && !hasUserWidth) {
+      table.style.width = `${totalWidth}px`;
+      table.style.minWidth = "";
+    } else {
+      table.style.width = "";
+      table.style.minWidth = `${totalWidth}px`;
+    }
+  }
+  var TableView2 = class {
+    constructor(node, cellMinWidth, _view, HTMLAttributes = {}) {
+      this.node = node;
+      this.cellMinWidth = cellMinWidth;
+      this.dom = document.createElement("div");
+      this.dom.className = "tableWrapper";
+      this.table = this.dom.appendChild(document.createElement("table"));
+      for (const [key, value] of Object.entries(HTMLAttributes)) if (value !== void 0 && value !== null) {
+        if (key === "style") this.table.style.cssText = String(value);
+        else this.table.setAttribute(key, String(value));
+      }
+      if (node.attrs.style) this.table.style.cssText = node.attrs.style;
+      this.colgroup = this.table.appendChild(document.createElement("colgroup"));
+      updateColumns(node, this.colgroup, this.table, cellMinWidth);
+      this.contentDOM = this.table.appendChild(document.createElement("tbody"));
+    }
+    update(node) {
+      if (node.type !== this.node.type) return false;
+      this.node = node;
+      updateColumns(node, this.colgroup, this.table, this.cellMinWidth);
+      return true;
+    }
+    ignoreMutation(mutation) {
+      const target = mutation.target;
+      const isInsideWrapper = this.dom.contains(target);
+      const isInsideContent = this.contentDOM.contains(target);
+      if (isInsideWrapper && !isInsideContent) {
+        if (mutation.type === "attributes" || mutation.type === "childList" || mutation.type === "characterData") return true;
+      }
+      return false;
+    }
+  };
+  function createColGroup(node, cellMinWidth, overrideCol, overrideValue) {
+    let totalWidth = 0;
+    let fixedWidth = true;
+    const cols = [];
+    const row = node.firstChild;
+    if (!row) return {};
+    for (let i = 0, col = 0; i < row.childCount; i += 1) {
+      const { colspan, colwidth } = row.child(i).attrs;
+      for (let j2 = 0; j2 < colspan; j2 += 1, col += 1) {
+        const hasWidth = overrideCol === col ? overrideValue : colwidth && colwidth[j2];
+        totalWidth += hasWidth || cellMinWidth;
+        if (!hasWidth) fixedWidth = false;
+        const [property, value] = getColStyleDeclaration(cellMinWidth, hasWidth);
+        cols.push(["col", { style: `${property}: ${value}` }]);
+      }
+    }
+    const tableWidth = fixedWidth ? `${totalWidth}px` : "";
+    const tableMinWidth = fixedWidth ? "" : `${totalWidth}px`;
+    return {
+      colgroup: [
+        "colgroup",
+        {},
+        ...cols
+      ],
+      tableWidth,
+      tableMinWidth
+    };
+  }
+  function createCell(cellType, cellContent) {
+    if (cellContent) return cellType.createChecked(null, cellContent);
+    return cellType.createAndFill();
+  }
+  function getTableNodeTypes(schema) {
+    if (schema.cached.tableNodeTypes) return schema.cached.tableNodeTypes;
+    const roles = {};
+    Object.keys(schema.nodes).forEach((type) => {
+      const nodeType = schema.nodes[type];
+      if (nodeType.spec.tableRole) roles[nodeType.spec.tableRole] = nodeType;
+    });
+    schema.cached.tableNodeTypes = roles;
+    return roles;
+  }
+  function createTable(schema, rowsCount, colsCount, withHeaderRow, cellContent) {
+    const types = getTableNodeTypes(schema);
+    const headerCells = [];
+    const cells = [];
+    for (let index = 0; index < colsCount; index += 1) {
+      const cell = createCell(types.cell, cellContent);
+      if (cell) cells.push(cell);
+      if (withHeaderRow) {
+        const headerCell = createCell(types.header_cell, cellContent);
+        if (headerCell) headerCells.push(headerCell);
+      }
+    }
+    const rows = [];
+    for (let index = 0; index < rowsCount; index += 1) rows.push(types.row.createChecked(null, withHeaderRow && index === 0 ? headerCells : cells));
+    return types.table.createChecked(null, rows);
+  }
+  function isCellSelection(value) {
+    return value instanceof CellSelection;
+  }
+  var deleteTableWhenAllCellsSelected = ({ editor }) => {
+    const { selection } = editor.state;
+    if (!isCellSelection(selection)) return false;
+    let cellCount = 0;
+    const table = findParentNodeClosestToPos(selection.ranges[0].$from, (node) => {
+      return node.type.name === "table";
+    });
+    table === null || table === void 0 || table.node.descendants((node) => {
+      if (node.type.name === "table") return false;
+      if (["tableCell", "tableHeader"].includes(node.type.name)) cellCount += 1;
+    });
+    if (!(cellCount === selection.ranges.length)) return false;
+    editor.commands.deleteTable();
+    return true;
+  };
+  function keepCursorInTable(tr2, tablePos) {
+    const mappedTablePos = tr2.mapping.map(tablePos);
+    const stillInTable = findParentNodeClosestToPos(tr2.selection.$from, (node) => node.type.name === "table");
+    if ((stillInTable === null || stillInTable === void 0 ? void 0 : stillInTable.pos) === mappedTablePos) return;
+    const tableNode = tr2.doc.nodeAt(mappedTablePos);
+    if (!tableNode) return;
+    const endOfTable = mappedTablePos + tableNode.nodeSize - 1;
+    tr2.setSelection(TextSelection.near(tr2.doc.resolve(endOfTable), -1));
+  }
+  function escapeTableCellPipes(line) {
+    let result = "";
+    let i = 0;
+    while (i < line.length) {
+      if (line[i] === "\\" && i + 1 < line.length) {
+        result += line[i] + line[i + 1];
+        i += 2;
+        continue;
+      }
+      if (line[i] !== "`") {
+        result += line[i++];
+        continue;
+      }
+      let runLen = 0;
+      while (i + runLen < line.length && line[i + runLen] === "`") runLen += 1;
+      let j2 = i + runLen;
+      let found2 = false;
+      while (j2 < line.length) {
+        if (line[j2] !== "`") {
+          j2 += 1;
+          continue;
+        }
+        let closeLen = 0;
+        while (j2 + closeLen < line.length && line[j2 + closeLen] === "`") closeLen += 1;
+        if (closeLen === runLen) {
+          const spanContent = line.slice(i + runLen, j2);
+          result += line.slice(i, i + runLen) + spanContent.replace(/\\\||\|/g, (match) => match === "|" ? "\\|" : match) + line.slice(j2, j2 + runLen);
+          i = j2 + runLen;
+          found2 = true;
+          break;
+        }
+        j2 += closeLen;
+      }
+      if (!found2) {
+        result += line.slice(i, i + runLen);
+        i += runLen;
+      }
+    }
+    return result;
+  }
+  function preprocessTablePipes(src) {
+    return src.split("\n").map((line) => {
+      if (!line.includes("|") || !line.includes("`")) return line;
+      return escapeTableCellPipes(line);
+    }).join("\n");
+  }
+  function collapseWhitespace(s) {
+    return (s || "").replaceAll("", " ").replace(/\s+/g, " ").trim();
+  }
+  function replaceCellLineSeparator(value, cellLineSeparator) {
+    if (!cellLineSeparator) return value;
+    return value.split(cellLineSeparator).join("\n");
+  }
+  function escapePipesInCellText(text2) {
+    return text2.replace(/\\.|\|/g, (match) => match === "|" ? "\\|" : match);
+  }
+  function renderTableToMarkdown(node, h2, options = {}) {
+    if (!node || !node.content || node.content.length === 0) return "";
+    const rows = [];
+    node.content.forEach((rowNode) => {
+      const cells = [];
+      if (rowNode.content) rowNode.content.forEach((cellNode) => {
+        let raw = "";
+        if (cellNode.content && Array.isArray(cellNode.content) && cellNode.content.length > 1) raw = cellNode.content.map((child) => replaceCellLineSeparator(h2.renderChildren(child), options.cellLineSeparator)).join("\n");
+        else raw = replaceCellLineSeparator(cellNode.content ? h2.renderChildren(cellNode.content) : "", options.cellLineSeparator);
+        const text2 = escapePipesInCellText(collapseWhitespace(raw.replace(/[ \t]*\r?\n[ \t]*/g, "<br>")));
+        const isHeader = cellNode.type === "tableHeader";
+        const align = normalizeTableCellAlignFromAttributes(cellNode.attrs);
+        cells.push({
+          text: text2,
+          isHeader,
+          align
+        });
+      });
+      rows.push(cells);
+    });
+    const columnCount = rows.reduce((max, r) => Math.max(max, r.length), 0);
+    if (columnCount === 0) return "";
+    const colWidths = Array.from({ length: columnCount }).fill(0);
+    rows.forEach((r) => {
+      for (let i = 0; i < columnCount; i += 1) {
+        var _r$i;
+        const len = (((_r$i = r[i]) === null || _r$i === void 0 ? void 0 : _r$i.text) || "").length;
+        if (len > colWidths[i]) colWidths[i] = len;
+        if (colWidths[i] < 3) colWidths[i] = 3;
+      }
+    });
+    const pad2 = (s, width) => s + " ".repeat(Math.max(0, width - s.length));
+    const headerRow = rows[0];
+    const hasHeader = headerRow.some((c) => c.isHeader);
+    const colAlignments = Array.from({ length: columnCount }).fill(null);
+    rows.forEach((r) => {
+      for (let i = 0; i < columnCount; i += 1) {
+        var _r$i2;
+        if (!colAlignments[i] && ((_r$i2 = r[i]) === null || _r$i2 === void 0 ? void 0 : _r$i2.align)) colAlignments[i] = r[i].align;
+      }
+    });
+    let out = "\n";
+    const headerTexts = Array.from({ length: columnCount }).map((_2, i) => hasHeader ? headerRow[i] && headerRow[i].text || "" : "");
+    out += `| ${headerTexts.map((t, i) => pad2(t, colWidths[i])).join(" | ")} |
+`;
+    out += `| ${colWidths.map((w2, index) => {
+      const dashCount = Math.max(3, w2);
+      const alignment = colAlignments[index];
+      if (alignment === "left") return `:${"-".repeat(dashCount)}`;
+      if (alignment === "right") return `${"-".repeat(dashCount)}:`;
+      if (alignment === "center") return `:${"-".repeat(dashCount)}:`;
+      return "-".repeat(dashCount);
+    }).join(" | ")} |
+`;
+    (hasHeader ? rows.slice(1) : rows).forEach((r) => {
+      out += `| ${Array.from({ length: columnCount }).fill(0).map((_2, i) => pad2(r[i] && r[i].text || "", colWidths[i])).join(" | ")} |
+`;
+    });
+    return out;
+  }
+  var preserveCellSelectionOnContextMenuPluginKey = new PluginKey("preserveCellSelectionOnContextMenu");
+  function resolveClickPos(view, event) {
+    const coords = view.posAtCoords({
+      left: event.clientX,
+      top: event.clientY
+    });
+    if (coords) return coords.pos;
+    if (!(event.target instanceof Node)) return null;
+    try {
+      return view.posAtDOM(event.target, 0);
+    } catch {
+      return null;
+    }
+  }
+  function isPosInsideCellSelection(selection, pos) {
+    let inside = false;
+    selection.forEachCell((cell, cellPos) => {
+      if (pos >= cellPos && pos < cellPos + cell.nodeSize) inside = true;
+    });
+    return inside;
+  }
+  function preserveCellSelectionOnContextMenu() {
+    return new Plugin({
+      key: preserveCellSelectionOnContextMenuPluginKey,
+      props: { handleDOMEvents: { mousedown(view, event) {
+        if (event.button !== 2) return false;
+        const { selection } = view.state;
+        if (!isCellSelection(selection) || selection.ranges.length < 2) return false;
+        const clickPos = resolveClickPos(view, event);
+        if (clickPos == null || !isPosInsideCellSelection(selection, clickPos)) return false;
+        event.preventDefault();
+        return true;
+      } } }
+    });
+  }
+  var Table = Node3.create({
+    name: "table",
+    addOptions() {
+      return {
+        HTMLAttributes: {},
+        resizable: false,
+        renderWrapper: false,
+        handleWidth: 5,
+        cellMinWidth: 25,
+        View: TableView2,
+        lastColumnResizable: true,
+        allowTableNodeSelection: false
+      };
+    },
+    content: "tableRow+",
+    tableRole: "table",
+    isolating: true,
+    group: "block",
+    parseHTML() {
+      return [{ tag: "table" }];
+    },
+    renderHTML({ node, HTMLAttributes }) {
+      const { colgroup, tableWidth, tableMinWidth } = createColGroup(node, this.options.cellMinWidth);
+      const userStyles = HTMLAttributes.style;
+      function getTableStyle() {
+        if (userStyles) return userStyles;
+        return tableWidth ? `width: ${tableWidth}` : `min-width: ${tableMinWidth}`;
+      }
+      const table = [
+        "table",
+        mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, { style: getTableStyle() }),
+        colgroup,
+        ["tbody", 0]
+      ];
+      return this.options.renderWrapper ? [
+        "div",
+        { class: "tableWrapper" },
+        table
+      ] : table;
+    },
+    parseMarkdown: (token, h2) => {
+      const rows = [];
+      const alignments = Array.isArray(token.align) ? token.align : [];
+      if (token.header) {
+        const headerCells = [];
+        token.header.forEach((cell, index) => {
+          var _alignments$index;
+          const align = normalizeTableCellAlign((_alignments$index = alignments[index]) !== null && _alignments$index !== void 0 ? _alignments$index : cell.align);
+          const attrs = align ? { align } : {};
+          headerCells.push(h2.createNode("tableHeader", attrs, [{
+            type: "paragraph",
+            content: h2.parseInline(cell.tokens)
+          }]));
+        });
+        rows.push(h2.createNode("tableRow", {}, headerCells));
+      }
+      if (token.rows) token.rows.forEach((row) => {
+        const bodyCells = [];
+        row.forEach((cell, index) => {
+          var _alignments$index2;
+          const align = normalizeTableCellAlign((_alignments$index2 = alignments[index]) !== null && _alignments$index2 !== void 0 ? _alignments$index2 : cell.align);
+          const attrs = align ? { align } : {};
+          bodyCells.push(h2.createNode("tableCell", attrs, [{
+            type: "paragraph",
+            content: h2.parseInline(cell.tokens)
+          }]));
+        });
+        rows.push(h2.createNode("tableRow", {}, bodyCells));
+      });
+      return h2.createNode("table", void 0, rows);
+    },
+    renderMarkdown: (node, h2) => {
+      return renderTableToMarkdown(node, h2);
+    },
+    markdownTokenizer: {
+      name: "table",
+      level: "block",
+      start: (src) => {
+        const lines = src.split("\n");
+        if (lines.length < 2) return -1;
+        const sep = lines[1];
+        if (!/^[ \t|:]*-[ \t|:-]*$/.test(sep) || !sep.includes("|")) return -1;
+        return lines[0].includes("|") ? 0 : -1;
+      },
+      tokenize(src, _tokens, helper) {
+        const blankLineIndex = src.indexOf("\n\n");
+        const candidate = blankLineIndex >= 0 ? src.slice(0, blankLineIndex) : src;
+        const candidateLines = candidate.split("\n");
+        if (candidateLines.length < 2) return void 0;
+        const sep = candidateLines[1];
+        if (!/^[ \t|:]*-[ \t|:-]*$/.test(sep) || !sep.includes("|")) return void 0;
+        const preprocessed = preprocessTablePipes(candidate);
+        if (preprocessed === candidate) return void 0;
+        const tableToken = helper.blockTokens(preprocessed)[0];
+        if ((tableToken === null || tableToken === void 0 ? void 0 : tableToken.type) !== "table" || !tableToken.raw) return void 0;
+        const lineCount = tableToken.raw.split("\n").length;
+        const raw = src.split("\n").slice(0, lineCount).join("\n");
+        return {
+          ...tableToken,
+          raw
+        };
+      }
+    },
+    addCommands() {
+      return {
+        insertTable: ({ rows = 3, cols = 3, withHeaderRow = true } = {}) => ({ tr: tr2, dispatch, editor }) => {
+          const node = createTable(editor.schema, rows, cols, withHeaderRow);
+          if (dispatch) {
+            const offset = tr2.selection.from + 1;
+            tr2.replaceSelectionWith(node).scrollIntoView().setSelection(TextSelection.near(tr2.doc.resolve(offset)));
+          }
+          return true;
+        },
+        addColumnBefore: () => ({ state: state2, dispatch }) => {
+          return addColumnBefore(state2, dispatch);
+        },
+        addColumnAfter: () => ({ state: state2, dispatch }) => {
+          return addColumnAfter(state2, dispatch);
+        },
+        deleteColumn: () => ({ state: state2, dispatch }) => {
+          const table = findParentNodeClosestToPos(state2.selection.$from, (node) => node.type.name === "table");
+          return deleteColumn(state2, dispatch && ((tr2) => {
+            if (table) keepCursorInTable(tr2, table.pos);
+            dispatch(tr2);
+          }));
+        },
+        addRowBefore: () => ({ state: state2, dispatch }) => {
+          return addRowBefore(state2, dispatch);
+        },
+        addRowAfter: () => ({ state: state2, dispatch }) => {
+          return addRowAfter(state2, dispatch);
+        },
+        deleteRow: () => ({ state: state2, dispatch }) => {
+          const table = findParentNodeClosestToPos(state2.selection.$from, (node) => node.type.name === "table");
+          return deleteRow(state2, dispatch && ((tr2) => {
+            if (table) keepCursorInTable(tr2, table.pos);
+            dispatch(tr2);
+          }));
+        },
+        deleteTable: () => ({ state: state2, dispatch }) => {
+          return deleteTable(state2, dispatch);
+        },
+        mergeCells: () => ({ state: state2, dispatch }) => {
+          return mergeCells(state2, dispatch);
+        },
+        splitCell: () => ({ state: state2, dispatch }) => {
+          return splitCell(state2, dispatch);
+        },
+        toggleHeaderColumn: () => ({ state: state2, dispatch }) => {
+          return toggleHeader("column")(state2, dispatch);
+        },
+        toggleHeaderRow: () => ({ state: state2, dispatch }) => {
+          return toggleHeader("row")(state2, dispatch);
+        },
+        toggleHeaderCell: () => ({ state: state2, dispatch }) => {
+          return toggleHeaderCell(state2, dispatch);
+        },
+        mergeOrSplit: () => ({ state: state2, dispatch }) => {
+          if (mergeCells(state2, dispatch)) return true;
+          return splitCell(state2, dispatch);
+        },
+        setCellAttribute: (name, value) => ({ state: state2, dispatch }) => {
+          return setCellAttr(name, value)(state2, dispatch);
+        },
+        goToNextCell: () => ({ state: state2, dispatch }) => {
+          return goToNextCell(1)(state2, dispatch);
+        },
+        goToPreviousCell: () => ({ state: state2, dispatch }) => {
+          return goToNextCell(-1)(state2, dispatch);
+        },
+        fixTables: () => ({ state: state2, dispatch }) => {
+          if (dispatch) fixTables(state2);
+          return true;
+        },
+        setCellSelection: (position) => ({ tr: tr2, dispatch }) => {
+          if (dispatch) {
+            const selection = CellSelection.create(tr2.doc, position.anchorCell, position.headCell);
+            tr2.setSelection(selection);
+          }
+          return true;
+        }
+      };
+    },
+    addKeyboardShortcuts() {
+      return {
+        Tab: () => {
+          if (this.editor.commands.goToNextCell()) return true;
+          if (!this.editor.can().addRowAfter()) return false;
+          return this.editor.chain().addRowAfter().goToNextCell().run();
+        },
+        "Shift-Tab": () => this.editor.commands.goToPreviousCell(),
+        Backspace: deleteTableWhenAllCellsSelected,
+        "Mod-Backspace": deleteTableWhenAllCellsSelected,
+        Delete: deleteTableWhenAllCellsSelected,
+        "Mod-Delete": deleteTableWhenAllCellsSelected
+      };
+    },
+    addProseMirrorPlugins() {
+      return [
+        ...this.options.resizable && this.editor.isEditable ? [columnResizing({
+          handleWidth: this.options.handleWidth,
+          cellMinWidth: this.options.cellMinWidth,
+          defaultCellMinWidth: this.options.cellMinWidth,
+          View: this.options.View,
+          lastColumnResizable: this.options.lastColumnResizable
+        })] : [],
+        tableEditing({ allowTableNodeSelection: this.options.allowTableNodeSelection }),
+        preserveCellSelectionOnContextMenu()
+      ];
+    },
+    addNodeView() {
+      const isResizable = this.options.resizable && this.editor.isEditable;
+      const View = this.options.View;
+      if (isResizable || !View) return null;
+      return ({ node, view, HTMLAttributes }) => {
+        const mergedAttributes = mergeAttributes(this.options.HTMLAttributes, HTMLAttributes);
+        return new View(node, this.options.cellMinWidth, view, mergedAttributes);
+      };
+    },
+    extendNodeSchema(extension) {
+      const context = {
+        name: extension.name,
+        options: extension.options,
+        storage: extension.storage
+      };
+      return { tableRole: callOrReturn(getExtensionField(extension, "tableRole", context)) };
+    }
+  });
+  var TableKit = Extension.create({
+    name: "tableKit",
+    addExtensions() {
+      const extensions = [];
+      if (this.options.table !== false) extensions.push(Table.configure(this.options.table));
+      if (this.options.tableCell !== false) extensions.push(TableCell.configure(this.options.tableCell));
+      if (this.options.tableHeader !== false) extensions.push(TableHeader.configure(this.options.tableHeader));
+      if (this.options.tableRow !== false) extensions.push(TableRow.configure(this.options.tableRow));
+      return extensions;
+    }
+  });
+
+  // node_modules/uuid/dist/stringify.js
+  var byteToHex = [];
+  for (let i = 0; i < 256; ++i) {
+    byteToHex.push((i + 256).toString(16).slice(1));
+  }
+  function unsafeStringify(arr, offset = 0) {
+    return (byteToHex[arr[offset + 0]] + byteToHex[arr[offset + 1]] + byteToHex[arr[offset + 2]] + byteToHex[arr[offset + 3]] + "-" + byteToHex[arr[offset + 4]] + byteToHex[arr[offset + 5]] + "-" + byteToHex[arr[offset + 6]] + byteToHex[arr[offset + 7]] + "-" + byteToHex[arr[offset + 8]] + byteToHex[arr[offset + 9]] + "-" + byteToHex[arr[offset + 10]] + byteToHex[arr[offset + 11]] + byteToHex[arr[offset + 12]] + byteToHex[arr[offset + 13]] + byteToHex[arr[offset + 14]] + byteToHex[arr[offset + 15]]).toLowerCase();
+  }
+
+  // node_modules/uuid/dist/rng.js
+  var rnds8 = new Uint8Array(16);
+  function rng() {
+    return crypto.getRandomValues(rnds8);
+  }
+
+  // node_modules/uuid/dist/v4.js
+  function v4(options, buf, offset) {
+    if (!buf && !options && crypto.randomUUID) {
+      return crypto.randomUUID();
+    }
+    return _v4(options, buf, offset);
+  }
+  function _v4(options, buf, offset) {
+    options = options || {};
+    const rnds = options.random ?? options.rng?.() ?? rng();
+    if (rnds.length < 16) {
+      throw new Error("Random bytes length must be >= 16");
+    }
+    rnds[6] = rnds[6] & 15 | 64;
+    rnds[8] = rnds[8] & 63 | 128;
+    if (buf) {
+      offset = offset || 0;
+      if (offset < 0 || offset + 16 > buf.length) {
+        throw new RangeError(`UUID byte range ${offset}:${offset + 15} is out of buffer bounds`);
+      }
+      for (let i = 0; i < 16; ++i) {
+        buf[offset + i] = rnds[i];
+      }
+      return buf;
+    }
+    return unsafeStringify(rnds);
+  }
+  var v4_default = v4;
+
+  // node_modules/@tiptap/extension-unique-id/dist/index.js
+  function findDuplicates2(items) {
+    const seen = /* @__PURE__ */ new Set();
+    const duplicates = /* @__PURE__ */ new Set();
+    items.forEach((item) => {
+      if (seen.has(item)) duplicates.add(item);
+      else seen.add(item);
+    });
+    return Array.from(duplicates);
+  }
+  var resolveTypes = (types, extensions) => {
+    if (types !== "all") return types;
+    const { nodeExtensions } = splitExtensions(extensions);
+    return nodeExtensions.map((extension) => extension.name).filter((type) => type !== "doc" && type !== "text");
+  };
+  var UniqueID = Extension.create({
+    name: "uniqueID",
+    priority: 1e4,
+    addOptions() {
+      return {
+        attributeName: "id",
+        types: [],
+        generateID: () => v4_default(),
+        filterTransaction: null,
+        updateDocument: true
+      };
+    },
+    /**
+    * Extension storage for coordination between `addProseMirrorPlugins` and `appendTransaction`.
+    * `needsInitialIdGeneration` is set to `true` when the Collaboration extension is
+    * detected but no provider is available in its options, deferring ID creation
+    * to the first `y-sync$` transaction.
+    */
+    addStorage() {
+      return { needsInitialIdGeneration: false };
+    },
+    addGlobalAttributes() {
+      return [{
+        types: resolveTypes(this.options.types, this.extensions),
+        attributes: { [this.options.attributeName]: {
+          default: null,
+          parseHTML: (element) => element.getAttribute(`data-${this.options.attributeName}`),
+          renderHTML: (attributes) => {
+            if (!attributes[this.options.attributeName]) return {};
+            return { [`data-${this.options.attributeName}`]: attributes[this.options.attributeName] };
+          }
+        } }
+      }];
+    },
+    onCreate() {
+      var _collab$options;
+      if (!this.options.updateDocument) return;
+      const collaboration = this.editor.extensionManager.extensions.find((ext) => ext.name === "collaboration");
+      const collab = [collaboration, this.editor.extensionManager.extensions.find((ext) => ext.name === "collaborationCaret")].filter(Boolean).find((ext) => {
+        var _ext$options;
+        return ext === null || ext === void 0 || (_ext$options = ext.options) === null || _ext$options === void 0 ? void 0 : _ext$options.provider;
+      });
+      const provider = collab === null || collab === void 0 || (_collab$options = collab.options) === null || _collab$options === void 0 ? void 0 : _collab$options.provider;
+      const createIds = () => {
+        const { view, state: state2 } = this.editor;
+        const { tr: tr2, doc: doc3 } = state2;
+        const types = resolveTypes(this.options.types, this.editor.extensionManager.extensions);
+        const { attributeName, generateID } = this.options;
+        findChildren(doc3, (node) => {
+          return types.includes(node.type.name) && node.attrs[attributeName] === null;
+        }).forEach(({ node, pos }) => {
+          tr2.setNodeMarkup(pos, void 0, {
+            ...node.attrs,
+            [attributeName]: generateID({
+              node,
+              pos
+            })
+          });
+        });
+        tr2.setMeta("addToHistory", false);
+        view.dispatch(tr2);
+        if (provider) provider.off("synced", createIds);
+      };
+      if (collaboration) {
+        if (provider) {
+          provider.on("synced", createIds);
+          this.storage.cleanupSyncedListener = () => provider.off("synced", createIds);
+        }
+      } else return createIds();
+    },
+    onDestroy() {
+      var _this$storage$cleanup, _this$storage;
+      (_this$storage$cleanup = (_this$storage = this.storage).cleanupSyncedListener) === null || _this$storage$cleanup === void 0 || _this$storage$cleanup.call(_this$storage);
+    },
+    addProseMirrorPlugins() {
+      if (!this.options.updateDocument) return [];
+      const extensionStorage = this.storage;
+      const collaboration = this.editor.extensionManager.extensions.find((ext) => ext.name === "collaboration");
+      const collabWithProvider = [collaboration, this.editor.extensionManager.extensions.find((ext) => ext.name === "collaborationCaret")].filter(Boolean).find((ext) => {
+        var _ext$options2;
+        return ext === null || ext === void 0 || (_ext$options2 = ext.options) === null || _ext$options2 === void 0 ? void 0 : _ext$options2.provider;
+      });
+      if (collaboration && !collabWithProvider) extensionStorage.needsInitialIdGeneration = true;
+      let dragSourceElement = null;
+      let transformPasted = false;
+      const types = resolveTypes(this.options.types, this.editor.extensionManager.extensions);
+      return [new Plugin({
+        key: new PluginKey("uniqueID"),
+        appendTransaction: (transactions, oldState, newState) => {
+          const hasDocChanges = transactions.some((transaction) => transaction.docChanged) && !oldState.doc.eq(newState.doc);
+          const filterTransactions = this.options.filterTransaction && transactions.some((tr3) => {
+            var _this$options$filterT, _this$options;
+            return !((_this$options$filterT = (_this$options = this.options).filterTransaction) === null || _this$options$filterT === void 0 ? void 0 : _this$options$filterT.call(_this$options, tr3));
+          });
+          if (transactions.find((tr3) => tr3.getMeta("y-sync$"))) {
+            if (extensionStorage.needsInitialIdGeneration) {
+              extensionStorage.needsInitialIdGeneration = false;
+              const { tr: tr3 } = newState;
+              const { attributeName: attributeName2, generateID: generateID2 } = this.options;
+              const allNodes = findChildren(newState.doc, (node) => types.includes(node.type.name));
+              const seen = /* @__PURE__ */ new Set();
+              allNodes.forEach(({ node, pos }) => {
+                const currentId = node.attrs[attributeName2];
+                if (currentId === null || seen.has(currentId)) tr3.setNodeMarkup(pos, void 0, {
+                  ...node.attrs,
+                  [attributeName2]: generateID2({
+                    node,
+                    pos
+                  })
+                });
+                else seen.add(currentId);
+              });
+              if (!tr3.steps.length) return;
+              tr3.setStoredMarks(newState.tr.storedMarks);
+              tr3.setMeta("__uniqueIDTransaction", true);
+              tr3.setMeta("addToHistory", false);
+              return tr3;
+            }
+            return;
+          }
+          if (!hasDocChanges || filterTransactions) return;
+          const { tr: tr2 } = newState;
+          const { attributeName, generateID } = this.options;
+          const transform = combineTransactionSteps(oldState.doc, transactions);
+          const { mapping } = transform;
+          getChangedRanges(transform).forEach(({ newRange }) => {
+            const newNodes = findChildrenInRange(newState.doc, newRange, (node) => {
+              return types.includes(node.type.name);
+            });
+            const newIds = newNodes.map(({ node }) => node.attrs[attributeName]).filter((id) => id !== null);
+            newNodes.forEach(({ node, pos }, i) => {
+              var _tr$doc$nodeAt;
+              const id = (_tr$doc$nodeAt = tr2.doc.nodeAt(pos)) === null || _tr$doc$nodeAt === void 0 ? void 0 : _tr$doc$nodeAt.attrs[attributeName];
+              if (id === null) {
+                tr2.setNodeMarkup(pos, void 0, {
+                  ...node.attrs,
+                  [attributeName]: generateID({
+                    node,
+                    pos
+                  })
+                });
+                return;
+              }
+              const nextNode = newNodes[i + 1];
+              if (nextNode && node.content.size === 0) {
+                const nextNodeInTr = tr2.doc.nodeAt(nextNode.pos);
+                if ((nextNodeInTr === null || nextNodeInTr === void 0 ? void 0 : nextNodeInTr.attrs[attributeName]) && nextNodeInTr.attrs[attributeName] !== id) return;
+                tr2.setNodeMarkup(nextNode.pos, void 0, {
+                  ...nextNode.node.attrs,
+                  [attributeName]: id
+                });
+                newIds[i + 1] = id;
+                const generatedId = generateID({
+                  node,
+                  pos
+                });
+                tr2.setNodeMarkup(pos, void 0, {
+                  ...node.attrs,
+                  [attributeName]: generatedId
+                });
+                newIds[i] = generatedId;
+                return tr2;
+              }
+              const duplicatedNewIds = findDuplicates2(newIds);
+              const { deleted } = mapping.invert().mapResult(pos);
+              if (deleted && duplicatedNewIds.includes(id)) tr2.setNodeMarkup(pos, void 0, {
+                ...node.attrs,
+                [attributeName]: generateID({
+                  node,
+                  pos
+                })
+              });
+            });
+          });
+          if (!tr2.steps.length) return;
+          tr2.setStoredMarks(newState.tr.storedMarks);
+          tr2.setMeta("__uniqueIDTransaction", true);
+          return tr2;
+        },
+        view(view) {
+          const handleDragstart = (event) => {
+            var _view$dom$parentEleme;
+            dragSourceElement = ((_view$dom$parentEleme = view.dom.parentElement) === null || _view$dom$parentEleme === void 0 ? void 0 : _view$dom$parentEleme.contains(event.target)) ? view.dom.parentElement : null;
+          };
+          window.addEventListener("dragstart", handleDragstart);
+          return { destroy() {
+            window.removeEventListener("dragstart", handleDragstart);
+          } };
+        },
+        props: {
+          handleDOMEvents: {
+            drop: (view, event) => {
+              var _event$dataTransfer, _event$dataTransfer2;
+              if (dragSourceElement !== view.dom.parentElement || ((_event$dataTransfer = event.dataTransfer) === null || _event$dataTransfer === void 0 ? void 0 : _event$dataTransfer.effectAllowed) === "copyMove" || ((_event$dataTransfer2 = event.dataTransfer) === null || _event$dataTransfer2 === void 0 ? void 0 : _event$dataTransfer2.effectAllowed) === "copy") {
+                dragSourceElement = null;
+                transformPasted = true;
+              }
+              return false;
+            },
+            paste: () => {
+              transformPasted = true;
+              return false;
+            }
+          },
+          transformPasted: (slice2) => {
+            if (!transformPasted) return slice2;
+            const { attributeName } = this.options;
+            const removeId = (fragment) => {
+              const list = [];
+              fragment.forEach((node) => {
+                if (node.isText) {
+                  list.push(node);
+                  return;
+                }
+                if (!types.includes(node.type.name)) {
+                  list.push(node.copy(removeId(node.content)));
+                  return;
+                }
+                const nodeWithoutId = node.type.create({
+                  ...node.attrs,
+                  [attributeName]: null
+                }, removeId(node.content), node.marks);
+                list.push(nodeWithoutId);
+              });
+              return Fragment.from(list);
+            };
+            transformPasted = false;
+            return new Slice(removeId(slice2.content), slice2.openStart, slice2.openEnd);
+          }
+        }
+      })];
+    }
+  });
+
   // frontend/document-editor-src.js
   var pending = null;
   var current = null;
@@ -40334,7 +43065,12 @@ Please report this to https://github.com/markedjs/marked.`, e) {
   })();
   var draftKey = (id) => `yantu:document-draft:${id}:${tabId}`;
   var snapshot = (value) => JSON.stringify(value);
-  var structured = (value) => value && typeof value === "object" && value.type === "doc" && value.schemaVersion === 1;
+  var blockTypes = /* @__PURE__ */ new Set(["paragraph", "heading", "bulletList", "orderedList", "listItem", "blockquote", "codeBlock", "horizontalRule", "blockMath", "table", "tableRow", "tableCell", "tableHeader"]);
+  var randomBlockId = () => crypto.randomUUID?.() || "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (letter) => {
+    const value = Math.floor(Math.random() * 16);
+    return (letter === "x" ? value : value & 3 | 8).toString(16);
+  });
+  var structured = (value) => value && typeof value === "object" && value.type === "doc" && [1, 2].includes(value.schemaVersion);
   var status = (message, error = false) => {
     const node = document.querySelector("#documentSaveStatus");
     if (node) {
@@ -40342,8 +43078,24 @@ Please report this to https://github.com/markedjs/marked.`, e) {
       node.classList.toggle("is-error", error);
     }
   };
-  var content = () => current?.editor ? { schemaVersion: 1, ...current.editor.getJSON() } : null;
+  var content = () => current?.editor ? { schemaVersion: 2, ...current.editor.getJSON() } : null;
   var title = () => document.querySelector("#documentTitle")?.value.trim() || current?.resource.title || "";
+  function repairBlockIds(editor) {
+    const seen = /* @__PURE__ */ new Set();
+    const transaction = editor.state.tr;
+    editor.state.doc.descendants((node, pos) => {
+      if (!blockTypes.has(node.type.name)) return;
+      let id = node.attrs.id;
+      if (typeof id !== "string" || seen.has(id)) {
+        id = randomBlockId();
+        transaction.setNodeMarkup(pos, void 0, { ...node.attrs, id }, node.marks);
+      }
+      seen.add(id);
+    });
+    if (!transaction.docChanged) return false;
+    editor.view.dispatch(transaction);
+    return true;
+  }
   function readDraft(id) {
     try {
       const prefix = `yantu:document-draft:${id}`;
@@ -40554,6 +43306,31 @@ Please report this to https://github.com/markedjs/marked.`, e) {
     dialog.close();
     current.formula = null;
   }
+  function linkDialog() {
+    if (!current?.doc.canEdit) return;
+    const dialog = document.querySelector("#structuredLinkDialog");
+    current.linkSelection = { from: current.editor.state.selection.from, to: current.editor.state.selection.to };
+    dialog.querySelector("input").value = current.editor.getAttributes("link").href || "";
+    dialog.showModal();
+    dialog.querySelector("input").focus();
+  }
+  function saveLink() {
+    const dialog = document.querySelector("#structuredLinkDialog");
+    let href = dialog.querySelector("input").value.trim();
+    if (href && !/^[a-z][a-z0-9+.-]*:/i.test(href)) href = `https://${href}`;
+    if (href && !/^(https?:\/\/[^\s]+|mailto:[^\s]+)$/i.test(href)) {
+      status("\u8BF7\u8F93\u5165\u6709\u6548\u7684\u7F51\u9875\u6216\u90AE\u7BB1\u94FE\u63A5", true);
+      return;
+    }
+    const editor = current.editor;
+    const selection = current.linkSelection;
+    const chain = editor.chain().focus();
+    if (selection) chain.setTextSelection(selection);
+    if (href) chain.setLink({ href }).run();
+    else chain.unsetLink().run();
+    dialog.close();
+    current.linkSelection = null;
+  }
   function hideMenus() {
     for (const id of ["structuredSelectionTools", "structuredSlashMenu"]) {
       const node = document.getElementById(id);
@@ -40598,6 +43375,14 @@ Please report this to https://github.com/markedjs/marked.`, e) {
       formulaDialog();
       return;
     }
+    if (command2 === "link") {
+      linkDialog();
+      return;
+    }
+    if (command2 === "table") {
+      editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+      return;
+    }
     const chain = editor.chain().focus();
     const actions = {
       paragraph: () => chain.setParagraph(),
@@ -40621,7 +43406,10 @@ Please report this to https://github.com/markedjs/marked.`, e) {
     if (!host || !pending) return;
     const { resource, doc: doc3 } = pending;
     pending = null;
-    const workspace = current = { resource, doc: doc3, dirty: false, titleDirty: false, saving: false, titleSaving: false, conflict: false, lastSaved: null };
+    document.querySelector("#structuredSelectionTools").insertAdjacentHTML("beforeend", '<button type="button" data-editor-command="link" title="\u94FE\u63A5 Ctrl+K">\u94FE\u63A5</button>');
+    document.querySelector("#structuredSlashMenu").insertAdjacentHTML("beforeend", '<button type="button" data-editor-command="table" data-alias="table bg"><span>\u25A6</span>\u8868\u683C</button>');
+    host.closest(".structured-workspace").insertAdjacentHTML("beforeend", '<dialog id="structuredLinkDialog" class="document-link-dialog"><strong>\u94FE\u63A5</strong><input type="url" aria-label="\u94FE\u63A5\u5730\u5740" placeholder="https://example.com"><div><button type="button" class="btn" data-structured-action="cancel-link">\u53D6\u6D88</button><button type="button" class="btn primary" data-structured-action="save-link">\u5B8C\u6210</button></div></dialog>');
+    const workspace = current = { resource, doc: doc3, dirty: false, titleDirty: false, saving: false, titleSaving: false, conflict: false, lastSaved: null, initializing: true };
     let editor;
     editor = new Editor({
       element: host,
@@ -40644,15 +43432,21 @@ Please report this to https://github.com/markedjs/marked.`, e) {
           return false;
         }
       },
-      extensions: [src_default.configure({ heading: { levels: [1, 2, 3, 4, 5, 6] } }), Mathematics.configure({
-        katexOptions: { throwOnError: false, trust: false, maxExpand: 1e3, maxSize: 20 },
-        inlineOptions: { onClick: (node, pos) => formulaDialog(node, pos) },
-        blockOptions: { onClick: (node, pos) => formulaDialog(node, pos) }
-      }), Markdown],
+      extensions: [
+        src_default.configure({ heading: { levels: [1, 2, 3, 4, 5, 6] } }),
+        UniqueID.configure({ types: ["paragraph", "heading", "bulletList", "orderedList", "listItem", "blockquote", "codeBlock", "horizontalRule", "blockMath", "table", "tableRow", "tableCell", "tableHeader"], updateDocument: doc3.canEdit }),
+        TableKit,
+        Mathematics.configure({
+          katexOptions: { throwOnError: false, trust: false, maxExpand: 1e3, maxSize: 20 },
+          inlineOptions: { onClick: (node, pos) => formulaDialog(node, pos) },
+          blockOptions: { onClick: (node, pos) => formulaDialog(node, pos) }
+        }),
+        Markdown
+      ],
       content: typeof doc3.content === "string" ? doc3.content : doc3.content,
       contentType: typeof doc3.content === "string" ? "markdown" : "json",
       onUpdate: () => {
-        if (current !== workspace) return;
+        if (current !== workspace || workspace.initializing || !workspace.editor || repairBlockIds(editor)) return;
         outlineRows();
         queueSave();
         updateMenus();
@@ -40664,7 +43458,8 @@ Please report this to https://github.com/markedjs/marked.`, e) {
       onBlur: hideMenus
     });
     workspace.editor = editor;
-    workspace.lastSaved = snapshot(structured(doc3.content) ? doc3.content : { schemaVersion: 1, ...editor.getJSON() });
+    if (doc3.canEdit) repairBlockIds(editor);
+    workspace.lastSaved = snapshot(structured(doc3.content) ? doc3.content : { schemaVersion: 2, ...editor.getJSON() });
     workspace.recovery = doc3.canEdit ? readDraft(resource.id) : null;
     if (workspace.recovery && snapshot(workspace.recovery.content) === snapshot(content()) && workspace.recovery.title === resource.title) {
       try {
@@ -40677,6 +43472,7 @@ Please report this to https://github.com/markedjs/marked.`, e) {
       document.querySelector("#structuredRecovery").hidden = false;
       document.querySelector("#structuredRecovery span").textContent = workspace.recovery.version === doc3.version ? "\u53D1\u73B0\u5C1A\u672A\u540C\u6B65\u7684\u672C\u5730\u8BB0\u5F55" : "\u53D1\u73B0\u57FA\u4E8E\u65E7\u7248\u672C\u7684\u672C\u5730\u8BB0\u5F55";
     }
+    workspace.initializing = false;
     outlineRows();
     host.addEventListener("keyup", updateMenus);
     host.addEventListener("mouseup", updateMenus);
@@ -40752,6 +43548,8 @@ Please report this to https://github.com/markedjs/marked.`, e) {
     }
     if (action === "cancel-formula") document.querySelector("#structuredFormulaDialog").close();
     if (action === "save-formula") saveFormula();
+    if (action === "cancel-link") document.querySelector("#structuredLinkDialog").close();
+    if (action === "save-link") saveLink();
     if (action === "view-draft") {
       const dialog = document.querySelector("#structuredDraftDialog");
       dialog.querySelector("textarea").value = typeof current.recovery?.content === "string" ? current.recovery.content : JSON.stringify(current.recovery?.content, null, 2);
@@ -40812,6 +43610,10 @@ Please report this to https://github.com/markedjs/marked.`, e) {
       });
       save().catch(() => {
       });
+    }
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k" && event.target.closest?.("#structuredEditor")) {
+      event.preventDefault();
+      linkDialog();
     }
   });
   document.addEventListener("focusout", (event) => {

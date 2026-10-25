@@ -2,12 +2,15 @@
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 from threading import Barrier
+from uuid import UUID, uuid4
+import json
 
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, inspect, text
 
 from yantu.app import create_app
+from yantu.document_model import validate_document
 from yantu.migrations import migrate
 from yantu.models import Base
 
@@ -136,7 +139,7 @@ def test_native_documents_and_text_workspace(drive):
     folder = data(c.post('/api/v1/me/drive/folders', headers=owner,
                          json={'name': '在线文档', 'parentId': None}), 201)['id']
     for kind, suffix, initial in [
-        ('document', '.ytdoc', {'schemaVersion': 1, 'type': 'doc', 'content': [{'type': 'paragraph'}]}),
+        ('document', '.ytdoc', None),
         ('sheet', '.ytsheet', [['', '', ''] for _ in range(8)]),
         ('slides', '.ytslides', [{'title': '', 'body': ''}]),
     ]:
@@ -146,12 +149,18 @@ def test_native_documents_and_text_workspace(drive):
         assert created['folderId'] == folder
         endpoint = '/api/v1/resources/'+created['id']+'/document'
         opened = data(c.get(endpoint, headers=owner))
-        assert opened['kind'] == kind and opened['content'] == initial and opened['canEdit']
+        assert opened['kind'] == kind and opened['canEdit']
+        if kind == 'document':
+            assert opened['content']['schemaVersion'] == 2
+            assert opened['content']['content'][0]['type'] == 'paragraph'
+            UUID(opened['content']['content'][0]['attrs']['id'])
+        else:
+            assert opened['content'] == initial
         assert opened['modifiedAt']
-        content = ({'schemaVersion': 1, 'type': 'doc', 'content': [
-            {'type': 'heading', 'attrs': {'level': 1}, 'content': [{'type': 'text', 'text': '研究问题'}]},
-            {'type': 'paragraph', 'content': [{'type': 'text', 'text': '这是正文'}]},
-            {'type': 'blockMath', 'attrs': {'latex': r'\\frac{a}{b}'}}]} if kind == 'document' else
+        content = ({'schemaVersion': 2, 'type': 'doc', 'content': [
+            {'type': 'heading', 'attrs': {'level': 1, 'id': str(uuid4())}, 'content': [{'type': 'text', 'text': '研究问题'}]},
+            {'type': 'paragraph', 'attrs': {'id': str(uuid4())}, 'content': [{'type': 'text', 'text': '这是正文', 'marks': [{'type': 'link', 'attrs': {'href': 'https://example.com'}}]}]},
+            {'type': 'blockMath', 'attrs': {'latex': r'\\frac{a}{b}', 'id': str(uuid4())}}]} if kind == 'document' else
                    [['数据', '42']] if kind == 'sheet' else [{'title': '第一页', 'body': '结论'}])
         saved = data(c.put(endpoint, headers=owner, json={'version': 1, 'content': content}))
         assert saved['version'] == 2 and saved['modifiedAt']
@@ -170,7 +179,10 @@ def test_native_documents_and_text_workspace(drive):
         if kind == 'document':
             assert c.put(endpoint, headers=owner, json={'version': 2, 'content': '# 不再保存整段 Markdown'}).status_code == 400
             assert c.put(endpoint, headers=owner, json={'version': 2, 'content': {
-                'schemaVersion': 1, 'type': 'doc', 'content': [{'type': 'script', 'text': 'bad'}]
+                'schemaVersion': 2, 'type': 'doc', 'content': [{'type': 'script', 'text': 'bad'}]
+            }}).status_code == 400
+            assert c.put(endpoint, headers=owner, json={'version': 2, 'content': {
+                'schemaVersion': 1, 'type': 'doc', 'content': [{'type': 'paragraph'}]
             }}).status_code == 400
     text_file = data(upload(c, owner, key='workspace-txt', content='初始正文'.encode('utf-8')),
                      201)
@@ -194,8 +206,8 @@ def test_simultaneous_document_saves_keep_one_version(drive):
 
     def save(content):
         gate.wait(timeout=10)
-        structured = {'schemaVersion': 1, 'type': 'doc', 'content': [
-            {'type': 'paragraph', 'content': [{'type': 'text', 'text': content}]}
+        structured = {'schemaVersion': 2, 'type': 'doc', 'content': [
+            {'type': 'paragraph', 'attrs': {'id': str(uuid4())}, 'content': [{'type': 'text', 'text': content}]}
         ]}
         return c.put(endpoint, headers=owner, json={'version': 1, 'content': structured})
 
@@ -209,6 +221,54 @@ def test_simultaneous_document_saves_keep_one_version(drive):
     current = data(c.get(endpoint, headers=owner))
     assert current['content']['content'][0]['content'][0]['text'] == winner and current['version'] == 2
     assert len(data(c.get('/api/v1/resources/'+created['id']+'/versions', headers=owner))['items']) == 2
+
+
+def test_document_model_v2_tables_ids_links_and_v1_read_compatibility(drive):
+    c, actors, _, _ = drive
+    owner = actors[0][1]
+    legacy_bytes = json.dumps({'kind': 'document', 'content': {
+        'schemaVersion': 1, 'type': 'doc', 'content': [
+            {'type': 'heading', 'attrs': {'level': 2}, 'content': [{'type': 'text', 'text': '旧版标题'}]},
+        ],
+    }}, ensure_ascii=False).encode('utf-8')
+    old = data(upload(c, owner, key='legacy-document-v1', content=legacy_bytes, filename='旧版.ytdoc'), 201)
+    endpoint = '/api/v1/resources/'+old['id']+'/document'
+    assert data(c.get(endpoint, headers=owner))['content']['schemaVersion'] == 1
+    assert c.put(endpoint, headers=owner, json={'version': 1, 'content': {'schemaVersion': 1, 'type': 'doc', 'content': [{'type': 'paragraph'}]}}).status_code == 400
+
+    identifier = lambda: str(uuid4())
+    paragraph = lambda text_value: {'type': 'paragraph', 'attrs': {'id': identifier()},
+                                    'content': [{'type': 'text', 'text': text_value}]}
+    table = {'type': 'table', 'attrs': {'id': identifier()}, 'content': [
+        {'type': 'tableRow', 'attrs': {'id': identifier()}, 'content': [
+            {'type': 'tableHeader', 'attrs': {'id': identifier(), 'colspan': 1, 'rowspan': 1, 'colwidth': None, 'align': None}, 'content': [paragraph('项目')]},
+            {'type': 'tableHeader', 'attrs': {'id': identifier(), 'colspan': 1, 'rowspan': 1, 'colwidth': None, 'align': None}, 'content': [paragraph('结果')]},
+        ]},
+        {'type': 'tableRow', 'attrs': {'id': identifier()}, 'content': [
+            {'type': 'tableCell', 'attrs': {'id': identifier(), 'colspan': 1, 'rowspan': 1, 'colwidth': None, 'align': None}, 'content': [paragraph('实验 A')]},
+            {'type': 'tableCell', 'attrs': {'id': identifier(), 'colspan': 1, 'rowspan': 1, 'colwidth': None, 'align': None}, 'content': [paragraph('通过')]},
+        ]},
+    ]}
+    linked = paragraph('参考来源')
+    linked['content'][0]['marks'] = [{'type': 'link', 'attrs': {'href': 'https://example.org/paper', 'target': '_blank', 'rel': 'noopener noreferrer nofollow', 'class': None, 'title': None}}]
+    upgraded = {'schemaVersion': 2, 'type': 'doc', 'content': [linked, table]}
+    assert data(c.put(endpoint, headers=owner, json={'version': 1, 'content': upgraded}))['version'] == 2
+    assert data(c.get(endpoint, headers=owner))['content'] == upgraded
+    assert '实验 A' in validate_document(upgraded)[1]
+
+    duplicate = json.loads(json.dumps(upgraded, ensure_ascii=False))
+    duplicate['content'][1]['attrs']['id'] = duplicate['content'][0]['attrs']['id']
+    assert c.put(endpoint, headers=owner, json={'version': 2, 'content': duplicate}).status_code == 400
+    unsafe = json.loads(json.dumps(upgraded, ensure_ascii=False))
+    unsafe['content'][0]['content'][0]['marks'][0]['attrs']['href'] = 'javascript:alert(1)'
+    assert c.put(endpoint, headers=owner, json={'version': 2, 'content': unsafe}).status_code == 400
+    invalid_alignment = json.loads(json.dumps(upgraded, ensure_ascii=False))
+    invalid_alignment['content'][1]['content'][0]['content'][0]['attrs']['align'] = 'expression(alert(1))'
+    assert c.put(endpoint, headers=owner, json={'version': 2, 'content': invalid_alignment}).status_code == 400
+    broken = json.loads(json.dumps(upgraded, ensure_ascii=False))
+    broken['content'][1]['content'][0]['content'][0]['content'] = [{'type': 'text', 'text': '非法嵌套'}]
+    assert c.put(endpoint, headers=owner, json={'version': 2, 'content': broken}).status_code == 400
+    assert data(c.get(endpoint, headers=owner))['version'] == 2
 
 
 def test_document_title_rejects_stale_tab(drive):

@@ -2,6 +2,8 @@ import { Editor } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import { Mathematics } from '@tiptap/extension-mathematics';
 import { Markdown } from '@tiptap/markdown';
+import { TableKit } from '@tiptap/extension-table';
+import { UniqueID } from '@tiptap/extension-unique-id';
 
 // The editor state is the document. The DOM is only its view; no rendered block is
 // made temporarily editable and no Markdown string is reconstructed after typing.
@@ -19,13 +21,35 @@ const tabId = (() => {
 })();
 const draftKey = id => `yantu:document-draft:${id}:${tabId}`;
 const snapshot = value => JSON.stringify(value);
-const structured = value => value && typeof value === 'object' && value.type === 'doc' && value.schemaVersion === 1;
+const blockTypes = new Set(['paragraph', 'heading', 'bulletList', 'orderedList', 'listItem', 'blockquote', 'codeBlock', 'horizontalRule', 'blockMath', 'table', 'tableRow', 'tableCell', 'tableHeader']);
+const randomBlockId = () => crypto.randomUUID?.() || 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, letter => {
+  const value = Math.floor(Math.random() * 16);
+  return (letter === 'x' ? value : (value & 3) | 8).toString(16);
+});
+const structured = value => value && typeof value === 'object' && value.type === 'doc' && [1, 2].includes(value.schemaVersion);
 const status = (message, error = false) => {
   const node = document.querySelector('#documentSaveStatus');
   if (node) { node.textContent = message; node.classList.toggle('is-error', error); }
 };
-const content = () => current?.editor ? { schemaVersion: 1, ...current.editor.getJSON() } : null;
+const content = () => current?.editor ? { schemaVersion: 2, ...current.editor.getJSON() } : null;
 const title = () => document.querySelector('#documentTitle')?.value.trim() || current?.resource.title || '';
+
+function repairBlockIds(editor) {
+  const seen = new Set();
+  const transaction = editor.state.tr;
+  editor.state.doc.descendants((node, pos) => {
+    if (!blockTypes.has(node.type.name)) return;
+    let id = node.attrs.id;
+    if (typeof id !== 'string' || seen.has(id)) {
+      id = randomBlockId();
+      transaction.setNodeMarkup(pos, undefined, { ...node.attrs, id }, node.marks);
+    }
+    seen.add(id);
+  });
+  if (!transaction.docChanged) return false;
+  editor.view.dispatch(transaction);
+  return true;
+}
 
 function readDraft(id) {
   try {
@@ -179,6 +203,26 @@ function saveFormula() {
   } else editor.chain().focus().insertContent({ type: block ? 'blockMath' : 'inlineMath', attrs: { latex } }).run();
   dialog.close(); current.formula = null;
 }
+function linkDialog() {
+  if (!current?.doc.canEdit) return;
+  const dialog = document.querySelector('#structuredLinkDialog');
+  current.linkSelection = { from: current.editor.state.selection.from, to: current.editor.state.selection.to };
+  dialog.querySelector('input').value = current.editor.getAttributes('link').href || '';
+  dialog.showModal(); dialog.querySelector('input').focus();
+}
+function saveLink() {
+  const dialog = document.querySelector('#structuredLinkDialog');
+  let href = dialog.querySelector('input').value.trim();
+  if (href && !/^[a-z][a-z0-9+.-]*:/i.test(href)) href = `https://${href}`;
+  if (href && !/^(https?:\/\/[^\s]+|mailto:[^\s]+)$/i.test(href)) { status('请输入有效的网页或邮箱链接', true); return; }
+  const editor = current.editor;
+  const selection = current.linkSelection;
+  const chain = editor.chain().focus();
+  if (selection) chain.setTextSelection(selection);
+  if (href) chain.setLink({ href }).run();
+  else chain.unsetLink().run();
+  dialog.close(); current.linkSelection = null;
+}
 function hideMenus() {
   for (const id of ['structuredSelectionTools', 'structuredSlashMenu']) {
     const node = document.getElementById(id); if (node) node.hidden = true;
@@ -215,6 +259,8 @@ function runCommand(command, slash = false) {
   if (slash && current.slashRange) editor.chain().focus().deleteRange(current.slashRange).run();
   hideMenus();
   if (command === 'formula') { formulaDialog(); return; }
+  if (command === 'link') { linkDialog(); return; }
+  if (command === 'table') { editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(); return; }
   const chain = editor.chain().focus();
   const actions = {
     paragraph: () => chain.setParagraph(), h1: () => chain.toggleHeading({ level: 1 }),
@@ -230,7 +276,10 @@ function mount() {
   const host = document.querySelector('#structuredEditor');
   if (!host || !pending) return;
   const { resource, doc } = pending; pending = null;
-  const workspace = current = { resource, doc, dirty: false, titleDirty: false, saving: false, titleSaving: false, conflict: false, lastSaved: null };
+  document.querySelector('#structuredSelectionTools').insertAdjacentHTML('beforeend', '<button type="button" data-editor-command="link" title="链接 Ctrl+K">链接</button>');
+  document.querySelector('#structuredSlashMenu').insertAdjacentHTML('beforeend', '<button type="button" data-editor-command="table" data-alias="table bg"><span>▦</span>表格</button>');
+  host.closest('.structured-workspace').insertAdjacentHTML('beforeend', '<dialog id="structuredLinkDialog" class="document-link-dialog"><strong>链接</strong><input type="url" aria-label="链接地址" placeholder="https://example.com"><div><button type="button" class="btn" data-structured-action="cancel-link">取消</button><button type="button" class="btn primary" data-structured-action="save-link">完成</button></div></dialog>');
+  const workspace = current = { resource, doc, dirty: false, titleDirty: false, saving: false, titleSaving: false, conflict: false, lastSaved: null, initializing: true };
   let editor;
   editor = new Editor({
     element: host, editable: doc.canEdit,
@@ -245,19 +294,22 @@ function mount() {
         return false;
       },
     },
-    extensions: [StarterKit.configure({ heading: { levels: [1, 2, 3, 4, 5, 6] } }), Mathematics.configure({
+    extensions: [StarterKit.configure({ heading: { levels: [1, 2, 3, 4, 5, 6] } }),
+      UniqueID.configure({ types: ['paragraph', 'heading', 'bulletList', 'orderedList', 'listItem', 'blockquote', 'codeBlock', 'horizontalRule', 'blockMath', 'table', 'tableRow', 'tableCell', 'tableHeader'], updateDocument: doc.canEdit }),
+      TableKit, Mathematics.configure({
       katexOptions: { throwOnError: false, trust: false, maxExpand: 1000, maxSize: 20 },
       inlineOptions: { onClick: (node, pos) => formulaDialog(node, pos) },
       blockOptions: { onClick: (node, pos) => formulaDialog(node, pos) },
     }), Markdown],
     content: typeof doc.content === 'string' ? doc.content : doc.content,
     contentType: typeof doc.content === 'string' ? 'markdown' : 'json',
-    onUpdate: () => { if (current !== workspace) return; outlineRows(); queueSave(); updateMenus(); },
+    onUpdate: () => { if (current !== workspace || workspace.initializing || !workspace.editor || repairBlockIds(editor)) return; outlineRows(); queueSave(); updateMenus(); },
     onSelectionUpdate: () => { if (current === workspace) updateMenus(); },
     onFocus: updateMenus, onBlur: hideMenus,
   });
   workspace.editor = editor;
-  workspace.lastSaved = snapshot(structured(doc.content) ? doc.content : { schemaVersion: 1, ...editor.getJSON() });
+  if (doc.canEdit) repairBlockIds(editor);
+  workspace.lastSaved = snapshot(structured(doc.content) ? doc.content : { schemaVersion: 2, ...editor.getJSON() });
   workspace.recovery = doc.canEdit ? readDraft(resource.id) : null;
   if (workspace.recovery && snapshot(workspace.recovery.content) === snapshot(content()) && workspace.recovery.title === resource.title) {
     try { localStorage.removeItem(workspace.recovery.key); } catch {}
@@ -267,6 +319,7 @@ function mount() {
     document.querySelector('#structuredRecovery').hidden = false;
     document.querySelector('#structuredRecovery span').textContent = workspace.recovery.version === doc.version ? '发现尚未同步的本地记录' : '发现基于旧版本的本地记录';
   }
+  workspace.initializing = false;
   outlineRows();
   host.addEventListener('keyup', updateMenus);
   host.addEventListener('mouseup', updateMenus);
@@ -326,6 +379,8 @@ document.addEventListener('click', event => {
   }
   if (action === 'cancel-formula') document.querySelector('#structuredFormulaDialog').close();
   if (action === 'save-formula') saveFormula();
+  if (action === 'cancel-link') document.querySelector('#structuredLinkDialog').close();
+  if (action === 'save-link') saveLink();
   if (action === 'view-draft') {
     const dialog = document.querySelector('#structuredDraftDialog');
     dialog.querySelector('textarea').value = typeof current.recovery?.content === 'string' ? current.recovery.content : JSON.stringify(current.recovery?.content, null, 2);
@@ -360,6 +415,9 @@ document.addEventListener('keydown', event => {
   }
   if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
     event.preventDefault(); saveTitle().catch(() => {}); save().catch(() => {});
+  }
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k' && event.target.closest?.('#structuredEditor')) {
+    event.preventDefault(); linkDialog();
   }
 });
 document.addEventListener('focusout', event => {
