@@ -43078,7 +43078,7 @@ Please report this to https://github.com/markedjs/marked.`, e) {
       node.classList.toggle("is-error", error);
     }
   };
-  var content = () => current?.editor ? { schemaVersion: 2, ...current.editor.getJSON() } : null;
+  var content = (workspace = current) => workspace?.editor ? { schemaVersion: 2, ...workspace.editor.getJSON() } : null;
   var title = () => document.querySelector("#documentTitle")?.value.trim() || current?.resource.title || "";
   function repairBlockIds(editor) {
     const seen = /* @__PURE__ */ new Set();
@@ -43156,26 +43156,36 @@ Please report this to https://github.com/markedjs/marked.`, e) {
     status("\u672A\u4FDD\u5B58");
     persistDraft();
     clearTimeout(current.titleTimer);
-    if (!current.conflict) current.titleTimer = setTimeout(() => saveTitle().catch((error) => status(error.message, true)), 800);
+    if (current.conflict) return;
+    if (current.titleSaving) {
+      current.pendingTitle = title();
+      return;
+    }
+    current.titleTimer = setTimeout(() => saveTitle().catch((error) => status(error.message, true)), 800);
   }
-  async function saveTitle() {
-    const workspace = current;
-    if (!workspace?.titleDirty || workspace.conflict || workspace.titleSaving) return;
+  async function saveTitle(workspace = current, queuedTitle = null) {
+    if (!workspace?.titleDirty || workspace.conflict) return;
+    const next = queuedTitle ?? (current === workspace ? title() : workspace.pendingTitle);
+    if (workspace.titleSaving) {
+      if (queuedTitle !== null || !workspace.pendingTitle) workspace.pendingTitle = next;
+      return;
+    }
     clearTimeout(workspace.titleTimer);
-    const next = title();
     if (!next) {
-      syncTitle(workspace.resource.title);
+      if (current === workspace) {
+        syncTitle(workspace.resource.title);
+        status("\u6807\u9898\u4E0D\u80FD\u4E3A\u7A7A", true);
+      }
       workspace.titleDirty = false;
-      status("\u6807\u9898\u4E0D\u80FD\u4E3A\u7A7A", true);
       return;
     }
     if (next === workspace.resource.title) {
       workspace.titleDirty = false;
-      clearDraft();
+      if (current === workspace) clearDraft();
       return;
     }
     workspace.titleSaving = true;
-    status("\u4FDD\u5B58\u4E2D\u2026");
+    if (current === workspace) status("\u4FDD\u5B58\u4E2D\u2026");
     let saved = false;
     try {
       const updated = await api(`/resources/${enc(workspace.resource.id)}`, "PATCH", { title: next, expectedTitle: workspace.resource.title });
@@ -43189,20 +43199,30 @@ Please report this to https://github.com/markedjs/marked.`, e) {
           workspace.titleDirty = false;
         } else {
           workspace.titleDirty = true;
+          workspace.pendingTitle = title();
           persistDraft();
         }
-        if (!workspace.dirty) status("\u5DF2\u4FDD\u5B58\u5230\u4E91\u7AEF");
+        if (!workspace.dirty && !workspace.titleDirty) status("\u5DF2\u4FDD\u5B58\u5230\u4E91\u7AEF");
         clearDraft();
+      } else {
+        workspace.titleDirty = Boolean(workspace.pendingTitle && workspace.pendingTitle !== workspace.resource.title);
       }
     } catch (error) {
-      if (error.status === 409) conflict("\u6807\u9898\u5DF2\u5728\u5176\u4ED6\u9875\u9762\u4FEE\u6539");
-      else status(error.message, true);
+      if (current === workspace) {
+        if (error.status === 409) conflict("\u6807\u9898\u5DF2\u5728\u5176\u4ED6\u9875\u9762\u4FEE\u6539");
+        else status(error.message, true);
+      }
       throw error;
     } finally {
       workspace.titleSaving = false;
-      if (saved && current === workspace && workspace.titleDirty && !workspace.conflict) {
-        clearTimeout(workspace.titleTimer);
-        workspace.titleTimer = setTimeout(() => saveTitle().catch((error) => status(error.message, true)), 800);
+      if (saved && workspace.titleDirty && !workspace.conflict) {
+        const pendingTitle = workspace.pendingTitle;
+        workspace.pendingTitle = null;
+        if (pendingTitle && pendingTitle !== workspace.resource.title) {
+          saveTitle(workspace, pendingTitle).catch((error) => {
+            if (current === workspace && !workspace.conflict) status(error.message, true);
+          });
+        }
       }
     }
   }
@@ -43213,27 +43233,33 @@ Please report this to https://github.com/markedjs/marked.`, e) {
     persistDraft();
     clearTimeout(current.timer);
     if (current.conflict) return;
+    if (current.saving) {
+      current.pendingContent = content(current);
+      return;
+    }
     current.timer = setTimeout(() => save().catch((error) => {
       if (!current?.conflict) status(error.message, true);
     }), 1200);
   }
-  async function save() {
-    const workspace = current;
+  async function save(workspace = current, queuedContent = null) {
     if (!workspace?.doc.canEdit || workspace.conflict) return;
+    const value = queuedContent || content(workspace);
     if (workspace.saving) {
-      workspace.pendingSave = true;
+      if (queuedContent || !workspace.pendingContent) workspace.pendingContent = value;
       return;
     }
     clearTimeout(workspace.timer);
-    const value = content(), serial = snapshot(value);
+    const serial = snapshot(value);
     if (serial === workspace.lastSaved) {
       workspace.dirty = false;
-      clearDraft();
-      status("\u5DF2\u4FDD\u5B58\u5230\u4E91\u7AEF");
+      if (current === workspace) {
+        clearDraft();
+        if (!workspace.titleDirty) status("\u5DF2\u4FDD\u5B58\u5230\u4E91\u7AEF");
+      }
       return;
     }
     workspace.saving = true;
-    status("\u4FDD\u5B58\u4E2D\u2026");
+    if (current === workspace) status("\u4FDD\u5B58\u4E2D\u2026");
     let saved = false;
     try {
       const result = await api(`/resources/${enc(workspace.resource.id)}/document`, "PUT", { version: workspace.doc.version, content: value });
@@ -43246,21 +43272,28 @@ Please report this to https://github.com/markedjs/marked.`, e) {
           time.dateTime = result.modifiedAt;
           time.textContent = workspaceModifiedLabel(result.modifiedAt);
         }
-        workspace.dirty = snapshot(content()) !== serial;
+        workspace.dirty = snapshot(content(workspace)) !== serial;
         if (!workspace.dirty) {
-          status("\u5DF2\u4FDD\u5B58\u5230\u4E91\u7AEF");
+          if (!workspace.titleDirty) status("\u5DF2\u4FDD\u5B58\u5230\u4E91\u7AEF");
           clearDraft();
         }
       }
     } catch (error) {
-      if (error.status === 409) conflict("\u4E91\u7AEF\u5DF2\u6709\u66F4\u65B0");
-      else status(error.message, true);
+      if (current === workspace) {
+        if (error.status === 409) conflict("\u4E91\u7AEF\u5DF2\u6709\u66F4\u65B0");
+        else status(error.message, true);
+      }
       throw error;
     } finally {
       workspace.saving = false;
-      if (saved && current === workspace && !workspace.conflict && (workspace.dirty || workspace.pendingSave)) {
-        workspace.pendingSave = false;
-        queueSave();
+      if (saved && !workspace.conflict) {
+        const next = workspace.pendingContent || (current === workspace && workspace.dirty ? content(workspace) : null);
+        workspace.pendingContent = null;
+        if (next && snapshot(next) !== workspace.lastSaved) {
+          save(workspace, next).catch((error) => {
+            if (current === workspace && !workspace.conflict) status(error.message, true);
+          });
+        }
       }
     }
   }
@@ -43397,6 +43430,10 @@ Please report this to https://github.com/markedjs/marked.`, e) {
   }
   function mount() {
     if (current?.editor) {
+      if (current.dirty && !current.saving && !current.conflict) save(current).catch(() => {
+      });
+      if (current.titleDirty && !current.titleSaving && !current.conflict) saveTitle(current, title()).catch(() => {
+      });
       current.editor.destroy();
       clearTimeout(current.timer);
       clearTimeout(current.titleTimer);

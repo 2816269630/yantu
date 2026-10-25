@@ -31,7 +31,7 @@ const status = (message, error = false) => {
   const node = document.querySelector('#documentSaveStatus');
   if (node) { node.textContent = message; node.classList.toggle('is-error', error); }
 };
-const content = () => current?.editor ? { schemaVersion: 2, ...current.editor.getJSON() } : null;
+const content = (workspace = current) => workspace?.editor ? { schemaVersion: 2, ...workspace.editor.getJSON() } : null;
 const title = () => document.querySelector('#documentTitle')?.value.trim() || current?.resource.title || '';
 
 function repairBlockIds(editor) {
@@ -97,16 +97,30 @@ function queueTitle() {
   if (!current?.doc.canEdit) return;
   current.titleDirty = true; status('未保存'); persistDraft();
   clearTimeout(current.titleTimer);
-  if (!current.conflict) current.titleTimer = setTimeout(() => saveTitle().catch(error => status(error.message, true)), 800);
+  if (current.conflict) return;
+  if (current.titleSaving) { current.pendingTitle = title(); return; }
+  current.titleTimer = setTimeout(() => saveTitle().catch(error => status(error.message, true)), 800);
 }
-async function saveTitle() {
-  const workspace = current;
-  if (!workspace?.titleDirty || workspace.conflict || workspace.titleSaving) return;
+async function saveTitle(workspace = current, queuedTitle = null) {
+  if (!workspace?.titleDirty || workspace.conflict) return;
+  const next = queuedTitle ?? (current === workspace ? title() : workspace.pendingTitle);
+  if (workspace.titleSaving) {
+    if (queuedTitle !== null || !workspace.pendingTitle) workspace.pendingTitle = next;
+    return;
+  }
   clearTimeout(workspace.titleTimer);
-  const next = title();
-  if (!next) { syncTitle(workspace.resource.title); workspace.titleDirty = false; status('标题不能为空', true); return; }
-  if (next === workspace.resource.title) { workspace.titleDirty = false; clearDraft(); return; }
-  workspace.titleSaving = true; status('保存中…');
+  if (!next) {
+    if (current === workspace) { syncTitle(workspace.resource.title); status('标题不能为空', true); }
+    workspace.titleDirty = false;
+    return;
+  }
+  if (next === workspace.resource.title) {
+    workspace.titleDirty = false;
+    if (current === workspace) clearDraft();
+    return;
+  }
+  workspace.titleSaving = true;
+  if (current === workspace) status('保存中…');
   let saved = false;
   try {
     const updated = await api(`/resources/${enc(workspace.resource.id)}`, 'PATCH', { title: next, expectedTitle: workspace.resource.title });
@@ -115,19 +129,28 @@ async function saveTitle() {
     if (current === workspace) {
       document.title = `${updated.title} · 研途`;
       if (title() === next) { syncTitle(next); workspace.titleDirty = false; }
-      else { workspace.titleDirty = true; persistDraft(); }
-      if (!workspace.dirty) status('已保存到云端');
+      else { workspace.titleDirty = true; workspace.pendingTitle = title(); persistDraft(); }
+      if (!workspace.dirty && !workspace.titleDirty) status('已保存到云端');
       clearDraft();
+    } else {
+      workspace.titleDirty = Boolean(workspace.pendingTitle && workspace.pendingTitle !== workspace.resource.title);
     }
   } catch (error) {
-    if (error.status === 409) conflict('标题已在其他页面修改');
-    else status(error.message, true);
+    if (current === workspace) {
+      if (error.status === 409) conflict('标题已在其他页面修改');
+      else status(error.message, true);
+    }
     throw error;
   } finally {
     workspace.titleSaving = false;
-    if (saved && current === workspace && workspace.titleDirty && !workspace.conflict) {
-      clearTimeout(workspace.titleTimer);
-      workspace.titleTimer = setTimeout(() => saveTitle().catch(error => status(error.message, true)), 800);
+    if (saved && workspace.titleDirty && !workspace.conflict) {
+      const pendingTitle = workspace.pendingTitle;
+      workspace.pendingTitle = null;
+      if (pendingTitle && pendingTitle !== workspace.resource.title) {
+        saveTitle(workspace, pendingTitle).catch(error => {
+          if (current === workspace && !workspace.conflict) status(error.message, true);
+        });
+      }
     }
   }
 }
@@ -136,16 +159,28 @@ function queueSave() {
   current.dirty = true; status('未保存'); persistDraft();
   clearTimeout(current.timer);
   if (current.conflict) return;
+  if (current.saving) { current.pendingContent = content(current); return; }
   current.timer = setTimeout(() => save().catch(error => { if (!current?.conflict) status(error.message, true); }), 1200);
 }
-async function save() {
-  const workspace = current;
+async function save(workspace = current, queuedContent = null) {
   if (!workspace?.doc.canEdit || workspace.conflict) return;
-  if (workspace.saving) { workspace.pendingSave = true; return; }
+  const value = queuedContent || content(workspace);
+  if (workspace.saving) {
+    if (queuedContent || !workspace.pendingContent) workspace.pendingContent = value;
+    return;
+  }
   clearTimeout(workspace.timer);
-  const value = content(), serial = snapshot(value);
-  if (serial === workspace.lastSaved) { workspace.dirty = false; clearDraft(); status('已保存到云端'); return; }
-  workspace.saving = true; status('保存中…');
+  const serial = snapshot(value);
+  if (serial === workspace.lastSaved) {
+    workspace.dirty = false;
+    if (current === workspace) {
+      clearDraft();
+      if (!workspace.titleDirty) status('已保存到云端');
+    }
+    return;
+  }
+  workspace.saving = true;
+  if (current === workspace) status('保存中…');
   let saved = false;
   try {
     const result = await api(`/resources/${enc(workspace.resource.id)}/document`, 'PUT', { version: workspace.doc.version, content: value });
@@ -154,17 +189,28 @@ async function save() {
     if (current === workspace) {
       const time = document.querySelector('#documentModifiedAt');
       if (time && result.modifiedAt) { time.dateTime = result.modifiedAt; time.textContent = workspaceModifiedLabel(result.modifiedAt); }
-      workspace.dirty = snapshot(content()) !== serial;
-      if (!workspace.dirty) { status('已保存到云端'); clearDraft(); }
+      workspace.dirty = snapshot(content(workspace)) !== serial;
+      if (!workspace.dirty) {
+        if (!workspace.titleDirty) status('已保存到云端');
+        clearDraft();
+      }
     }
   } catch (error) {
-    if (error.status === 409) conflict('云端已有更新');
-    else status(error.message, true);
+    if (current === workspace) {
+      if (error.status === 409) conflict('云端已有更新');
+      else status(error.message, true);
+    }
     throw error;
   } finally {
     workspace.saving = false;
-    if (saved && current === workspace && !workspace.conflict && (workspace.dirty || workspace.pendingSave)) {
-      workspace.pendingSave = false; queueSave();
+    if (saved && !workspace.conflict) {
+      const next = workspace.pendingContent || (current === workspace && workspace.dirty ? content(workspace) : null);
+      workspace.pendingContent = null;
+      if (next && snapshot(next) !== workspace.lastSaved) {
+        save(workspace, next).catch(error => {
+          if (current === workspace && !workspace.conflict) status(error.message, true);
+        });
+      }
     }
   }
 }
@@ -271,7 +317,11 @@ function runCommand(command, slash = false) {
   actions[command]?.().run();
 }
 function mount() {
-  if (current?.editor) { current.editor.destroy(); clearTimeout(current.timer); clearTimeout(current.titleTimer); }
+  if (current?.editor) {
+    if (current.dirty && !current.saving && !current.conflict) save(current).catch(() => {});
+    if (current.titleDirty && !current.titleSaving && !current.conflict) saveTitle(current, title()).catch(() => {});
+    current.editor.destroy(); clearTimeout(current.timer); clearTimeout(current.titleTimer);
+  }
   current = null;
   const host = document.querySelector('#structuredEditor');
   if (!host || !pending) return;

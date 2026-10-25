@@ -12,6 +12,8 @@ async function main(){
  w.HTMLDialogElement.prototype.showModal=function(){this.open=true;};w.HTMLDialogElement.prototype.close=function(){this.open=false;};
  const opened=[];w.open=url=>{const popup={opener:w,location:{href:''},close(){}};opened.push({url,popup});return popup;};
  let team=false,fail=false,showShared=false,folderCalls=0,conflictOnSave=false,nativeTitle='未命名文档',nativeVersion=1;
+ let holdNativeSave=false,releaseNativeSave,nativeSaveStarted=false;
+ let holdTitleSave=false,releaseTitleSave,titleSaveStarted=false;
  let nativeContent='# 主线\n## 1. 乘法公式\n### 1.1 完全平方公式\n正文中有 $E=mc^2$ 和 [参考资料](https://example.org/paper)\n$$\\frac{a}{b}$$\n\n| 项目 | 结果 |\n| --- | --- |\n| 实验 A | 通过 |';const requests=[];
  const file={id:'file1',title:'科研笔记.txt',fileName:'科研笔记.txt',type:'note',ownerId:'me',owner:'本人',version:1,size:10,createdAt:'2026-10-22T10:00:00Z',visibility:'private',canEdit:true,previewable:true,previewType:'text/plain',permissions:{canShare:true},kind:'file'};
  const shared={...file,id:'shared1',title:'共享记录.txt',fileName:'共享记录.txt',ownerId:'other',owner:'共享成员',canEdit:false,folderId:null};
@@ -32,11 +34,13 @@ async function main(){
   else if(p==='/teams/t1/routes')value={items:[{id:'r1',title:'论文阅读',enrolled:true,stages:[]},{id:'r2',title:'论文写作',enrolled:false,stages:[]}]};
   else if(p==='/resources/file1')value={...file,canEdit:file.ownerId==='me'};
   else if(p==='/resources/native1'&&options.method==='PATCH'){
+   if(holdTitleSave){titleSaveStarted=true;await new Promise(resolve=>{releaseTitleSave=resolve;});}
    const request=JSON.parse(options.body);if(request.expectedTitle!==nativeTitle)status=409;
    else {nativeTitle=request.title;value={...file,id:'native1',title:nativeTitle,fileName:nativeTitle+'.ytdoc'};}
   }
   else if(p==='/resources/native1')value={...file,id:'native1',title:nativeTitle,fileName:nativeTitle+'.ytdoc'};
   else if(p==='/resources/native1/document'&&options.method==='PUT'){
+   if(holdNativeSave){nativeSaveStarted=true;await new Promise(resolve=>{releaseNativeSave=resolve;});}
    const request=JSON.parse(options.body);
    if(request.version!==nativeVersion)status=409;
    else {nativeContent=request.content;nativeVersion++;value={id:'native1',version:nativeVersion,modifiedAt:new Date().toISOString()};}
@@ -126,7 +130,31 @@ async function main(){
  titleInput.dispatchEvent(new w.FocusEvent('focusout',{bubbles:true}));
  await until(()=>nativeTitle==='研究计划'&&w.document.querySelector('#documentTitle').value==='研究计划');
  assert.equal(w.document.querySelector('[data-outline-top]').textContent,'研究计划','目录根节点同步标题');
+ await until(()=>w.document.querySelector('#documentSaveStatus')?.textContent==='已保存到云端');
+ holdNativeSave=true;
+ nativeEditor.chain().focus().insertContentAt(nativeEditor.state.doc.content.size,{type:'paragraph',content:[{type:'text',text:'NAV_A'}]}).run();
+ await until(()=>nativeSaveStarted);
+ nativeEditor.chain().focus().insertContentAt(nativeEditor.state.doc.content.size,{type:'paragraph',content:[{type:'text',text:'NAV_B'}]}).run();
  w.testApp.navigate('resources');await until(()=>w.document.querySelector('.drive-layout'));
+ holdNativeSave=false;releaseNativeSave();
+ await until(()=>JSON.stringify(nativeContent).includes('NAV_B'));
+ assert.ok(JSON.stringify(nativeContent).includes('NAV_A'),'离开页面时等待中的保存不丢失首次输入');
+ assert.ok(JSON.stringify(nativeContent).includes('NAV_B'),'保存中继续输入并离开页面，后续修改仍进入云端');
+ w.testApp.navigate('resource/native1');await until(()=>w.document.querySelector('.document-workspace'));
+ const quickEditor=w.structuredDocumentEditor();
+ quickEditor.chain().focus().insertContentAt(quickEditor.state.doc.content.size,{type:'paragraph',content:[{type:'text',text:'NAV_FAST'}]}).run();
+ w.testApp.navigate('resources');await until(()=>w.document.querySelector('.drive-layout'));
+ await until(()=>JSON.stringify(nativeContent).includes('NAV_FAST'));
+ assert.ok(JSON.stringify(nativeContent).includes('NAV_FAST'),'自动保存定时器尚未触发就离开页面，修改仍进入云端');
+ w.testApp.navigate('resource/native1');await until(()=>w.document.querySelector('.document-workspace'));
+ const racingTitle=w.document.querySelector('.document-paper-title input');
+ holdTitleSave=true;racingTitle.value='计划 A';racingTitle.dispatchEvent(new w.Event('input',{bubbles:true}));
+ await until(()=>titleSaveStarted);
+ racingTitle.value='计划 B';racingTitle.dispatchEvent(new w.Event('input',{bubbles:true}));
+ w.testApp.navigate('resources');await until(()=>w.document.querySelector('.drive-layout'));
+ holdTitleSave=false;releaseTitleSave();
+ await until(()=>nativeTitle==='计划 B');
+ assert.equal(nativeTitle,'计划 B','标题保存中再次修改并离开页面，最新标题仍进入云端');
  w.localStorage.setItem('yantu:document-draft:native1',JSON.stringify({title:'本地标题',content:{schemaVersion:1,type:'doc',content:[{type:'paragraph',content:[{type:'text',text:'本地草稿'}]}]},baseTitle:'旧标题',version:0,savedAt:new Date().toISOString()}));
  w.testApp.navigate('resource/native1');await until(()=>w.document.querySelector('#structuredRecovery')?.hidden===false);
  w.document.querySelector('[data-structured-action="view-draft"]').click();
