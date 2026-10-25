@@ -244,7 +244,56 @@ def register_cloud_drive(app, ctx):
         if Path(filename).suffix.lower() not in EXTENSIONS: raise HTTPException(415, '不支持的文件格式')
         return filename
 
+    def structured_document(content):
+        if not isinstance(content, dict) or content.get('schemaVersion') != 1 or content.get('type') != 'doc':
+            raise HTTPException(400, '文档结构无效')
+        allowed = {'doc', 'paragraph', 'heading', 'text', 'bulletList', 'orderedList',
+                   'listItem', 'blockquote', 'codeBlock', 'hardBreak', 'horizontalRule',
+                   'inlineMath', 'blockMath'}
+        marks = {'bold', 'italic', 'strike', 'code', 'underline'}
+        text_parts = []
+        count = 0
+
+        def check(node, depth=0):
+            nonlocal count
+            if depth > 32 or not isinstance(node, dict) or node.get('type') not in allowed:
+                raise HTTPException(400, '文档结构无效')
+            kind = node['type']
+            attrs = node.get('attrs') or {}
+            if not isinstance(attrs, dict):
+                raise HTTPException(400, '文档属性无效')
+            if kind == 'heading' and (type(attrs.get('level')) is not int or not 1 <= attrs['level'] <= 6):
+                raise HTTPException(400, '标题级别无效')
+            if kind in ('inlineMath', 'blockMath'):
+                latex = attrs.get('latex')
+                if not isinstance(latex, str) or len(latex) > 5000:
+                    raise HTTPException(400, '公式内容无效')
+                text_parts.append(latex)
+                count += len(latex)
+            if kind == 'text':
+                value = node.get('text')
+                if not isinstance(value, str):
+                    raise HTTPException(400, '文档文本无效')
+                text_parts.append(value)
+                count += len(value)
+                for mark in node.get('marks', []):
+                    if not isinstance(mark, dict) or mark.get('type') not in marks:
+                        raise HTTPException(400, '文档格式无效')
+            children = node.get('content', [])
+            if not isinstance(children, list) or len(children) > 10000:
+                raise HTTPException(400, '文档结构无效')
+            for child in children:
+                check(child, depth + 1)
+            count += 1
+            if count > 200000:
+                raise HTTPException(400, '文档内容最多 20 万字')
+
+        check(content)
+        return content, ' '.join(text_parts)
+
     def document_content(kind, content):
+        if kind == 'document' and isinstance(content, dict):
+            return structured_document(content)
         if kind in ('document', 'text'):
             if not isinstance(content, str) or len(content) > 200000:
                 raise HTTPException(400, '文档内容最多 20 万字')
@@ -269,6 +318,8 @@ def register_cloud_drive(app, ctx):
         raise HTTPException(400, '不支持的文档类型')
 
     def document_bytes(kind, content):
+        if kind == 'document' and not isinstance(content, dict):
+            raise HTTPException(400, '请使用结构化文档内容')
         normalized, extracted = document_content(kind, content)
         payload = normalized.encode('utf-8') if kind == 'text' else json.dumps(
             {'kind': kind, 'content': normalized}, ensure_ascii=False, separators=(',', ':')
@@ -286,7 +337,7 @@ def register_cloud_drive(app, ctx):
         folder_for(db, folder_id, user)
         title = name(payload.get('title'))
         extension, category = NATIVE_FORMATS[kind]
-        initial = '' if kind == 'document' else [['', '', ''] for _ in range(8)] if kind == 'sheet' else [{'title': '', 'body': ''}]
+        initial = {'schemaVersion': 1, 'type': 'doc', 'content': [{'type': 'paragraph'}]} if kind == 'document' else [['', '', ''] for _ in range(8)] if kind == 'sheet' else [{'title': '', 'body': ''}]
         content, extracted = document_bytes(kind, initial)
         base, index = title, 1
         while db.scalar(select(Resource.id).where(Resource.owner_id == user.id, Resource.folder_id == (folder_id or None), Resource.title == title)):

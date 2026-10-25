@@ -100,6 +100,11 @@ pages.resource = async id => {
   let doc;
   try {doc=await api(`/resources/${enc(id)}/document`);}
   catch(error) {if(error.status===415){activeDocument=null;return originalResourcePage(id);}throw error;}
+  if(doc.kind==='document'){
+    activeDocument=null;
+    state.data.resource=resource;
+    return window.structuredDocumentPage(resource,doc);
+  }
   activeDocument={doc,resource,dirty:false,saving:false,conflict:false,pendingSave:false,timer:null,titleDirty:false,titleSaving:false,pendingTitle:false,titleTimer:null,activeSlide:0,preview:doc.kind==='document',lastSaved:JSON.stringify(doc.content)};
   if(doc.kind==='document'&&doc.canEdit){
     activeDocument.recovery=readWorkspaceDraft(resource.id);

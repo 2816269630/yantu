@@ -136,7 +136,7 @@ def test_native_documents_and_text_workspace(drive):
     folder = data(c.post('/api/v1/me/drive/folders', headers=owner,
                          json={'name': '在线文档', 'parentId': None}), 201)['id']
     for kind, suffix, initial in [
-        ('document', '.ytdoc', ''),
+        ('document', '.ytdoc', {'schemaVersion': 1, 'type': 'doc', 'content': [{'type': 'paragraph'}]}),
         ('sheet', '.ytsheet', [['', '', ''] for _ in range(8)]),
         ('slides', '.ytslides', [{'title': '', 'body': ''}]),
     ]:
@@ -148,7 +148,10 @@ def test_native_documents_and_text_workspace(drive):
         opened = data(c.get(endpoint, headers=owner))
         assert opened['kind'] == kind and opened['content'] == initial and opened['canEdit']
         assert opened['modifiedAt']
-        content = ('# 研究问题\n这是正文' if kind == 'document' else
+        content = ({'schemaVersion': 1, 'type': 'doc', 'content': [
+            {'type': 'heading', 'attrs': {'level': 1}, 'content': [{'type': 'text', 'text': '研究问题'}]},
+            {'type': 'paragraph', 'content': [{'type': 'text', 'text': '这是正文'}]},
+            {'type': 'blockMath', 'attrs': {'latex': r'\\frac{a}{b}'}}]} if kind == 'document' else
                    [['数据', '42']] if kind == 'sheet' else [{'title': '第一页', 'body': '结论'}])
         saved = data(c.put(endpoint, headers=owner, json={'version': 1, 'content': content}))
         assert saved['version'] == 2 and saved['modifiedAt']
@@ -164,6 +167,11 @@ def test_native_documents_and_text_workspace(drive):
                    json={'permission': 'read', 'teamId': team}))
         assert data(c.get(endpoint, headers=reader))['canEdit'] is False
         assert c.put(endpoint, headers=reader, json={'version': 2, 'content': content}).status_code == 403
+        if kind == 'document':
+            assert c.put(endpoint, headers=owner, json={'version': 2, 'content': '# 不再保存整段 Markdown'}).status_code == 400
+            assert c.put(endpoint, headers=owner, json={'version': 2, 'content': {
+                'schemaVersion': 1, 'type': 'doc', 'content': [{'type': 'script', 'text': 'bad'}]
+            }}).status_code == 400
     text_file = data(upload(c, owner, key='workspace-txt', content='初始正文'.encode('utf-8')),
                      201)
     text_endpoint = '/api/v1/resources/'+text_file['id']+'/document'
@@ -186,7 +194,10 @@ def test_simultaneous_document_saves_keep_one_version(drive):
 
     def save(content):
         gate.wait(timeout=10)
-        return c.put(endpoint, headers=owner, json={'version': 1, 'content': content})
+        structured = {'schemaVersion': 1, 'type': 'doc', 'content': [
+            {'type': 'paragraph', 'content': [{'type': 'text', 'text': content}]}
+        ]}
+        return c.put(endpoint, headers=owner, json={'version': 1, 'content': structured})
 
     with ThreadPoolExecutor(max_workers=2) as pool:
         first = pool.submit(save, '来自标签页 A')
@@ -196,7 +207,7 @@ def test_simultaneous_document_saves_keep_one_version(drive):
     assert sorted(response.status_code for response in responses) == [200, 409]
     winner = '来自标签页 A' if responses[0].status_code == 200 else '来自标签页 B'
     current = data(c.get(endpoint, headers=owner))
-    assert current['content'] == winner and current['version'] == 2
+    assert current['content']['content'][0]['content'][0]['text'] == winner and current['version'] == 2
     assert len(data(c.get('/api/v1/resources/'+created['id']+'/versions', headers=owner))['items']) == 2
 
 
