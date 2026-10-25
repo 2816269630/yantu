@@ -221,6 +221,7 @@ class Resource(Base):
     folder_id: Mapped[str | None] = mapped_column(ForeignKey("yt_drive_folders.id"), nullable=True, index=True)
     owner_id: Mapped[str] = mapped_column(ForeignKey("yt_users.id"))
     title: Mapped[str] = mapped_column(String(200))
+    is_untitled: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
     type: Mapped[str] = mapped_column(String(20))
     description: Mapped[str] = mapped_column(Text, default="")
     extracted_text: Mapped[str] = mapped_column(Text, default="")

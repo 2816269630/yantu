@@ -122,7 +122,7 @@ def register_features(app, context):
     def resource_json(db, resource, user):
         meta = get_meta(db, "resource", resource.id)
         membership = db.scalar(select(Member).where(Member.team_id == resource.team_id, Member.user_id == user.id))
-        return {"id": resource.id, "title": resource.title, "type": resource.type,
+        return {"id": resource.id, "title": resource.title, "isUntitled": bool(resource.is_untitled), "type": resource.type,
                 "description": resource.description, "ownerId": resource.owner_id,
                 "owner": name(db, resource.owner_id), "fileName": resource.file_name,
                 "size": resource.size, "version": resource.version,

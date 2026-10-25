@@ -9,7 +9,7 @@ pages.newdocument = async raw => {
   try {request=JSON.parse(decodeURIComponent(raw||''));} catch {throw new Error('新建文档参数无效');}
   const titles={document:'未命名文档',sheet:'未命名表格',slides:'未命名幻灯片'};
   if(!Object.hasOwn(titles,request.kind))throw new Error('不支持的文档类型');
-  const created=await api('/me/drive/documents','POST',{kind:request.kind,title:titles[request.kind],folderId:request.folderId||''});
+  const created=await api('/me/drive/documents','POST',{kind:request.kind,...(request.kind==='document'?{}:{title:titles[request.kind]}),folderId:request.folderId||''});
   navigate('resource/'+enc(created.id));
   return loading();
 };

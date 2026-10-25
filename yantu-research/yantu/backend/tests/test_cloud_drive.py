@@ -321,13 +321,44 @@ def test_document_title_rejects_stale_tab(drive):
     owner = actors[0][1]
     created = data(c.post('/api/v1/me/drive/documents', headers=owner,
                           json={'kind': 'document', 'title': '原标题'}), 201)
+    assert created['isUntitled'] is False
     endpoint = '/api/v1/resources/'+created['id']
     renamed = data(c.patch(endpoint, headers=owner,
-                           json={'title': '新的标题', 'expectedTitle': '原标题'}))
+                           json={'title': '新的标题', 'expectedTitle': '原标题', 'expectedIsUntitled': False}))
     assert renamed['title'] == '新的标题' and renamed['fileName'] == '新的标题.ytdoc'
     assert c.patch(endpoint, headers=owner,
-                   json={'title': '过期页面标题', 'expectedTitle': '原标题'}).status_code == 409
+                   json={'title': '过期页面标题', 'expectedTitle': '原标题', 'expectedIsUntitled': False}).status_code == 409
     assert data(c.get(endpoint, headers=owner))['title'] == '新的标题'
+
+
+def test_untitled_document_is_distinct_from_literal_title(drive):
+    c, actors, _, _ = drive
+    owner = actors[0][1]
+    created = data(c.post('/api/v1/me/drive/documents', headers=owner, json={'kind': 'document'}), 201)
+    assert created['title'] == '未命名文档' and created['isUntitled'] is True
+    second = data(c.post('/api/v1/me/drive/documents', headers=owner, json={'kind': 'document'}), 201)
+    assert second['title'] == '未命名文档 (2)' and second['isUntitled'] is True
+    endpoint = '/api/v1/resources/'+created['id']
+    assert data(c.get(endpoint+'/document', headers=owner))['isUntitled'] is True
+    assert c.patch(endpoint, headers=owner, json={
+        'title': '未命名文档', 'expectedTitle': '未命名文档',
+    }).status_code == 400
+    assert c.patch(endpoint, headers=owner, json={
+        'title': '未命名文档', 'expectedTitle': '未命名文档', 'expectedIsUntitled': 'true',
+    }).status_code == 400
+    literal = data(c.patch(endpoint, headers=owner, json={
+        'title': '未命名文档', 'expectedTitle': '未命名文档', 'expectedIsUntitled': True,
+    }))
+    assert literal['title'] == '未命名文档' and literal['isUntitled'] is False
+    assert c.patch(endpoint, headers=owner, json={
+        'title': '', 'expectedTitle': '未命名文档', 'expectedIsUntitled': True,
+    }).status_code == 409
+    cleared = data(c.patch(endpoint, headers=owner, json={
+        'title': '', 'expectedTitle': '未命名文档', 'expectedIsUntitled': False,
+    }))
+    assert cleared['title'] == '未命名文档' and cleared['isUntitled'] is True
+    assert data(c.get(endpoint, headers=owner))['isUntitled'] is True
+    assert data(c.get(endpoint+'/document', headers=owner))['isUntitled'] is True
 
 
 def test_legacy_sqlite_upgrade_is_repeatable_and_preserves_content(tmp_path):
@@ -339,7 +370,7 @@ def test_legacy_sqlite_upgrade_is_repeatable_and_preserves_content(tmp_path):
         # Simulate the prior NOT NULL schema without changing any resource ID.
         db.exec_driver_sql('DROP TABLE yt_resources')
         db.exec_driver_sql('''CREATE TABLE yt_resources (id VARCHAR(36) PRIMARY KEY, team_id VARCHAR(36) NOT NULL REFERENCES yt_teams(id), owner_id VARCHAR(36) NOT NULL REFERENCES yt_users(id), title VARCHAR(200) NOT NULL, type VARCHAR(20) NOT NULL, description TEXT NOT NULL, extracted_text TEXT NOT NULL, meeting_id VARCHAR(36), task_id VARCHAR(36), file_name VARCHAR(255) NOT NULL, storage_name VARCHAR(36) UNIQUE NOT NULL, size INTEGER NOT NULL, visibility VARCHAR(20) NOT NULL DEFAULT 'team', archived BOOLEAN NOT NULL DEFAULT 'false', version INTEGER NOT NULL DEFAULT '1')''')
-        db.exec_driver_sql("INSERT INTO yt_resources VALUES ('r','t','u','旧资料','note','','旧文本',NULL,NULL,'旧笔记.txt','original-storage',3,'team',0,1)")
+        db.exec_driver_sql("INSERT INTO yt_resources VALUES ('r','t','u','未命名文档','note','','旧文本',NULL,NULL,'未命名文档.ytdoc','original-storage',3,'team',0,1)")
         db.exec_driver_sql("INSERT INTO yt_resource_versions (id,resource_id,version,file_name,storage_name,size,note,author_id,created_at) VALUES ('v','r',1,'旧笔记.txt','original-storage',3,'','u',CURRENT_TIMESTAMP)")
         db.exec_driver_sql("INSERT INTO yt_entity_data (key,data) VALUES ('reading:r:u','{\"page\":7,\"notes\":\"saved\"}')")
     # Exercise an actual pre-upgrade snapshot and restore on a separate copy.
@@ -354,8 +385,8 @@ def test_legacy_sqlite_upgrade_is_repeatable_and_preserves_content(tmp_path):
     migrate(engine); migrate(engine)
     assert next(c for c in inspect(engine).get_columns('yt_resources') if c['name'] == 'team_id')['nullable']
     with engine.connect() as db:
-        row = db.execute(text('SELECT id,owner_id,team_id,folder_id,storage_name,visibility FROM yt_resources')).one()
-        assert tuple(row) == ('r', 'u', 't', None, 'original-storage', 'team')
+        row = db.execute(text('SELECT id,owner_id,team_id,folder_id,storage_name,visibility,title,is_untitled FROM yt_resources')).one()
+        assert tuple(row) == ('r', 'u', 't', None, 'original-storage', 'team', '未命名文档', False)
         assert db.exec_driver_sql('PRAGMA foreign_key_check').all() == []
         assert db.execute(text('SELECT resource_id FROM yt_resource_versions')).scalar_one() == 'r'
     shutil.copy2(tmp_path / 'backup.db', tmp_path / 'restored.db')

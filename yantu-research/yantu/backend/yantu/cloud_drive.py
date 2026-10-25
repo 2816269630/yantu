@@ -208,17 +208,29 @@ def register_cloud_drive(app, ctx):
         if 'visibility' in payload and payload['visibility'] != row.visibility:
             raise HTTPException(400, '请通过指定成员共享管理授权，不能扩大旧课题组可见范围')
         if 'expectedTitle' in payload:
-            if set(payload) != {'title', 'expectedTitle'} or not isinstance(payload['expectedTitle'], str):
+            if set(payload) not in ({'title', 'expectedTitle'}, {'title', 'expectedTitle', 'expectedIsUntitled'}) or not isinstance(payload['expectedTitle'], str):
                 raise HTTPException(400, '标题更新参数无效')
-            title = name(payload['title'])
             extension = Path(row.file_name).suffix.lower()
-            values = {'title': title}
+            if extension == '.ytdoc':
+                if set(payload) != {'title', 'expectedTitle', 'expectedIsUntitled'} or type(payload['expectedIsUntitled']) is not bool:
+                    raise HTTPException(400, '文档标题状态无效')
+                untitled = payload.get('title') == ''
+                title = '未命名文档' if untitled else name(payload.get('title'))
+            else:
+                if 'expectedIsUntitled' in payload:
+                    raise HTTPException(400, '标题更新参数无效')
+                untitled = False
+                title = name(payload.get('title'))
+            values = {'title': title, 'is_untitled': untitled}
             if extension in {suffix for suffix, _ in NATIVE_FORMATS.values()}:
                 values['file_name'] = title[:255-len(extension)] + extension
-            changed = db.execute(update(Resource).where(
+            conditions = [
                 Resource.id == row.id, Resource.owner_id == user.id,
                 Resource.title == payload['expectedTitle'], Resource.archived.is_(False)
-            ).values(**values).execution_options(synchronize_session=False)).rowcount
+            ]
+            if extension == '.ytdoc':
+                conditions.append(Resource.is_untitled == payload['expectedIsUntitled'])
+            changed = db.execute(update(Resource).where(*conditions).values(**values).execution_options(synchronize_session=False)).rowcount
             if changed != 1:
                 db.rollback()
                 raise HTTPException(409, '标题已在其他页面修改，请保留当前输入并重新加载')
@@ -227,6 +239,7 @@ def register_cloud_drive(app, ctx):
             return result(file_json(db, row, user))
         if 'title' in payload:
             row.title = name(payload['title'])
+            row.is_untitled = False
             extension = Path(row.file_name).suffix.lower()
             if extension in {suffix for suffix, _ in NATIVE_FORMATS.values()}:
                 row.file_name = row.title[:255-len(extension)] + extension
@@ -291,7 +304,8 @@ def register_cloud_drive(app, ctx):
             raise HTTPException(400, '请选择文档、表格或幻灯片')
         folder_id = payload.get('folderId') or ''
         folder_for(db, folder_id, user)
-        title = name(payload.get('title'))
+        untitled = kind == 'document' and 'title' not in payload
+        title = '未命名文档' if untitled else name(payload.get('title'))
         extension, category = NATIVE_FORMATS[kind]
         initial = new_document() if kind == 'document' else [['', '', ''] for _ in range(8)] if kind == 'sheet' else [{'title': '', 'body': ''}]
         content, extracted = document_bytes(kind, initial)
@@ -303,7 +317,7 @@ def register_cloud_drive(app, ctx):
         destination = uploads / storage
         destination.write_bytes(content)
         try:
-            row = Resource(owner_id=user.id, folder_id=folder_id or None, title=title, type=category,
+            row = Resource(owner_id=user.id, folder_id=folder_id or None, title=title, is_untitled=untitled, type=category,
                            description='', visibility='private', file_name=title[:255-len(extension)] + extension,
                            storage_name=storage, size=len(content), extracted_text=extracted)
             db.add(row); db.flush()
@@ -350,6 +364,7 @@ def register_cloud_drive(app, ctx):
             ResourceVersion.resource_id == row.id
         ).order_by(ResourceVersion.version.desc()).limit(1))
         return result({'id': row.id, 'title': row.title, 'kind': kind or 'text', 'content': content,
+                       'isUntitled': bool(row.is_untitled),
                        'version': row.version, 'canEdit': row.owner_id == user.id and not compatibility_issue,
                        'canConvert': row.owner_id == user.id and can_convert,
                        'compatibilityIssue': compatibility_issue,

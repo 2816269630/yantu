@@ -11,7 +11,7 @@ async function main(){
  w.HTMLElement.prototype.getClientRects=()=>[];
  w.HTMLDialogElement.prototype.showModal=function(){this.open=true;};w.HTMLDialogElement.prototype.close=function(){this.open=false;};
  const opened=[];w.open=url=>{const popup={opener:w,location:{href:''},close(){}};opened.push({url,popup});return popup;};
- let team=false,fail=false,showShared=false,folderCalls=0,conflictOnSave=false,nativeTitle='未命名文档',nativeVersion=1;
+ let team=false,fail=false,showShared=false,folderCalls=0,conflictOnSave=false,nativeTitle='未命名文档',nativeUntitled=true,nativeVersion=1;
  let holdNativeSave=false,releaseNativeSave,nativeSaveStarted=false;
  let holdTitleSave=false,releaseTitleSave,titleSaveStarted=false;
  let nativeContent='# 主线\n## 1. 乘法公式\n### 1.1 完全平方公式\n正文中有 $E=mc^2$ 和 [参考资料](https://example.org/paper)\n$$\\frac{a}{b}$$\n\n| 项目 | 结果 |\n| --- | --- |\n| 实验 A | 通过 |';const requests=[];
@@ -20,7 +20,7 @@ async function main(){
  const shared={...file,id:'shared1',title:'共享记录.txt',fileName:'共享记录.txt',ownerId:'other',owner:'共享成员',canEdit:false,folderId:null};
  const folders=[{id:'folder1',name:'验收资料',parentId:null,createdAt:'2026-10-22T09:00:00Z'},{id:'folder2',name:'右键子目录',parentId:'folder1',createdAt:'2026-10-22T09:30:00Z'}];
  w.fetch=async (url,options={})=>{requests.push({url,options});const u=new URL(url,'http://localhost');const p=u.pathname.replace('/api/v1','');let value;let status=200;
-  if(p==='/system/status')value={initialized:true,version:'0.3.5'};
+  if(p==='/system/status')value={initialized:true,version:'0.3.6'};
   else if(p==='/me')value={id:'me',displayName:'测试成员',email:'test@example.com'};
   else if(p==='/me/teams')value={items:team?[{id:'t1',name:'测试组',role:'student'}]:[]};
   else if(p==='/me/notifications')value={items:[]};
@@ -29,24 +29,24 @@ async function main(){
   else if(p==='/me/drive/children'){if(fail){status=503;}const folderId=u.searchParams.get('folderId');const items=folderId==='folder1'?[{...folders[1],kind:'folder'}]:folderId==='folder2'?[]:[{...folders[0],kind:'folder'},file,...showShared?[shared]:[]];value={items,total:items.length,breadcrumbs:[{id:null,name:'我的文件'},...folderId?[folders.find(x=>x.id===folderId)]:[]]};}
   else if(p==='/me/drive/search'){const items=[file,...showShared?[shared]:[]].filter(x=>x.title.includes(u.searchParams.get('q')||''));value={items,total:items.length};}
   else if(p==='/me/drive/folders'&&options.method==='POST'){folderCalls++;await new Promise(r=>setTimeout(r,30));value={id:'folder1'};}
-  else if(p==='/me/drive/documents'&&options.method==='POST'){status=201;value={id:'native1',title:'未命名文档',fileName:'未命名文档.ytdoc',kind:'file'};}
+  else if(p==='/me/drive/documents'&&options.method==='POST'){status=201;value={id:'native1',title:'未命名文档',isUntitled:true,fileName:'未命名文档.ytdoc',kind:'file'};}
   else if(p==='/me/drive/available-resources')value={items:[file],total:1};
   else if(p==='/me/tasks')value={items:[],total:0};
   else if(p==='/teams/t1/routes')value={items:[{id:'r1',title:'论文阅读',enrolled:true,stages:[]},{id:'r2',title:'论文写作',enrolled:false,stages:[]}]};
   else if(p==='/resources/file1')value={...file,canEdit:file.ownerId==='me'};
   else if(p==='/resources/native1'&&options.method==='PATCH'){
    if(holdTitleSave){titleSaveStarted=true;await new Promise(resolve=>{releaseTitleSave=resolve;});}
-   const request=JSON.parse(options.body);if(request.expectedTitle!==nativeTitle)status=409;
-   else {nativeTitle=request.title;value={...file,id:'native1',title:nativeTitle,fileName:nativeTitle+'.ytdoc'};}
+   const request=JSON.parse(options.body);if(request.expectedTitle!==nativeTitle||request.expectedIsUntitled!==nativeUntitled)status=409;
+   else {nativeUntitled=request.title==='';nativeTitle=nativeUntitled?'未命名文档':request.title;value={...file,id:'native1',title:nativeTitle,isUntitled:nativeUntitled,fileName:nativeTitle+'.ytdoc'};}
   }
-  else if(p==='/resources/native1')value={...file,id:'native1',title:nativeTitle,fileName:nativeTitle+'.ytdoc'};
+  else if(p==='/resources/native1')value={...file,id:'native1',title:nativeTitle,isUntitled:nativeUntitled,fileName:nativeTitle+'.ytdoc'};
   else if(p==='/resources/native1/document'&&options.method==='PUT'){
    if(holdNativeSave){nativeSaveStarted=true;await new Promise(resolve=>{releaseNativeSave=resolve;});}
    const request=JSON.parse(options.body);
    if(request.version!==nativeVersion)status=409;
    else {nativeContent=request.content;nativeVersion++;value={id:'native1',version:nativeVersion,modifiedAt:new Date().toISOString()};}
   }
-  else if(p==='/resources/native1/document')value={id:'native1',title:nativeTitle,kind:'document',content:nativeContent,version:nativeVersion,canEdit:true,owner:'本人',modifiedAt:new Date().toISOString()};
+  else if(p==='/resources/native1/document')value={id:'native1',title:nativeTitle,isUntitled:nativeUntitled,kind:'document',content:nativeContent,version:nativeVersion,canEdit:true,owner:'本人',modifiedAt:new Date().toISOString()};
   else if(p==='/resources/legacy1')value={...file,id:'legacy1',title:'旧文档',fileName:'旧文档.ytdoc'};
   else if(p==='/resources/legacy1/document'&&options.method==='PUT'){
    const request=JSON.parse(options.body);legacyContent=request.content;legacyVersion++;value={id:'legacy1',version:legacyVersion,modifiedAt:new Date().toISOString()};
@@ -86,6 +86,7 @@ async function main(){
  assert.equal(w.location.hash.startsWith('#resources'),true,'新建文档不改变原文件列表标签页');
  w.testApp.navigate(opened[0].url.slice(1));
  await until(()=>w.document.querySelector('.document-workspace')&&w.location.hash==='#resource/native1');
+ assert.equal(Object.hasOwn(JSON.parse(requests.find(x=>x.url.includes('/me/drive/documents')&&x.options.method==='POST').options.body),'title'),false,'新建空白文档由服务端标记未命名');
  assert.equal(w.document.querySelector('#documentTitle').value,'未命名文档','新标签页完成创建后进入文档工作区');
  assert.equal(w.document.querySelector('.document-paper-title input').value,'','新文档正文标题保持空白');
  assert.equal(w.document.querySelector('.document-paper-title input').placeholder,'请输入标题','新文档以灰色占位提示输入标题');
@@ -152,10 +153,23 @@ async function main(){
  await until(()=>w.document.querySelector('#documentSaveStatus')?.textContent==='已保存到云端');
  titleInput.value='';titleInput.dispatchEvent(new w.Event('input',{bubbles:true}));
  titleInput.dispatchEvent(new w.FocusEvent('focusout',{bubbles:true}));
- await until(()=>nativeTitle==='未命名文档');
+ await until(()=>nativeTitle==='未命名文档'&&nativeUntitled);
  assert.equal(titleInput.value,'','清空标题后显示正文占位提示');
  assert.equal(w.document.querySelector('#documentTitle').value,'未命名文档','清空标题后顶部显示未命名文档');
  assert.equal(w.document.querySelector('[data-outline-top]'),null,'清空标题后目录移除标题项');
+ const topTitle=w.document.querySelector('#documentTitle');
+ topTitle.value='未命名文档';topTitle.dispatchEvent(new w.Event('input',{bubbles:true}));
+ topTitle.dispatchEvent(new w.FocusEvent('focusout',{bubbles:true}));
+ await until(()=>nativeTitle==='未命名文档'&&!nativeUntitled);
+ assert.equal(titleInput.value,'未命名文档','同名真实标题在正文中显示文字');
+ assert.equal(w.document.querySelector('[data-outline-top]').textContent,'未命名文档','同名真实标题进入目录');
+ w.testApp.navigate('resources');await until(()=>w.document.querySelector('.drive-layout'));
+ w.testApp.navigate('resource/native1');await until(()=>w.document.querySelector('.document-workspace'));
+ assert.equal(w.document.querySelector('.document-paper-title input').value,'未命名文档','重开后真实同名标题不变成占位提示');
+ const literalTitle=w.document.querySelector('.document-paper-title input');
+ literalTitle.value='';literalTitle.dispatchEvent(new w.Event('input',{bubbles:true}));
+ literalTitle.dispatchEvent(new w.FocusEvent('focusout',{bubbles:true}));
+ await until(()=>nativeUntitled);
  w.testApp.navigate('resources');await until(()=>w.document.querySelector('.drive-layout'));
  w.testApp.navigate('resource/native1');await until(()=>w.document.querySelector('.document-workspace'));
  assert.equal(w.document.querySelector('.document-paper-title input').value,'','重新打开后仍显示标题占位提示');
@@ -304,7 +318,7 @@ async function main(){
  assert.ok(w.document.querySelector('.task-empty'),'没有任务时显示完整空状态');
  assert.equal(w.document.querySelectorAll('.section-tabs a').length,3);
  assert.equal(requests.some(x=>x.url.includes('/me/review-queue')),false,'学生查看任务时不能被反馈权限错误阻断');
- assert.ok(w.document.querySelector('footer').textContent.includes('v0.3.5'),'页面展示后端版本');
+ assert.ok(w.document.querySelector('footer').textContent.includes('v0.3.6'),'页面展示后端版本');
  w.testApp.navigate('routes');await until(()=>w.document.querySelector('#routeCards'));
  const routeSearch=w.document.querySelector('[data-filter=routes]');
  routeSearch.value='论文';routeSearch.dispatchEvent(new w.Event('input',{bubbles:true}));

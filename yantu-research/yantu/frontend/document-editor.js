@@ -43129,10 +43129,21 @@ Please report this to https://github.com/markedjs/marked.`, e) {
   };
   var content = (workspace = current) => workspace?.editor ? { schemaVersion: 2, ...workspace.editor.getJSON() } : null;
   var untitledTitle = "\u672A\u547D\u540D\u6587\u6863";
-  var title = () => {
+  var savedTitle = (resource) => ({ title: resource.title, isUntitled: Boolean(resource.isUntitled) });
+  var sameTitle = (left, right) => left.title === right.title && left.isUntitled === right.isUntitled;
+  var titleState = () => {
+    const paper = document.querySelector(".document-paper-title [data-document-title]");
+    if (paper) {
+      const value = paper.value.trim();
+      return { title: value || (current?.resource.isUntitled ? current.resource.title : untitledTitle), isUntitled: !value };
+    }
     const input = document.querySelector("#documentTitle");
-    return input ? input.value.trim() || untitledTitle : current?.resource.title?.trim() || untitledTitle;
+    return {
+      title: input?.value.trim() || current?.resource.title || untitledTitle,
+      isUntitled: Boolean(current?.resource.isUntitled)
+    };
   };
+  var title = () => titleState().title;
   function repairBlockIds(editor) {
     const seen = /* @__PURE__ */ new Set();
     const transaction = editor.state.tr;
@@ -43168,9 +43179,10 @@ Please report this to https://github.com/markedjs/marked.`, e) {
     if (!current?.doc.canEdit) return;
     try {
       localStorage.setItem(draftKey(current.resource.id), JSON.stringify({
-        title: title(),
+        ...titleState(),
         content: content(),
         baseTitle: current.resource.title,
+        baseIsUntitled: Boolean(current.resource.isUntitled),
         version: current.doc.version,
         savedAt: (/* @__PURE__ */ new Date()).toISOString()
       }));
@@ -43197,44 +43209,45 @@ Please report this to https://github.com/markedjs/marked.`, e) {
       }
     });
     const visibleTitle = document.querySelector(".document-paper-title input")?.value.trim();
-    const rootRow = visibleTitle && visibleTitle !== untitledTitle ? `<li class="document-outline-root"><button type="button" class="document-outline-link" data-outline-top>${esc(visibleTitle)}</button></li>` : "";
+    const rootRow = visibleTitle ? `<li class="document-outline-root"><button type="button" class="document-outline-link" data-outline-top>${esc(visibleTitle)}</button></li>` : "";
     root.innerHTML = rootRow + headings.map((item) => `<li class="document-outline-item" style="padding-left:${Math.min(item.level - 1, 5) * 13}px"><button type="button" class="document-outline-link" data-outline-pos="${item.pos}">${esc(item.text)}</button></li>`).join("");
   }
-  function syncTitle(value, origin) {
-    const effective = value.trim() || untitledTitle;
+  function syncTitle(value, origin, isUntitled = !value.trim()) {
+    const effective = isUntitled ? current?.resource.isUntitled ? current.resource.title : untitledTitle : value.trim();
     document.querySelectorAll("[data-document-title]").forEach((input) => {
       if (input === origin) return;
-      input.value = input.id === "documentTitle" ? effective : effective === untitledTitle ? "" : value;
+      input.value = input.id === "documentTitle" ? effective : isUntitled ? "" : value;
     });
     outlineRows();
   }
   function queueTitle() {
     if (!current?.doc.canEdit) return;
-    current.pendingTitle = title();
+    current.pendingTitle = titleState();
     current.titleDirty = true;
     status("\u672A\u4FDD\u5B58");
     persistDraft();
     clearTimeout(current.titleTimer);
     if (current.conflict) return;
     if (current.titleSaving) {
-      current.pendingTitle = title();
+      current.pendingTitle = titleState();
       return;
     }
     current.titleTimer = setTimeout(() => saveTitle().catch((error) => status(error.message, true)), 800);
   }
   async function saveTitle(workspace = current, queuedTitle = null) {
     if (!workspace?.titleDirty || workspace.conflict) return;
-    const next = (queuedTitle ?? (current === workspace ? title() : workspace.pendingTitle))?.trim() || untitledTitle;
+    const next = queuedTitle ?? (current === workspace ? titleState() : workspace.pendingTitle);
+    if (!next) return;
     if (workspace.titleSaving) {
       if (queuedTitle !== null || !workspace.pendingTitle) workspace.pendingTitle = next;
       return;
     }
     clearTimeout(workspace.titleTimer);
-    if (next === workspace.resource.title) {
+    if (sameTitle(next, savedTitle(workspace.resource))) {
       workspace.titleDirty = false;
       workspace.pendingTitle = null;
       if (current === workspace) {
-        syncTitle(next);
+        syncTitle(next.title, null, next.isUntitled);
         clearDraft();
         if (!workspace.dirty) status("\u5DF2\u4FDD\u5B58\u5230\u4E91\u7AEF");
       }
@@ -43244,25 +43257,30 @@ Please report this to https://github.com/markedjs/marked.`, e) {
     if (current === workspace) status("\u4FDD\u5B58\u4E2D\u2026");
     let saved = false;
     try {
-      const updated = await api(`/resources/${enc(workspace.resource.id)}`, "PATCH", { title: next, expectedTitle: workspace.resource.title });
+      const updated = await api(`/resources/${enc(workspace.resource.id)}`, "PATCH", {
+        title: next.isUntitled ? "" : next.title,
+        expectedTitle: workspace.resource.title,
+        expectedIsUntitled: Boolean(workspace.resource.isUntitled)
+      });
       saved = true;
       workspace.resource.title = updated.title;
+      workspace.resource.isUntitled = updated.isUntitled;
       workspace.resource.fileName = updated.fileName;
       if (current === workspace) {
         document.title = `${updated.title} \xB7 \u7814\u9014`;
-        if (title() === next) {
-          syncTitle(next);
+        if (sameTitle(titleState(), next)) {
+          syncTitle(next.title, null, next.isUntitled);
           workspace.titleDirty = false;
           workspace.pendingTitle = null;
         } else {
           workspace.titleDirty = true;
-          workspace.pendingTitle = title();
+          workspace.pendingTitle = titleState();
           persistDraft();
         }
         if (!workspace.dirty && !workspace.titleDirty) status("\u5DF2\u4FDD\u5B58\u5230\u4E91\u7AEF");
         clearDraft();
       } else {
-        workspace.titleDirty = typeof workspace.pendingTitle === "string" && workspace.pendingTitle !== workspace.resource.title;
+        workspace.titleDirty = Boolean(workspace.pendingTitle && !sameTitle(workspace.pendingTitle, savedTitle(workspace.resource)));
       }
     } catch (error) {
       if (current === workspace) {
@@ -43275,7 +43293,7 @@ Please report this to https://github.com/markedjs/marked.`, e) {
       if (saved && workspace.titleDirty && !workspace.conflict) {
         const pendingTitle = workspace.pendingTitle;
         workspace.pendingTitle = null;
-        if (typeof pendingTitle === "string" && pendingTitle !== workspace.resource.title) {
+        if (pendingTitle && !sameTitle(pendingTitle, savedTitle(workspace.resource))) {
           saveTitle(workspace, pendingTitle).catch((error) => {
             if (current === workspace && !workspace.conflict) status(error.message, true);
           });
@@ -43392,7 +43410,7 @@ Please report this to https://github.com/markedjs/marked.`, e) {
       document.querySelectorAll("[data-document-title]").forEach((input) => {
         input.readOnly = false;
       });
-      syncTitle(workspace.resource.title);
+      syncTitle(workspace.resource.title, null, workspace.resource.isUntitled);
       document.querySelector(".document-compatibility")?.remove();
       status("\u5DF2\u8F6C\u6362\u5E76\u4FDD\u5B58\u5230\u4E91\u7AEF");
     } catch (error) {
@@ -43577,7 +43595,7 @@ Please report this to https://github.com/markedjs/marked.`, e) {
     if (doc3.canEdit) repairBlockIds(editor);
     workspace.lastSaved = snapshot(structured(doc3.content) ? doc3.content : { schemaVersion: 2, ...editor.getJSON() });
     workspace.recovery = doc3.canEdit ? readDraft(resource.id) : null;
-    if (workspace.recovery && snapshot(workspace.recovery.content) === snapshot(content()) && workspace.recovery.title === resource.title) {
+    if (workspace.recovery && snapshot(workspace.recovery.content) === snapshot(content()) && sameTitle({ title: workspace.recovery.title, isUntitled: workspace.recovery.isUntitled === true }, savedTitle(resource))) {
       try {
         localStorage.removeItem(workspace.recovery.key);
       } catch {
@@ -43625,7 +43643,7 @@ Please report this to https://github.com/markedjs/marked.`, e) {
     document.body.classList.add("document-mode");
     document.title = `${resource.title} \xB7 \u7814\u9014`;
     const editable = doc3.canEdit;
-    const paperTitle = editable && resource.title === untitledTitle ? "" : resource.title;
+    const paperTitle = resource.isUntitled ? "" : resource.title;
     const owner = doc3.owner || resource.owner || "\u672A\u77E5\u4F5C\u8005";
     const back = state.driveReturn || "resources";
     const compatibilityNotice = doc3.compatibilityIssue ? `<div class="document-recovery document-compatibility"><strong>\u68C0\u67E5\u65E7\u5185\u5BB9</strong><span>${esc(doc3.compatibilityIssue)}${doc3.canConvert ? "\u3002\u539F\u6587\u4EF6\u4ECD\u53EF\u4E0B\u8F7D\u67E5\u770B\u3002" : "\u3002"}</span>${doc3.canConvert ? '<button type="button" class="btn" data-structured-action="convert-document">\u786E\u8BA4\u8F6C\u6362\u5E76\u7F16\u8F91</button>' : ""}</div>` : "";
@@ -43690,14 +43708,14 @@ Please report this to https://github.com/markedjs/marked.`, e) {
     if (action === "restore-draft") {
       const record = current.recovery;
       if (!record) return;
-      const stale = record.version !== current.doc.version || record.baseTitle !== current.resource.title;
+      const stale = record.version !== current.doc.version || record.baseTitle !== current.resource.title || record.baseIsUntitled !== Boolean(current.resource.isUntitled);
       setContent2(record.content);
-      syncTitle(record.title);
+      syncTitle(record.title, null, record.isUntitled === true);
       current.restoredKey = record.key;
       current.recovery = null;
       document.querySelector("#structuredRecovery").hidden = true;
       current.dirty = snapshot(content()) !== current.lastSaved;
-      current.titleDirty = record.title !== current.resource.title;
+      current.titleDirty = !sameTitle({ title: record.title, isUntitled: record.isUntitled === true }, savedTitle(current.resource));
       persistDraft();
       if (stale) conflict("\u672C\u5730\u8BB0\u5F55\u57FA\u4E8E\u65E7\u7248\u672C");
       else {
@@ -43721,7 +43739,7 @@ Please report this to https://github.com/markedjs/marked.`, e) {
       }
       if (event.key === "Escape") {
         event.preventDefault();
-        syncTitle(current.resource.title);
+        syncTitle(current.resource.title, null, current.resource.isUntitled);
         current.titleDirty = false;
         event.target.blur();
       }

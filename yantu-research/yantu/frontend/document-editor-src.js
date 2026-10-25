@@ -30,10 +30,19 @@ const status = (message, error = false) => {
 };
 const content = (workspace = current) => workspace?.editor ? { schemaVersion: 2, ...workspace.editor.getJSON() } : null;
 const untitledTitle = '未命名文档';
-const title = () => {
+const savedTitle = resource => ({ title: resource.title, isUntitled: Boolean(resource.isUntitled) });
+const sameTitle = (left, right) => left.title === right.title && left.isUntitled === right.isUntitled;
+const titleState = () => {
+  const paper = document.querySelector('.document-paper-title [data-document-title]');
+  if (paper) {
+    const value = paper.value.trim();
+    return { title: value || (current?.resource.isUntitled ? current.resource.title : untitledTitle), isUntitled: !value };
+  }
   const input = document.querySelector('#documentTitle');
-  return input ? input.value.trim() || untitledTitle : current?.resource.title?.trim() || untitledTitle;
+  return { title: input?.value.trim() || current?.resource.title || untitledTitle,
+    isUntitled: Boolean(current?.resource.isUntitled) };
 };
+const title = () => titleState().title;
 
 function repairBlockIds(editor) {
   const seen = new Set();
@@ -65,7 +74,8 @@ function persistDraft() {
   if (!current?.doc.canEdit) return;
   try {
     localStorage.setItem(draftKey(current.resource.id), JSON.stringify({
-      title: title(), content: content(), baseTitle: current.resource.title,
+      ...titleState(), content: content(), baseTitle: current.resource.title,
+      baseIsUntitled: Boolean(current.resource.isUntitled),
       version: current.doc.version, savedAt: new Date().toISOString(),
     }));
   } catch { status('本机记录保存失败', true); }
@@ -89,56 +99,61 @@ function outlineRows() {
     }
   });
   const visibleTitle = document.querySelector('.document-paper-title input')?.value.trim();
-  const rootRow = visibleTitle && visibleTitle !== untitledTitle
+  const rootRow = visibleTitle
     ? `<li class="document-outline-root"><button type="button" class="document-outline-link" data-outline-top>${esc(visibleTitle)}</button></li>` : '';
   root.innerHTML = rootRow + headings.map(item => `<li class="document-outline-item" style="padding-left:${Math.min(item.level - 1, 5) * 13}px"><button type="button" class="document-outline-link" data-outline-pos="${item.pos}">${esc(item.text)}</button></li>`).join('');
 }
-function syncTitle(value, origin) {
-  const effective = value.trim() || untitledTitle;
+function syncTitle(value, origin, isUntitled = !value.trim()) {
+  const effective = isUntitled ? (current?.resource.isUntitled ? current.resource.title : untitledTitle) : value.trim();
   document.querySelectorAll('[data-document-title]').forEach(input => {
     if (input === origin) return;
-    input.value = input.id === 'documentTitle' ? effective : effective === untitledTitle ? '' : value;
+    input.value = input.id === 'documentTitle' ? effective : isUntitled ? '' : value;
   });
   outlineRows();
 }
 function queueTitle() {
   if (!current?.doc.canEdit) return;
-  current.pendingTitle = title();
+  current.pendingTitle = titleState();
   current.titleDirty = true; status('未保存'); persistDraft();
   clearTimeout(current.titleTimer);
   if (current.conflict) return;
-  if (current.titleSaving) { current.pendingTitle = title(); return; }
+  if (current.titleSaving) { current.pendingTitle = titleState(); return; }
   current.titleTimer = setTimeout(() => saveTitle().catch(error => status(error.message, true)), 800);
 }
 async function saveTitle(workspace = current, queuedTitle = null) {
   if (!workspace?.titleDirty || workspace.conflict) return;
-  const next = (queuedTitle ?? (current === workspace ? title() : workspace.pendingTitle))?.trim() || untitledTitle;
+  const next = queuedTitle ?? (current === workspace ? titleState() : workspace.pendingTitle);
+  if (!next) return;
   if (workspace.titleSaving) {
     if (queuedTitle !== null || !workspace.pendingTitle) workspace.pendingTitle = next;
     return;
   }
   clearTimeout(workspace.titleTimer);
-  if (next === workspace.resource.title) {
+  if (sameTitle(next, savedTitle(workspace.resource))) {
     workspace.titleDirty = false;
     workspace.pendingTitle = null;
-    if (current === workspace) { syncTitle(next); clearDraft(); if (!workspace.dirty) status('已保存到云端'); }
+    if (current === workspace) { syncTitle(next.title, null, next.isUntitled); clearDraft(); if (!workspace.dirty) status('已保存到云端'); }
     return;
   }
   workspace.titleSaving = true;
   if (current === workspace) status('保存中…');
   let saved = false;
   try {
-    const updated = await api(`/resources/${enc(workspace.resource.id)}`, 'PATCH', { title: next, expectedTitle: workspace.resource.title });
+    const updated = await api(`/resources/${enc(workspace.resource.id)}`, 'PATCH', {
+      title: next.isUntitled ? '' : next.title, expectedTitle: workspace.resource.title,
+      expectedIsUntitled: Boolean(workspace.resource.isUntitled),
+    });
     saved = true;
-    workspace.resource.title = updated.title; workspace.resource.fileName = updated.fileName;
+    workspace.resource.title = updated.title; workspace.resource.isUntitled = updated.isUntitled;
+    workspace.resource.fileName = updated.fileName;
     if (current === workspace) {
       document.title = `${updated.title} · 研途`;
-      if (title() === next) { syncTitle(next); workspace.titleDirty = false; workspace.pendingTitle = null; }
-      else { workspace.titleDirty = true; workspace.pendingTitle = title(); persistDraft(); }
+      if (sameTitle(titleState(), next)) { syncTitle(next.title, null, next.isUntitled); workspace.titleDirty = false; workspace.pendingTitle = null; }
+      else { workspace.titleDirty = true; workspace.pendingTitle = titleState(); persistDraft(); }
       if (!workspace.dirty && !workspace.titleDirty) status('已保存到云端');
       clearDraft();
     } else {
-      workspace.titleDirty = typeof workspace.pendingTitle === 'string' && workspace.pendingTitle !== workspace.resource.title;
+      workspace.titleDirty = Boolean(workspace.pendingTitle && !sameTitle(workspace.pendingTitle, savedTitle(workspace.resource)));
     }
   } catch (error) {
     if (current === workspace) {
@@ -151,7 +166,7 @@ async function saveTitle(workspace = current, queuedTitle = null) {
     if (saved && workspace.titleDirty && !workspace.conflict) {
       const pendingTitle = workspace.pendingTitle;
       workspace.pendingTitle = null;
-      if (typeof pendingTitle === 'string' && pendingTitle !== workspace.resource.title) {
+      if (pendingTitle && !sameTitle(pendingTitle, savedTitle(workspace.resource))) {
         saveTitle(workspace, pendingTitle).catch(error => {
           if (current === workspace && !workspace.conflict) status(error.message, true);
         });
@@ -252,7 +267,7 @@ async function convertDocument() {
     if (current !== workspace) return;
     workspace.editor.setEditable(true);
     document.querySelectorAll('[data-document-title]').forEach(input => { input.readOnly = false; });
-    syncTitle(workspace.resource.title);
+    syncTitle(workspace.resource.title, null, workspace.resource.isUntitled);
     document.querySelector('.document-compatibility')?.remove();
     status('已转换并保存到云端');
   } catch (error) {
@@ -389,7 +404,8 @@ function mount() {
   if (doc.canEdit) repairBlockIds(editor);
   workspace.lastSaved = snapshot(structured(doc.content) ? doc.content : { schemaVersion: 2, ...editor.getJSON() });
   workspace.recovery = doc.canEdit ? readDraft(resource.id) : null;
-  if (workspace.recovery && snapshot(workspace.recovery.content) === snapshot(content()) && workspace.recovery.title === resource.title) {
+  if (workspace.recovery && snapshot(workspace.recovery.content) === snapshot(content()) &&
+      sameTitle({ title: workspace.recovery.title, isUntitled: workspace.recovery.isUntitled === true }, savedTitle(resource))) {
     try { localStorage.removeItem(workspace.recovery.key); } catch {}
     workspace.recovery = null;
   }
@@ -426,7 +442,7 @@ function page(resource, doc) {
   document.body.classList.add('document-mode');
   document.title = `${resource.title} · 研途`;
   const editable = doc.canEdit;
-  const paperTitle = editable && resource.title === untitledTitle ? '' : resource.title;
+  const paperTitle = resource.isUntitled ? '' : resource.title;
   const owner = doc.owner || resource.owner || '未知作者';
   const back = state.driveReturn || 'resources';
   const compatibilityNotice = doc.compatibilityIssue
@@ -477,10 +493,12 @@ document.addEventListener('click', event => {
   if (action === 'restore-draft') {
     const record = current.recovery;
     if (!record) return;
-    const stale = record.version !== current.doc.version || record.baseTitle !== current.resource.title;
-    setContent(record.content); syncTitle(record.title); current.restoredKey = record.key;
+    const stale = record.version !== current.doc.version || record.baseTitle !== current.resource.title ||
+      record.baseIsUntitled !== Boolean(current.resource.isUntitled);
+    setContent(record.content); syncTitle(record.title, null, record.isUntitled === true); current.restoredKey = record.key;
     current.recovery = null; document.querySelector('#structuredRecovery').hidden = true;
-    current.dirty = snapshot(content()) !== current.lastSaved; current.titleDirty = record.title !== current.resource.title;
+    current.dirty = snapshot(content()) !== current.lastSaved;
+    current.titleDirty = !sameTitle({ title: record.title, isUntitled: record.isUntitled === true }, savedTitle(current.resource));
     persistDraft();
     if (stale) conflict('本地记录基于旧版本');
     else { if (current.dirty) queueSave(); if (current.titleDirty) queueTitle(); }
@@ -493,7 +511,7 @@ document.addEventListener('keydown', event => {
   if (!current || !document.querySelector('.structured-workspace')) return;
   if (event.target.matches?.('[data-document-title]')) {
     if (event.key === 'Enter') { event.preventDefault(); saveTitle().catch(() => {}); event.target.blur(); }
-    if (event.key === 'Escape') { event.preventDefault(); syncTitle(current.resource.title); current.titleDirty = false; event.target.blur(); }
+    if (event.key === 'Escape') { event.preventDefault(); syncTitle(current.resource.title, null, current.resource.isUntitled); current.titleDirty = false; event.target.blur(); }
   }
   if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
     event.preventDefault(); saveTitle().catch(() => {}); save().catch(() => {});
