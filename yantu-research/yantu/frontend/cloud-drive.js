@@ -69,7 +69,7 @@ function driveRow(x,view){
 }
 function driveItem(id){return state.data.driveItems?.find(x=>x.id===id)||state.data.driveTree?.find(x=>x.id===id)||state.data.driveTreeFiles?.find(x=>x.id===id);}
 function driveMenuEntries(item){
-  if(!item)return [['cloud-new','新建文件夹','plus'],['upload-resource','上传文件','upload']];
+  if(!item)return [['cloud-create-document','新建文档','file'],['cloud-create-sheet','新建表格','file'],['cloud-create-slides','新建幻灯片','file'],['cloud-new','新建文件夹','folder'],['upload-resource','上传文件','upload']];
   const folder=item.kind==='folder'||('name' in item && !('title' in item));
   const own=!driveIsShared(item);
   const entries=[['cloud-open',folder?'打开文件夹':'查看文件',folder?'folder':'file']];
@@ -97,10 +97,10 @@ function openDriveSearch(){
   const input=popover.querySelector('input[name="q"]');
   input?.focus();input?.select();
 }
-function showDriveMenu(item,point,returnFocus=null,entries=driveMenuEntries(item)){
+function showDriveMenu(item,point,returnFocus=null,entries=driveMenuEntries(item),contextId=item?.id||''){
   closeDriveMenu();state.driveMenuReturnFocus=returnFocus;
-  const menu=document.createElement('div');menu.id='driveContextMenu';menu.className='drive-context-menu';menu.setAttribute('role','menu');menu.setAttribute('aria-label',item?`${item.name||item.title}的操作`:'新建与上传');
-  menu.innerHTML=entries.map(([action,label,ic])=>`<button type="button" role="menuitem" data-menu-action="${action}" data-id="${esc(item?.id||'')}">${icon(ic)}<span>${label}</span></button>`).join('');
+  const menu=document.createElement('div');menu.id='driveContextMenu';menu.className='drive-context-menu';menu.setAttribute('role','menu');menu.setAttribute('aria-label',item?`${item.name||item.title}的操作`:contextId==='root'?'我的文件的操作':'新建与上传');
+  menu.innerHTML=entries.map(([action,label,ic])=>`<button type="button" role="menuitem" data-menu-action="${action}" data-id="${esc(contextId)}">${icon(ic)}<span>${label}</span></button>`).join('');
   document.body.append(menu);
   const x=Math.min(Math.max(8,point.x),window.innerWidth-menu.offsetWidth-8),y=Math.min(Math.max(8,point.y),window.innerHeight-menu.offsetHeight-8);
   menu.style.left=`${x}px`;menu.style.top=`${y}px`;
@@ -109,10 +109,14 @@ function showDriveMenu(item,point,returnFocus=null,entries=driveMenuEntries(item
 }
 document.addEventListener('contextmenu',event=>{
   if(state.page!=='resources')return;
-  const row=event.target.closest('[data-drive-id]');const surface=event.target.closest('.drive-list-panel');
-  if(!row&&!surface)return;
-  if(!row&&event.target.closest('input,button,a,select,textarea'))return;
-  event.preventDefault();showDriveMenu(row?driveItem(row.dataset.driveId):null,{x:event.clientX,y:event.clientY});
+  const row=event.target.closest('[data-drive-id]');const root=event.target.closest('.drive-tree-root');
+  const surface=event.target.closest('.drive-list-panel,.drive-tree');
+  if(!row&&!root&&!surface)return;
+  if(!row&&!root&&event.target.closest('input,button,a,select,textarea'))return;
+  event.preventDefault();
+  if(root&&!row)showDriveMenu(null,{x:event.clientX,y:event.clientY},null,driveMenuEntries(null),'root');
+  else if(row)showDriveMenu(driveItem(row.dataset.driveId),{x:event.clientX,y:event.clientY});
+  else showDriveMenu(null,{x:event.clientX,y:event.clientY},null,driveMenuEntries(null),surface.classList.contains('drive-tree')?'root':'');
 });
 document.addEventListener('click',event=>{if(!event.target.closest('#driveContextMenu,[data-action="cloud-menu"],[data-action="cloud-resource-more"],[data-action="cloud-create-menu"]'))closeDriveMenu();if(!event.target.closest('.drive-search-wrap'))closeDriveSearch();});
 document.addEventListener('keydown',event=>{
@@ -121,7 +125,7 @@ document.addEventListener('keydown',event=>{
   if(state.page==='resources'&&event.key.toLowerCase()==='f'&&(event.ctrlKey||event.metaKey)&&!event.altKey&&!document.querySelector('#modal')?.open){event.preventDefault();openDriveSearch();return;}
   const searchPopover=document.querySelector('#driveSearchPopover');
   if(event.key==='Escape'&&searchPopover&&!searchPopover.hidden){event.preventDefault();closeDriveSearch(true);return;}
-  if(state.page==='resources'&&(event.key==='ContextMenu'||event.shiftKey&&event.key==='F10')){const row=event.target.closest('[data-drive-id]');if(row){event.preventDefault();const rect=row.getBoundingClientRect();showDriveMenu(driveItem(row.dataset.driveId),{x:rect.right-20,y:rect.top+24},row);}}
+  if(state.page==='resources'&&(event.key==='ContextMenu'||event.shiftKey&&event.key==='F10')){const row=event.target.closest('[data-drive-id]'),root=event.target.closest('.drive-tree-root');if(row||root){event.preventDefault();const anchor=row||root,rect=anchor.getBoundingClientRect();if(row)showDriveMenu(driveItem(row.dataset.driveId),{x:rect.right-20,y:rect.top+24},row);else showDriveMenu(null,{x:rect.left+32,y:rect.top+24},root,driveMenuEntries(null),'root');}}
 });
 window.addEventListener('hashchange',closeDriveMenu);
 async function cloudAction(action,id,source){
@@ -155,11 +159,16 @@ async function cloudAction(action,id,source){
   }
   if(['cloud-create-document','cloud-create-sheet','cloud-create-slides'].includes(action)){
     const kind=action.slice('cloud-create-'.length);
-    window.open('#newdocument/'+enc(JSON.stringify({kind,folderId:state.driveFolder||''})),'_blank','noopener');
+    window.open('#newdocument/'+enc(JSON.stringify({kind,folderId:id==='root'?'':state.driveFolder||''})),'_blank','noopener');
     return true;
   }
   if(action==='cloud-my-files'){navigate(driveUrl('mine'));return true;}
-  if(action==='cloud-new'){state.driveCreationParent=id||state.driveFolder||'';modalForm('新建文件夹','cloud-folder',field('名称','name','',{required:true,max:200}),'创建');}
+  if(action==='cloud-new'){
+    const parentId=id==='root'?'':id||state.driveFolder||'';
+    const destination=driveFolderOptions(state.data.driveTree||[]).find(x=>x.id===parentId)?.name||'我的文件 / 根目录';
+    modalForm('新建文件夹','cloud-folder',`<p class="notice">创建位置：${esc(destination)}</p>`+field('名称','name','',{required:true,max:200}),'创建',parentId);
+  }
+  if(action==='upload-resource'&&id==='root'){await openCloudUpload(null,'');return true;}
   if(action==='cloud-upload-here'){await openCloudUpload(null,id);return true;}
   if(action==='cloud-rename')modalForm(folder?'重命名文件夹':'重命名文件','cloud-rename',field('名称','name',folder?item.name:item.title,{required:true,max:200})+`<input type="hidden" name="kind" value="${folder?'folder':'file'}">`,'保存',id);
   if(action==='cloud-move'){const tree=await api('/me/drive/folders/tree');modalForm('选择目标目录','cloud-move',selectField('目标目录','folderId',driveFolderOptions(tree.items),folder?item.parentId:item.folderId)+`<input type="hidden" name="kind" value="${folder?'folder':'file'}">`,'移动',id);}
@@ -177,7 +186,7 @@ async function openReferencePicker(target,selected=''){state.referenceTarget=tar
 function renderAudience(){const selected=$('[name=resourceId]')?.value,item=state.data.referenceFiles.find(x=>x.id===selected);const box=$('#referenceAudience');if(!box)return;box.innerHTML=item?(item.audience||[]).map(x=>`<div class="row"><span>${esc(x.displayName)}：${x.canRead?'已可访问':'当前无权访问'}</span>${!x.canRead&&item.ownerId===state.user.id?`<label><input name="grantUser" type="checkbox" value="${esc(x.userId)}"> 明确授予只读权限</label>`:''}</div>`).join('')+(item.ownerId!==state.user.id?'<p class="small">你不是所有者；无权成员需要联系所有者获取授权。</p>':''):'';}
 async function cloudSubmit(f){const type=f.dataset.form;if(!type.startsWith('cloud-'))return false;const d=values(f),id=f.dataset.id;let refresh=true;
   if(type==='cloud-search'){navigate(driveUrl(state.driveView.scope,state.driveView.folder,d.q));return true;}
-  if(type==='cloud-folder')await api('/me/drive/folders','POST',{name:d.name,parentId:state.driveCreationParent||null});
+  if(type==='cloud-folder')await api('/me/drive/folders','POST',{name:d.name,parentId:id||null});
   if(type==='cloud-rename')await api(d.kind==='folder'?`/me/drive/folders/${enc(id)}`:`/resources/${enc(id)}`,'PATCH',d.kind==='folder'?{name:d.name}:{title:d.name});
   if(type==='cloud-move')await api(d.kind==='folder'?`/me/drive/folders/${enc(id)}`:`/resources/${enc(id)}`,'PATCH',d.kind==='folder'?{parentId:d.folderId||null}:{folderId:d.folderId||null});
   if(type==='cloud-delete')await api(`/me/drive/folders/${enc(id)}`,'DELETE');

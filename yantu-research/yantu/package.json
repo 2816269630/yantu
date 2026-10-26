@@ -1,6 +1,6 @@
 {
   "name": "yantu",
-  "version": "0.3.8",
+  "version": "0.3.9",
   "private": true,
   "scripts": {
     "build:editor": "esbuild frontend/document-editor-src.js --bundle --format=iife --target=es2022 --outfile=frontend/document-editor.js",
