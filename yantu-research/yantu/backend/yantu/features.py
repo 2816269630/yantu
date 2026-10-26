@@ -1012,7 +1012,7 @@ def register_features(app, context):
     before_drive = list(app.router.routes)
     register_cloud_drive(app, locals())
     drive_routes = [r for r in app.router.routes if r not in before_drive]
-    replaced = {(r.path, m) for r in drive_routes for m in r.methods}
+    replaced = {(r.path, m) for r in drive_routes for m in (getattr(r, 'methods', None) or [])}
     app.router.routes[:] = drive_routes + [r for r in before_drive if not any((getattr(r, 'path', ''), m) in replaced for m in (getattr(r, 'methods', None) or []))]
     # Remove superseded compatibility routes so runtime and OpenAPI agree.
     seen, unique = set(), []

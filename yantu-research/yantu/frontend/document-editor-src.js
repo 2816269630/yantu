@@ -1,5 +1,7 @@
 import { Editor } from '@tiptap/core';
 import { createDocumentExtensions, documentBlockTypes } from './document-schema.mjs';
+import { prosemirrorJSONToYDoc, yDocToProsemirrorJSON } from 'y-prosemirror';
+import { openCollaboration } from './document-collaboration.mjs';
 
 // The editor state is the document. The DOM is only its view; no rendered block is
 // made temporarily editable and no Markdown string is reconstructed after typing.
@@ -184,6 +186,7 @@ function queueSave() {
 }
 async function save(workspace = current, queuedContent = null) {
   if (!workspace?.doc.canEdit || workspace.conflict) return;
+  if (workspace.collab) { workspace.collab.scheduleSnapshot(0); return; }
   const value = queuedContent || content(workspace);
   if (workspace.saving) {
     if (queuedContent || !workspace.pendingContent) workspace.pendingContent = value;
@@ -455,8 +458,12 @@ function runCommand(command, slash = false) {
   if (slash && current.slashRange) editor.chain().focus().deleteRange(current.slashRange).run();
   hideMenus();
   if (command === 'formula') { formulaDialog(); return; }
-  if (command === 'document-reference') { referenceDialog(); return; }
+  if (command === 'document-reference') {
+    if (current.resource.ownerId !== state.user.id) return;
+    referenceDialog(); return;
+  }
   if (command === 'image' || command === 'attachment') {
+    if (current.resource.ownerId !== state.user.id) return;
     assetDialog(command === 'image' ? 'imageResource' : 'fileResource'); return;
   }
   if (command === 'link') { linkDialog(); return; }
@@ -470,25 +477,101 @@ function runCommand(command, slash = false) {
   };
   actions[command]?.().run();
 }
-function mount() {
+function collaborationSeed(doc) {
+  const source = new Editor({ extensions: createDocumentExtensions(),
+    content: doc.content, contentType: 'json' });
+  try {
+    const original = source.getJSON();
+    const shared = prosemirrorJSONToYDoc(source.schema, original);
+    const reopened = new Editor({ extensions: createDocumentExtensions(),
+      content: yDocToProsemirrorJSON(shared), contentType: 'json' });
+    try {
+      if (canonicalDocument(original) !== canonicalDocument(reopened.getJSON())) {
+        shared.destroy();
+        return null;
+      }
+      return shared;
+    } finally { reopened.destroy(); }
+  } finally { source.destroy(); }
+}
+function canonicalDocument(value) {
+  return JSON.stringify(value, (_, item) =>
+    item && typeof item === 'object' && !Array.isArray(item)
+      ? Object.fromEntries(Object.entries(item).sort(([a], [b]) => a.localeCompare(b))) : item);
+}
+async function mount() {
   if (current?.editor) {
     if (current.dirty && !current.saving && !current.conflict) save(current).catch(() => {});
     if (current.titleDirty && !current.titleSaving && !current.conflict) saveTitle(current, current.pendingTitle).catch(() => {});
+    current.collab?.close();
     current.editor.destroy(); clearTimeout(current.timer); clearTimeout(current.titleTimer);
   }
   current = null;
   const host = document.querySelector('#structuredEditor');
   if (!host || !pending) return;
   const { resource, doc } = pending; pending = null;
+  document.querySelector('.document-top-actions')?.insertAdjacentHTML('afterbegin',
+    '<span id="documentPresence" class="document-presence"></span>');
+  if (resource.ownerId !== state.user.id) {
+    document.querySelectorAll('.structured-workspace [data-document-title]').forEach(input => { input.readOnly = true; });
+    document.querySelector('.structured-workspace [data-action="cloud-shares"]')?.remove();
+  }
+  let collaboration = null;
+  if (!window.__disableCollaborationForTests && doc.kind === 'document' &&
+      doc.content?.schemaVersion === 2 && !doc.compatibilityIssue) {
+    status('连接协作服务…');
+    try {
+      collaboration = await openCollaboration({
+        id: resource.id, seed: () => collaborationSeed(doc), api,
+        currentContent: () => current?.resource.id === resource.id && current.editor ? content(current) : null,
+        onStatus: message => { if (document.querySelector('#structuredEditor') === host) status(message); },
+        onPresence: people => {
+          const indicator = document.querySelector('#documentPresence');
+          if (indicator && document.querySelector('#structuredEditor') === host)
+            indicator.textContent = new Set(people.map(person => person.id)).size > 1
+              ? new Set(people.map(person => person.id)).size + ' 人在线' : '仅我在线';
+        },
+        onVersion: result => {
+          if (current?.resource.id !== resource.id) return;
+          current.doc.version = result.version;
+          current.lastSaved = snapshot(content(current));
+          current.dirty = false;
+          clearDraft();
+          const time = document.querySelector('#documentModifiedAt');
+          if (time && result.modifiedAt) { time.dateTime = result.modifiedAt; time.textContent = workspaceModifiedLabel(result.modifiedAt); }
+        },
+        onPermissionLost: () => {
+          if (current?.resource.id === resource.id) {
+            current.doc.canEdit = false;
+            current.editor?.setEditable(false);
+          }
+        },
+      });
+    } catch (error) {
+      if (document.querySelector('#structuredEditor') === host && doc.canEdit) {
+        status(error.message, true);
+        host.textContent = error.message;
+      }
+      if (doc.canEdit) return;
+      status('只读文档');
+    }
+    if (!host.isConnected || document.querySelector('#structuredEditor') !== host) {
+      collaboration?.close(); return;
+    }
+  }
   document.querySelector('#structuredSelectionTools').insertAdjacentHTML('beforeend', '<button type="button" data-editor-command="link" title="链接 Ctrl+K">链接</button>');
   document.querySelector('#structuredSlashMenu').insertAdjacentHTML('beforeend', '<button type="button" data-editor-command="table" data-alias="table bg"><span>▦</span>表格</button>');
-  document.querySelector('#structuredSlashMenu').insertAdjacentHTML('beforeend', '<button type="button" data-editor-command="image" data-alias="image img tp"><span>▧</span>图片</button><button type="button" data-editor-command="attachment" data-alias="file attachment fj"><span>▤</span>附件</button>');
-  document.querySelector('#structuredSlashMenu').insertAdjacentHTML('beforeend', '<button type="button" data-editor-command="document-reference" data-alias="reference doc yd"><span>@</span>引用文档</button>');
-  if (doc.canEdit) document.querySelector('.document-toolbar').insertAdjacentHTML('beforeend', '<button type="button" data-editor-command="image">插入图片</button><button type="button" data-editor-command="attachment">插入附件</button><button type="button" data-editor-command="document-reference">引用文档</button>');
+  if (resource.ownerId === state.user.id)
+    document.querySelector('#structuredSlashMenu').insertAdjacentHTML('beforeend', '<button type="button" data-editor-command="image" data-alias="image img tp"><span>▧</span>图片</button><button type="button" data-editor-command="attachment" data-alias="file attachment fj"><span>▤</span>附件</button>');
+  if (resource.ownerId === state.user.id)
+    document.querySelector('#structuredSlashMenu').insertAdjacentHTML('beforeend', '<button type="button" data-editor-command="document-reference" data-alias="reference doc yd"><span>@</span>引用文档</button>');
+  if (doc.canEdit && resource.ownerId === state.user.id)
+    document.querySelector('.document-toolbar').insertAdjacentHTML('beforeend',
+      '<button type="button" data-editor-command="image">插入图片</button><button type="button" data-editor-command="attachment">插入附件</button><button type="button" data-editor-command="document-reference">引用文档</button>');
   host.closest('.structured-workspace').insertAdjacentHTML('beforeend', '<dialog id="structuredLinkDialog" class="document-link-dialog"><strong>链接</strong><input type="url" aria-label="链接地址" placeholder="https://example.com"><div><button type="button" class="btn" data-structured-action="cancel-link">取消</button><button type="button" class="btn primary" data-structured-action="save-link">完成</button></div></dialog>');
   host.closest('.structured-workspace').insertAdjacentHTML('beforeend', '<dialog id="documentAssetDialog" class="document-asset-dialog"><strong>插入资源</strong><input type="file" aria-label="选择要上传的文件" hidden><button type="button" class="btn" data-structured-action="upload-asset">选择文件上传</button><div class="document-asset-divider">或从我的云盘选择</div><input type="search" aria-label="搜索云盘文件" placeholder="搜索文件"><div class="document-asset-list"></div><button type="button" class="btn" data-structured-action="close-asset">取消</button></dialog><div id="documentAssetActions" class="document-asset-actions" hidden><button type="button" data-structured-action="download-asset">下载</button><button type="button" data-structured-action="replace-asset">替换</button><button type="button" data-structured-action="remove-asset">从文档移除</button></div>');
   host.closest('.structured-workspace').insertAdjacentHTML('beforeend', '<dialog id="documentReferenceDialog" class="document-asset-dialog"><strong>引用研途文档</strong><input type="search" aria-label="搜索要引用的文档" placeholder="搜索文档标题"><div class="document-reference-list"></div><button type="button" class="btn" data-structured-action="close-reference">取消</button></dialog>');
-  const workspace = current = { resource, doc, dirty: false, titleDirty: false, saving: false, titleSaving: false, conflict: false, lastSaved: null, initializing: true };
+  const workspace = current = { resource, doc, collab: collaboration, dirty: false, titleDirty: false, saving: false, titleSaving: false, conflict: false, lastSaved: null, initializing: true };
   let editor;
   editor = new Editor({
     element: host, editable: doc.canEdit,
@@ -503,22 +586,42 @@ function mount() {
         return false;
       },
     },
-    extensions: createDocumentExtensions({ editable: doc.canEdit, documentId: resource.id,
+    extensions: createDocumentExtensions({ editable: doc.canEdit, collaboration: collaboration?.document,
+      documentId: resource.id,
       resolveReference: id => {
         workspace.referenceCache ||= new Map();
         if (!workspace.referenceCache.has(id)) workspace.referenceCache.set(id,
           api(`/resources/${enc(id)}`).then(item => /\.ytdoc$/i.test(item.fileName) ? item.title : null).catch(() => null));
         return workspace.referenceCache.get(id);
       }, onMathClick: (node, pos) => formulaDialog(node, pos) }),
-    content: typeof doc.content === 'string' ? doc.content : doc.content,
-    contentType: typeof doc.content === 'string' ? 'markdown' : 'json',
-    onUpdate: () => { if (current !== workspace || workspace.initializing || !workspace.editor || repairBlockIds(editor)) return; outlineRows(); queueSave(); updateMenus(); },
+    ...(collaboration ? {} : { content: doc.content, contentType: typeof doc.content === 'string' ? 'markdown' : 'json' }),
+    onUpdate: () => {
+      if (current !== workspace || workspace.initializing || !workspace.editor || repairBlockIds(editor)) return;
+      outlineRows();
+      if (collaboration) {
+        if (workspace.doc.canEdit) { workspace.dirty = true; persistDraft(); collaboration.scheduleSnapshot(); }
+      }
+      else queueSave();
+      updateMenus();
+    },
     onSelectionUpdate: () => { if (current === workspace) updateMenus(); },
     onFocus: updateMenus, onBlur: hideMenus,
   });
   workspace.editor = editor;
+  if (collaboration?.seeded) {
+    const reference = new Editor({ extensions: createDocumentExtensions(), content: doc.content, contentType: 'json' });
+    const matches = canonicalDocument(reference.getJSON()) === canonicalDocument(editor.getJSON());
+    reference.destroy();
+    if (!matches) {
+      editor.setEditable(false);
+      collaboration.close();
+      status('文档转换校验失败，原文件保持不变', true);
+      return;
+    }
+  }
   if (doc.canEdit) repairBlockIds(editor);
-  workspace.lastSaved = snapshot(structured(doc.content) ? doc.content : { schemaVersion: 2, ...editor.getJSON() });
+  workspace.lastSaved = snapshot(collaboration ? content(workspace) :
+    structured(doc.content) ? doc.content : { schemaVersion: 2, ...editor.getJSON() });
   workspace.recovery = doc.canEdit ? readDraft(resource.id) : null;
   if (workspace.recovery && snapshot(workspace.recovery.content) === snapshot(content()) &&
       sameTitle({ title: workspace.recovery.title, isUntitled: workspace.recovery.isUntitled === true }, savedTitle(resource))) {
@@ -572,7 +675,7 @@ document.addEventListener('mousedown', event => {
 document.addEventListener('input', event => {
   if (event.target.matches?.('#documentAssetDialog input[type=search]')) { renderAssetChoices(); return; }
   if (event.target.matches?.('#documentReferenceDialog input[type=search]')) { renderReferenceChoices(); return; }
-  if (!current || !event.target.matches?.('.structured-workspace [data-document-title]')) return;
+  if (!current || event.target.readOnly || !event.target.matches?.('.structured-workspace [data-document-title]')) return;
   syncTitle(event.target.value, event.target); queueTitle();
 });
 document.addEventListener('click', event => {

@@ -184,7 +184,17 @@ async function cloudAction(action,id,source){
   if(action==='cloud-link'){const item=uploadQueue.find(x=>x.result?.id===id);if(item?.target)await openReferencePicker(item.target,id);}
   return true;
 }
-async function openShares(id){const shares=await api(`/resources/${enc(id)}/shares`);const rows=shares.direct.items;openModal('文件共享与授权',`<p class="notice">仅授权此文件的查看、预览、下载和个人阅读状态。接收人不能修改或再次共享。${shares.legacyAccess.active?'本文件仍通过原课题组共享可访问，撤销直接授权不关闭这一来源。':''}</p>${rows.map(x=>`<div class="row"><div class="row-main"><strong>${esc(x.displayName)}</strong><p>课题组 ${esc(x.teamId)} · ${x.active?'有效只读授权':'已失效'}</p></div>${x.active?btn('撤销','cloud-revoke',id+':'+x.userId):''}</div>`).join('')}${state.team?form('cloud-share',selectField('授权成员','userId',state.members.filter(x=>x.id!==state.user.id).map(x=>({id:x.id,name:x.name})))+`<p class="small">授权上下文：${esc(state.team.name)}，离组后失效，重新加入需要重新授权。</p>`,'确认只读授权',id):'<p class="small mt16">加入课题组后可选择组内成员共享。</p>'}`);}
+async function openShares(id){
+  const [shares,resource]=await Promise.all([api(`/resources/${enc(id)}/shares`),api(`/resources/${enc(id)}`)]);
+  const canCollaborate=/\.ytdoc$/i.test(resource.fileName||'');
+  const rows=shares.direct.items;
+  const notice='指定成员可查看、预览和下载。研途文档可额外授予实时编辑权限；编辑者不能再次共享。';
+  const rowMarkup=rows.map(x=>`<div class="row"><div class="row-main"><strong>${esc(x.displayName)}</strong><p>课题组 ${esc(x.teamId)} · ${x.active?(x.permission==='edit'?'可编辑':'只读'):'已失效'}</p></div>${x.active?btn('撤销','cloud-revoke',id+':'+x.userId):''}</div>`).join('');
+  const fields=selectField('授权成员','userId',state.members.filter(x=>x.id!==state.user.id).map(x=>({id:x.id,name:x.name})))+
+    (canCollaborate?selectField('权限','permission',[{id:'read',name:'只读'},{id:'edit',name:'可编辑'}]):'')+
+    `<p class="small">授权上下文：${esc(state.team.name)}，离组后失效，重新加入需要重新授权。</p>`;
+  openModal('文件共享与授权',`<p class="notice">${notice}${shares.legacyAccess.active?' 原课题组共享范围不受直接授权影响。':''}</p>${rowMarkup}${state.team?form('cloud-share',fields,'保存授权',id):'<p class="small mt16">加入课题组后可选择组内成员共享。</p>'}`);
+}
 async function openReferencePicker(target,selected=''){state.referenceTarget=target;const files=await allDriveFiles('all',`&targetType=${target.kind}&targetId=${enc(target.id)}`);state.data.referenceFiles=files;openModal('从我的云盘引用材料',`<p class="notice">引用保持原文件 ID，不自动扩大权限。只对勾选的无权成员新增授权。授权成功但关联失败时，授权会保留，可到云盘撤销。</p>${form('cloud-reference',selectField('文件','resourceId',files.map(x=>({id:x.id,name:x.title+' · '+x.owner})),selected)+`<div id="referenceAudience"></div>`,'确认授权并引用')}${btn('先上传新文件','cloud-upload-for-target')}`);const sel=$('[name=resourceId]');sel?.addEventListener('change',renderAudience);renderAudience();}
 function renderAudience(){const selected=$('[name=resourceId]')?.value,item=state.data.referenceFiles.find(x=>x.id===selected);const box=$('#referenceAudience');if(!box)return;box.innerHTML=item?(item.audience||[]).map(x=>`<div class="row"><span>${esc(x.displayName)}：${x.canRead?'已可访问':'当前无权访问'}</span>${!x.canRead&&item.ownerId===state.user.id?`<label><input name="grantUser" type="checkbox" value="${esc(x.userId)}"> 明确授予只读权限</label>`:''}</div>`).join('')+(item.ownerId!==state.user.id?'<p class="small">你不是所有者；无权成员需要联系所有者获取授权。</p>':''):'';}
 async function cloudSubmit(f){const type=f.dataset.form;if(!type.startsWith('cloud-'))return false;const d=values(f),id=f.dataset.id;let refresh=true;
@@ -193,7 +203,7 @@ async function cloudSubmit(f){const type=f.dataset.form;if(!type.startsWith('clo
   if(type==='cloud-rename')await api(d.kind==='folder'?`/me/drive/folders/${enc(id)}`:`/resources/${enc(id)}`,'PATCH',d.kind==='folder'?{name:d.name}:{title:d.name});
   if(type==='cloud-move')await api(d.kind==='folder'?`/me/drive/folders/${enc(id)}`:`/resources/${enc(id)}`,'PATCH',d.kind==='folder'?{parentId:d.folderId||null}:{folderId:d.folderId||null});
   if(type==='cloud-delete')await api(`/me/drive/folders/${enc(id)}`,'DELETE');
-  if(type==='cloud-share'){await api(`/resources/${enc(id)}/shares/${enc(d.userId)}`,'PUT',{permission:'read',teamId:state.team.id});toast('只读授权已保存');await openShares(id);return true;}
+  if(type==='cloud-share'){await api(`/resources/${enc(id)}/shares/${enc(d.userId)}`,'PUT',{permission:d.permission||'read',teamId:state.team.id});toast('文件授权已保存');await openShares(id);return true;}
   if(type==='cloud-revoke'){const [r,u]=id.split(':');await api(`/resources/${enc(r)}/shares/${enc(u)}`,'DELETE');toast('直接授权已撤销；原课题组共享范围保持');await openShares(r);return true;}
   if(type==='cloud-reference') {const target=state.referenceTarget,item=state.data.referenceFiles.find(x=>x.id===d.resourceId);let granted=0;try{for(const box of $$('input[name=grantUser]:checked',f)){await api(`/resources/${enc(item.id)}/shares/${enc(box.value)}`,'PUT',{permission:'read',teamId:state.team.id});granted++;}await api(`/${target.kind==='task'?'tasks':'meetings'}/${enc(target.id)}/resources`,'POST',{resourceId:item.id});}catch(e){if(granted)e.message='授权已保存，关联未完成：'+e.message+'。可重试关联或到云盘撤销新增授权。';throw e;}}
   closeModal();toast('操作已保存');if(refresh)await renderPage();return true;

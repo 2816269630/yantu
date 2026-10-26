@@ -1,10 +1,10 @@
 {
   "name": "yantu",
-  "version": "0.3.10",
+  "version": "0.4.0",
   "private": true,
   "scripts": {
     "build:editor": "esbuild frontend/document-editor-src.js --bundle --format=iife --target=es2022 --outfile=frontend/document-editor.js",
-    "test:ui": "node backend/tests/test_frontend.cjs && node backend/tests/test_document_roundtrip.cjs"
+    "test:ui": "node backend/tests/test_frontend.cjs && node backend/tests/test_document_roundtrip.cjs && node backend/tests/test_realtime_editor.cjs"
   },
   "devDependencies": {
     "esbuild": "0.25.12",
@@ -12,12 +12,15 @@
   },
   "dependencies": {
     "@tiptap/core": "3.32.0",
+    "@tiptap/extension-collaboration": "3.32.0",
     "@tiptap/extension-mathematics": "3.32.0",
     "@tiptap/extension-table": "3.32.0",
     "@tiptap/extension-unique-id": "3.32.0",
     "@tiptap/markdown": "3.32.0",
     "@tiptap/pm": "3.32.0",
     "@tiptap/starter-kit": "3.32.0",
-    "katex": "0.16.28"
+    "katex": "0.16.28",
+    "y-prosemirror": "1.3.7",
+    "yjs": "13.6.27"
   }
 }

@@ -192,6 +192,7 @@ class ResourceShare(Base):
     user_id: Mapped[str] = mapped_column(ForeignKey("yt_users.id"), index=True)
     team_id: Mapped[str] = mapped_column(ForeignKey("yt_teams.id"))
     active: Mapped[bool] = mapped_column(Boolean, default=True)
+    permission: Mapped[str] = mapped_column(String(10), default="read", server_default="read")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     __table_args__ = (UniqueConstraint("resource_id", "user_id", "team_id"),)
 

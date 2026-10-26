@@ -4,6 +4,7 @@ import { TableKit, TableCell, TableHeader } from '@tiptap/extension-table';
 import { UniqueID } from '@tiptap/extension-unique-id';
 import { Markdown } from '@tiptap/markdown';
 import { Node } from '@tiptap/core';
+import Collaboration from '@tiptap/extension-collaboration';
 
 export const documentBlockTypes = [
   'paragraph', 'heading', 'bulletList', 'orderedList', 'listItem',
@@ -78,9 +79,10 @@ const cellBackground = {
 const BackgroundTableCell = TableCell.extend({ addAttributes() { return { ...this.parent?.(), background: cellBackground }; } });
 const BackgroundTableHeader = TableHeader.extend({ addAttributes() { return { ...this.parent?.(), background: cellBackground }; } });
 
-export function createDocumentExtensions({ editable = true, onMathClick = () => {}, documentId = '', resolveReference = async () => null } = {}) {
+export function createDocumentExtensions({ editable = true, onMathClick = () => {}, documentId = '', resolveReference = async () => null, collaboration = null } = {}) {
   return [
-    StarterKit.configure({ heading: { levels: [1, 2, 3, 4, 5, 6] } }),
+    StarterKit.configure({ heading: { levels: [1, 2, 3, 4, 5, 6] }, undoRedo: !collaboration }),
+    ...(collaboration ? [Collaboration.configure({ document: collaboration, field: 'prosemirror' })] : []),
     UniqueID.configure({ types: documentBlockTypes, updateDocument: editable }),
     TableKit.configure({ tableCell: false, tableHeader: false }),
     BackgroundTableCell, BackgroundTableHeader,

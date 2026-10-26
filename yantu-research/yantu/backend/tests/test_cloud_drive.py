@@ -5,6 +5,7 @@ from threading import Barrier
 from uuid import UUID, uuid4
 import json
 import base64
+from pycrdt import Doc, XmlElement, XmlFragment, XmlText
 
 import pytest
 from fastapi.testclient import TestClient
@@ -310,6 +311,100 @@ def test_simultaneous_document_saves_keep_one_version(drive):
     current = data(c.get(endpoint, headers=owner))
     assert current['content']['content'][0]['content'][0]['text'] == winner and current['version'] == 2
     assert len(data(c.get('/api/v1/resources/'+created['id']+'/versions', headers=owner))['items']) == 2
+
+
+def test_realtime_document_merges_two_editors_and_revokes_write(drive):
+    c, actors, team, _ = drive
+    owner_id, owner = actors[0]
+    editor_id, editor = actors[1]
+    resource = data(c.post('/api/v1/me/drive/documents', headers=owner,
+                           json={'kind': 'document', 'title': '实时协作验收'}), 201)
+    endpoint = '/api/v1/resources/' + resource['id']
+    original = data(c.get(endpoint + '/document', headers=owner))
+    block_id = original['content']['content'][0]['attrs']['id']
+    content = {'schemaVersion': 2, 'type': 'doc', 'content': [
+        {'type': 'paragraph', 'attrs': {'id': block_id}, 'content': [{'type': 'text', 'text': 'x'}]}
+    ]}
+    data(c.put(endpoint + '/document', headers=owner, json={'version': 1, 'content': content}))
+    assert c.put(endpoint + '/shares/' + editor_id, headers=owner,
+                 json={'permission': 'edit', 'teamId': team}).status_code == 200
+    assert data(c.get(endpoint + '/document', headers=editor))['canEdit']
+    initial = Doc({'prosemirror': XmlFragment([
+        XmlElement('paragraph', {'id': block_id}, [XmlText('x')])
+    ])})
+    encoded = base64.b64encode(initial.get_update()).decode()
+
+    def message_of(ws, kind):
+        for _ in range(5):
+            message = ws.receive_json()
+            if message['type'] == kind:
+                return message
+        pytest.fail('未收到协作消息：' + kind)
+
+    ws_path = endpoint + '/collaboration'
+    def auth(actor):
+        return {'cookie': 'yantu_session=' + actor['Authorization'][7:],
+                'origin': 'http://testserver', 'host': 'testserver'}
+
+    with c.websocket_connect(ws_path, headers=auth(owner)) as first:
+        assert message_of(first, 'bootstrap')['state'] is None
+        first.send_json({'type': 'seed', 'update': encoded, 'baseVersion': 2})
+        message_of(first, 'ack')
+        with c.websocket_connect(ws_path, headers=auth(editor)) as second:
+            boot = message_of(second, 'bootstrap')
+            assert boot['canEdit'] and boot['state']
+            left, right = Doc(), Doc()
+            left.apply_update(base64.b64decode(boot['state']))
+            right.apply_update(base64.b64decode(boot['state']))
+            left.get('prosemirror', type=XmlFragment).children[0].children[0].insert(1, 'A')
+            right.get('prosemirror', type=XmlFragment).children[0].children[0].insert(1, 'B')
+            first.send_json({'type': 'update', 'update': base64.b64encode(left.get_update()).decode()})
+            message_of(first, 'ack')
+            message_of(second, 'update')
+            second.send_json({'type': 'update', 'update': base64.b64encode(right.get_update()).decode()})
+            message_of(second, 'ack')
+            message_of(first, 'update')
+            left.apply_update(right.get_update())
+            merged = str(left.get('prosemirror', type=XmlFragment).children[0].children[0])
+            assert sorted(merged) == ['A', 'B', 'x']
+            snapshot = {'schemaVersion': 2, 'type': 'doc', 'content': [
+                {'type': 'paragraph', 'attrs': {'id': block_id},
+                 'content': [{'type': 'text', 'text': merged}]}
+            ]}
+            saved = data(c.put(endpoint + '/collaboration/snapshot', headers=editor, json={
+                'state': base64.b64encode(left.get_state()).decode(), 'content': snapshot,
+            }))
+            assert saved['version'] == 3
+            assert data(c.get(endpoint + '/document', headers=owner))['content'] == snapshot
+            assert c.put(endpoint + '/document', headers=owner, json={'version': 3,
+                         'content': snapshot}).status_code == 409
+            data(c.delete(endpoint + '/shares/' + editor_id, headers=owner))
+            assert any((event := second.receive())['type'] == 'websocket.close' and
+                       event['code'] == 4403 for _ in range(5))
+            assert not data(c.get(endpoint + '/document', headers=owner))['compatibilityIssue']
+            assert c.get(endpoint + '/document', headers=editor).status_code == 404
+
+
+def test_yjs_state_vector_order_does_not_trigger_false_conflict():
+    from yantu.collaboration import state_vector_entries
+
+    assert state_vector_entries(b'\x02\x01\x03\x02\x04') == state_vector_entries(
+        b'\x02\x02\x04\x01\x03')
+    with pytest.raises(ValueError):
+        state_vector_entries(b'\x01\x01')
+
+
+def test_legacy_document_cannot_grant_unusable_edit_permission(drive):
+    client, actors, team, _ = drive
+    owner = actors[0][1]
+    editor_id = actors[1][0]
+    old = data(upload(client, owner, key='legacy-share-edit',
+                      content=json.dumps({'kind': 'document', 'content': {
+                          'schemaVersion': 1, 'type': 'doc', 'content': []
+                      }}).encode(), filename='legacy.ytdoc'), 201)
+    endpoint = f"/api/v1/resources/{old['id']}/shares/{editor_id}"
+    assert client.put(endpoint, headers=owner,
+                      json={'teamId': team, 'permission': 'edit'}).status_code == 409
 
 
 def test_document_model_v2_tables_ids_links_and_v1_read_compatibility(drive):

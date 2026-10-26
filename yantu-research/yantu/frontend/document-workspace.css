@@ -179,3 +179,4 @@ body.document-mode .content>footer{display:none}
 @media(max-width:600px){.document-topbar{height:66px}.document-heading input{width:36vw;font-size:14px}.document-top-actions .btn{padding:6px 8px;font-size:12px}.document-toolbar{height:42px;padding:0 15px}.document-outline{display:none}.document-stage{padding:34px 22px}.document-paper-title{font-size:29px}.document-paper-meta{margin-bottom:32px}.document-editor{font-size:16px}.document-slides{grid-template-columns:1fr}.document-slide-list{display:flex;overflow:auto}.document-slide-thumb{min-width:115px;min-height:74px}.document-slide-add{min-width:105px}.document-slide-stage{aspect-ratio:auto;min-height:300px}}
 @media(max-width:600px){.document-conflict{padding:12px 16px}.document-conflict span{min-width:100%}}
 @media(max-width:600px){.document-recovery{padding:12px 16px}.document-recovery span{min-width:100%}}
+.document-presence { color: #66758c; font-size: 13px; white-space: nowrap; }

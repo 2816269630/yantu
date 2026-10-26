@@ -49,12 +49,25 @@ def verify_storage(database: Path, uploads: Path) -> dict[str, int]:
             problems.append(f"缺少文件：{name}")
         elif file.stat().st_size != expected_size:
             problems.append(f"文件大小不符：{name}（记录 {expected_size}，实际 {file.stat().st_size}）")
+    collaboration = uploads / '.collaboration'
+    states = list(collaboration.glob('*.bin')) if collaboration.is_dir() else []
+    if states:
+        from pycrdt import Doc
+        for state in states:
+            try:
+                if str(UUID(state.stem)) != state.stem:
+                    raise ValueError('状态文件名无效')
+                document = Doc()
+                document.apply_update(state.read_bytes())
+            except (ValueError, RuntimeError, OSError) as error:
+                problems.append(f"协作状态不可读取：{state.name}（{error}）")
     if problems:
         details = "\n".join(problems[:10])
         if len(problems) > 10:
             details += f"\n另有 {len(problems) - 10} 项"
         raise ValueError(f"存储检查失败，拒绝启动验收服务：\n{details}")
     counts["files"] = len({name for name, _ in rows})
+    counts["collaborationStates"] = len(states)
     return counts
 
 
@@ -92,6 +105,12 @@ def snapshot(source: Path, target: Path) -> dict[str, int]:
         if not file.is_file():
             raise ValueError(f"源目录缺少文件：{name}")
         shutil.copy2(file, target_uploads / name)
+    source_collaboration = source_uploads / '.collaboration'
+    if source_collaboration.is_dir():
+        target_collaboration = target_uploads / '.collaboration'
+        target_collaboration.mkdir()
+        for state in source_collaboration.glob('*.bin'):
+            shutil.copy2(state, target_collaboration / state.name)
     return verify_storage(target / DATABASE_NAME, target_uploads)
 
 
@@ -114,7 +133,7 @@ def main() -> int:
         else:
             directory = args.directory.resolve()
             counts = verify_storage(directory / DATABASE_NAME, directory / UPLOADS_NAME)
-        print(f"存储检查通过：{counts['yt_resources']} 份资源、{counts['yt_resource_versions']} 份历史版本、{counts['files']} 个文件")
+        print(f"存储检查通过：{counts['yt_resources']} 份资源、{counts['yt_resource_versions']} 份历史版本、{counts['files']} 个文件、{counts['collaborationStates']} 份协作状态")
         if args.command == "serve":
             os.environ["DATABASE_URL"] = "sqlite:///" + (directory / DATABASE_NAME).as_posix()
             os.environ["UPLOAD_DIR"] = str(directory / UPLOADS_NAME)

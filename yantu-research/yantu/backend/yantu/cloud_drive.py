@@ -2,22 +2,26 @@
 from __future__ import annotations
 
 import hashlib
+import base64
 import json
 import os
-from datetime import timedelta
+from datetime import timedelta, timezone
 from pathlib import Path
 from uuid import uuid4
 
-from fastapi import Body, Depends, File, Form, Header, HTTPException, Query, Request, UploadFile
+from fastapi import Body, Depends, File, Form, Header, HTTPException, Query, Request, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse
 from sqlalchemy import or_, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from .models import (DriveFolder, Member, Resource, ResourceReference, ResourceShare,
-                     ResourceVersion, UploadReceipt, User, Task, Meeting, utcnow)
+                     ResourceVersion, UploadReceipt, User, Task, Meeting, SessionToken, utcnow)
 from .research_assistant import AssistantUnavailable, extract_document_text
 from .document_model import new_document, validate_document
+from .collaboration import CollaborationHub, state_vector_entries
+from .security import token_digest
+from pycrdt import Doc
 
 EXTENSIONS = ['.pdf', '.doc', '.docx', '.ppt', '.pptx', '.xls', '.xlsx', '.txt', '.md', '.png', '.jpg', '.jpeg', '.zip', '.ytdoc', '.ytsheet', '.ytslides']
 NATIVE_FORMATS = {'document': ('.ytdoc', 'note'), 'sheet': ('.ytsheet', 'other'), 'slides': ('.ytslides', 'slides')}
@@ -51,10 +55,22 @@ def resource_for(db, resource_id, user, write=False):
     return resource, member_of(db, resource.team_id, user.id)
 
 
+def can_edit_document(db, resource, user):
+    if resource.owner_id == user.id:
+        return True
+    if Path(resource.file_name).suffix.lower() != '.ytdoc':
+        return False
+    return any(s.permission == 'edit' and valid_share(db, s, resource) for s in db.scalars(
+        select(ResourceShare).where(ResourceShare.resource_id == resource.id,
+                                    ResourceShare.user_id == user.id, ResourceShare.active.is_(True))
+    ))
+
+
 def register_cloud_drive(app, ctx):
     get_db, current_user = ctx['get_db'], ctx['current_user']
     resource_json, iso = ctx['resource_json'], ctx['iso']
     uploads, assistant = ctx['uploads'], ctx['assistant']
+    collab = CollaborationHub(uploads)
 
     def result(data):
         return {'data': data}
@@ -449,7 +465,9 @@ def register_cloud_drive(app, ctx):
         ).order_by(ResourceVersion.version.desc()).limit(1))
         return result({'id': row.id, 'title': row.title, 'kind': kind or 'text', 'content': content,
                        'isUntitled': bool(row.is_untitled),
-                       'version': row.version, 'canEdit': row.owner_id == user.id and not compatibility_issue,
+                       'version': row.version,
+                       'canEdit': can_edit_document(db, row, user) and not compatibility_issue and (
+                           row.owner_id == user.id or isinstance(content, dict) and content.get('schemaVersion') == 2),
                        'canConvert': row.owner_id == user.id and can_convert,
                        'compatibilityIssue': compatibility_issue,
                        'owner': user.display_name if row.owner_id == user.id else ctx['name'](db, row.owner_id),
@@ -462,6 +480,8 @@ def register_cloud_drive(app, ctx):
         kind = next((candidate for candidate, (suffix, _) in NATIVE_FORMATS.items() if suffix == extension), None)
         if not kind and extension not in ('.txt', '.md'):
             raise HTTPException(415, '此文件暂不支持在线编辑')
+        if kind == 'document' and collab.path(row.id).is_file():
+            raise HTTPException(409, '文档已启用实时协作，请重新打开后编辑')
         expected_version = payload.get('version')
         if type(expected_version) is not int or expected_version < 1:
             raise HTTPException(400, '文档版本号无效')
@@ -488,6 +508,172 @@ def register_cloud_drive(app, ctx):
             return result({'id': row.id, 'version': expected_version + 1, 'modifiedAt': iso(version_row.created_at)})
         except Exception:
             db.rollback(); destination.unlink(missing_ok=True); raise
+
+    @app.put('/api/v1/resources/{resource_id}/collaboration/snapshot')
+    async def collaborative_snapshot(resource_id: str, payload: dict = Body(),
+                                     user: User = Depends(current_user), db: Session = Depends(get_db)):
+        row, _ = resource_for(db, resource_id, user)
+        if not can_edit_document(db, row, user):
+            raise HTTPException(403, '没有文档编辑权限')
+        if Path(row.file_name).suffix.lower() != '.ytdoc':
+            raise HTTPException(415, '仅研途文档支持实时协作')
+        room = await collab.room(row.id)
+        async with room.lock:
+            if room.document is None:
+                raise HTTPException(409, '协作内容尚未初始化')
+            try:
+                state = base64.b64decode(payload.get('state', ''), validate=True)
+            except (ValueError, TypeError):
+                raise HTTPException(400, '同步状态无效')
+            try:
+                same_state = state_vector_entries(state) == state_vector_entries(room.document.get_state())
+            except ValueError:
+                raise HTTPException(400, '同步状态无效')
+            if not same_state:
+                raise HTTPException(409, '协作内容正在更新，请稍后重试')
+            content = payload.get('content')
+            data, extracted = document_bytes('document', content)
+            check_assets(db, row, content)
+            check_document_references(db, row, db.get(User, row.owner_id), content)
+            current = (uploads / row.storage_name).read_bytes()
+            if current == data:
+                return result({'version': row.version, 'modifiedAt': None})
+            storage = str(uuid4())
+            destination = uploads / storage
+            destination.write_bytes(data)
+            try:
+                expected = row.version
+                changed = db.execute(update(Resource).where(
+                    Resource.id == row.id, Resource.version == expected, Resource.archived.is_(False)
+                ).values(version=expected + 1, storage_name=storage, size=len(data),
+                         extracted_text=extracted).execution_options(synchronize_session=False)).rowcount
+                if changed != 1:
+                    raise HTTPException(409, '文档版本已变化，请重新打开')
+                version = ResourceVersion(resource_id=row.id, version=expected + 1, file_name=row.file_name,
+                                          storage_name=storage, size=len(data), note='实时协作', author_id=user.id)
+                db.add(version)
+                db.commit()
+                return result({'version': expected + 1, 'modifiedAt': iso(version.created_at)})
+            except Exception:
+                db.rollback()
+                destination.unlink(missing_ok=True)
+                raise
+
+    @app.websocket('/api/v1/resources/{resource_id}/collaboration')
+    async def collaborative_socket(websocket: WebSocket, resource_id: str):
+        origin = websocket.headers.get('origin')
+        host = websocket.headers.get('host')
+        if origin not in (f'http://{host}', f'https://{host}'):
+            await websocket.close(code=4403)
+            return
+        token = websocket.cookies.get('yantu_session')
+        if not token:
+            await websocket.close(code=4401)
+            return
+        SessionLocal = ctx['context']['SessionLocal']
+        with SessionLocal() as db:
+            session = db.get(SessionToken, token_digest(token))
+            if not session or not session.expires_at or session.expires_at.replace(tzinfo=timezone.utc) < utcnow():
+                await websocket.close(code=4401)
+                return
+            user = db.get(User, session.user_id)
+            try:
+                row, _ = resource_for(db, resource_id, user)
+            except HTTPException:
+                await websocket.close(code=4403)
+                return
+            if Path(row.file_name).suffix.lower() != '.ytdoc':
+                await websocket.close(code=4403)
+                return
+            editable = can_edit_document(db, row, user)
+            identity = {'id': user.id, 'name': user.display_name}
+            base_version = row.version
+        room = await collab.room(resource_id)
+        await websocket.accept()
+        async with room.lock:
+            room.clients[websocket] = identity
+            initial = room.document.get_update() if room.document is not None else None
+            people = list(room.clients.values())
+        await websocket.send_json({'type': 'bootstrap', 'state': base64.b64encode(initial).decode() if initial else None,
+                                   'canEdit': editable, 'baseVersion': base_version, 'people': people})
+
+        async def announce(payload, exclude=None):
+            for client in list(room.clients):
+                if client is exclude:
+                    continue
+                try:
+                    with SessionLocal() as db:
+                        recipient = db.get(User, room.clients[client]['id'])
+                        resource = db.get(Resource, resource_id)
+                        allowed = bool(recipient and resource and resource_visible(db, resource, recipient))
+                    if not allowed:
+                        await client.close(code=4403)
+                        room.clients.pop(client, None)
+                        continue
+                    await client.send_json(payload)
+                except Exception:
+                    pass
+
+        await announce({'type': 'presence', 'people': people})
+        try:
+            while True:
+                raw = await websocket.receive_text()
+                if len(raw) > 2 * int(os.getenv('MAX_UPLOAD_BYTES', 20*1024*1024)):
+                    await websocket.close(code=1009)
+                    break
+                try:
+                    message = json.loads(raw)
+                    action = message.get('type')
+                    update_bytes = base64.b64decode(message.get('update', ''), validate=True)
+                    if action not in ('seed', 'update') or not update_bytes:
+                        raise ValueError()
+                except (ValueError, TypeError, AttributeError):
+                    await websocket.close(code=1003)
+                    break
+                with SessionLocal() as db:
+                    session = db.get(SessionToken, token_digest(token))
+                    user = db.get(User, identity['id'])
+                    row = db.get(Resource, resource_id)
+                    allowed = bool(session and user and row and
+                                   session.expires_at and session.expires_at.replace(tzinfo=timezone.utc) >= utcnow() and
+                                   resource_visible(db, row, user) and can_edit_document(db, row, user))
+                    current_version = row.version if row else 0
+                if not allowed:
+                    await websocket.close(code=4403)
+                    break
+                async with room.lock:
+                    if action == 'seed' and room.document is not None:
+                        latest = room.document.get_update()
+                        response = {'type': 'bootstrap', 'state': base64.b64encode(latest).decode(),
+                                    'canEdit': True, 'baseVersion': current_version,
+                                    'people': list(room.clients.values())}
+                    elif action == 'seed' and message.get('baseVersion') != current_version:
+                        response = {'type': 'stale'}
+                    elif action == 'update' and room.document is None:
+                        response = {'type': 'stale'}
+                    else:
+                        try:
+                            candidate = Doc()
+                            if room.document is not None:
+                                candidate.apply_update(room.document.get_update())
+                            candidate.apply_update(update_bytes)
+                            if len(candidate.get_update()) > int(os.getenv('MAX_UPLOAD_BYTES', 20*1024*1024)):
+                                raise ValueError()
+                            collab.save(resource_id, candidate)
+                            room.document = candidate
+                            response = {'type': 'ack'}
+                        except (ValueError, RuntimeError):
+                            response = {'type': 'invalid'}
+                await websocket.send_json(response)
+                if response['type'] == 'ack':
+                    await announce({'type': 'update', 'update': message['update']}, websocket)
+        except WebSocketDisconnect:
+            pass
+        finally:
+            async with room.lock:
+                room.clients.pop(websocket, None)
+                people = list(room.clients.values())
+            await announce({'type': 'presence', 'people': people})
 
     async def save_upload(db, user, file, folder_id, title, category, description, key, version_resource=None, note='', legacy_team=None):
         folder_for(db, folder_id, user)
@@ -561,30 +747,56 @@ def register_cloud_drive(app, ctx):
     @app.post('/api/v1/resources/{resource_id}/versions')
     async def version_upload(resource_id: str, file: UploadFile = File(), note: str = Form('', max_length=50000), idempotency_key: str = Header('', alias='Idempotency-Key', max_length=100), user: User = Depends(current_user), db: Session = Depends(get_db)):
         row, _ = resource_for(db, resource_id, user, True)
+        if Path(row.file_name).suffix.lower() == '.ytdoc' and collab.path(row.id).is_file():
+            raise HTTPException(409, '实时协作文档请在文档页面编辑，不能上传替换版本')
         return result(await save_upload(db, user, file, row.folder_id, row.title, row.type, row.description, idempotency_key, row, note))
 
     @app.get('/api/v1/resources/{resource_id}/shares')
     def shares(resource_id: str, user: User = Depends(current_user), db: Session = Depends(get_db)):
         row, _ = resource_for(db, resource_id, user, True)
-        items = [{'id': s.id, 'userId': s.user_id, 'displayName': ctx['name'](db, s.user_id), 'teamId': s.team_id, 'permission': 'read', 'active': bool(valid_share(db, s, row)), 'createdAt': iso(s.created_at)} for s in db.scalars(select(ResourceShare).where(ResourceShare.resource_id == row.id))]
+        items = [{'id': s.id, 'userId': s.user_id, 'displayName': ctx['name'](db, s.user_id), 'teamId': s.team_id, 'permission': s.permission, 'active': bool(valid_share(db, s, row)), 'createdAt': iso(s.created_at)} for s in db.scalars(select(ResourceShare).where(ResourceShare.resource_id == row.id))]
         return result({'direct': {'items': items}, 'legacyAccess': {'teamId': row.team_id, 'active': row.visibility == 'team'}})
 
     @app.put('/api/v1/resources/{resource_id}/shares/{user_id}')
-    def share(resource_id: str, user_id: str, payload: dict = Body(), user: User = Depends(current_user), db: Session = Depends(get_db)):
+    async def share(resource_id: str, user_id: str, payload: dict = Body(), user: User = Depends(current_user), db: Session = Depends(get_db)):
         row, _ = resource_for(db, resource_id, user, True)
         team_id = payload.get('teamId')
-        if payload.get('permission') != 'read' or user_id == user.id or not member_of(db, team_id, user.id) or not member_of(db, team_id, user_id): raise HTTPException(400, '只能只读共享给同课题组的有效成员')
+        permission = payload.get('permission')
+        if (permission not in ('read', 'edit') or
+            (permission == 'edit' and Path(row.file_name).suffix.lower() != '.ytdoc') or
+            user_id == user.id or not member_of(db, team_id, user.id) or not member_of(db, team_id, user_id)):
+            raise HTTPException(400, '只能向同课题组有效成员授予文档编辑或文件只读权限')
+        if permission == 'edit':
+            try:
+                stored = json.loads((uploads / row.storage_name).read_text(encoding='utf-8'))
+                content = stored['content']
+                if stored.get('kind') != 'document' or content.get('schemaVersion') != 2:
+                    raise ValueError()
+                validate_document(content, for_editor=True)
+            except (OSError, UnicodeError, ValueError, KeyError, TypeError, AttributeError, HTTPException):
+                raise HTTPException(409, '请先将文档转换为当前格式，再授予编辑权限')
         s = db.scalar(select(ResourceShare).where(ResourceShare.resource_id == row.id, ResourceShare.user_id == user_id, ResourceShare.team_id == team_id))
         if not s:
             s = ResourceShare(resource_id=row.id, user_id=user_id, team_id=team_id); db.add(s)
-        s.active = True; db.commit()
-        return result({'id': s.id, 'userId': user_id, 'teamId': team_id, 'permission': 'read', 'active': True})
+        s.active = True; s.permission = permission; db.commit()
+        if permission == 'read' and (room := collab.rooms.get(row.id)):
+            for client, person in list(room.clients.items()):
+                if person['id'] == user_id:
+                    await client.close(code=4403)
+                    room.clients.pop(client, None)
+        return result({'id': s.id, 'userId': user_id, 'teamId': team_id, 'permission': permission, 'active': True})
 
     @app.delete('/api/v1/resources/{resource_id}/shares/{user_id}')
-    def revoke(resource_id: str, user_id: str, user: User = Depends(current_user), db: Session = Depends(get_db)):
+    async def revoke(resource_id: str, user_id: str, user: User = Depends(current_user), db: Session = Depends(get_db)):
         row, _ = resource_for(db, resource_id, user, True)
         for s in db.scalars(select(ResourceShare).where(ResourceShare.resource_id == row.id, ResourceShare.user_id == user_id)): s.active = False
-        db.commit(); return result(None)
+        db.commit()
+        if room := collab.rooms.get(row.id):
+            for client, person in list(room.clients.items()):
+                if person['id'] == user_id:
+                    await client.close(code=4403)
+                    room.clients.pop(client, None)
+        return result(None)
 
     @app.post('/api/v1/tasks/{target_id}/resources')
     @app.post('/api/v1/meetings/{target_id}/resources')

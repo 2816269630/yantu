@@ -7,6 +7,7 @@ from pathlib import Path
 from uuid import uuid4
 
 import pytest
+from pycrdt import Doc
 
 from run_acceptance import snapshot, verify_storage
 
@@ -25,7 +26,8 @@ def test_snapshot_copies_database_and_referenced_files(tmp_path):
             (uploads / name).write_bytes(content)
 
     target = tmp_path / "target"
-    assert snapshot(source, target) == {"yt_resources": 1, "yt_resource_versions": 1, "files": 2}
+    assert snapshot(source, target) == {"yt_resources": 1, "yt_resource_versions": 1,
+                                        "files": 2, "collaborationStates": 0}
     assert [(target / "uploads" / name).read_bytes() for name in names] == contents
     with pytest.raises(ValueError, match="不会覆盖"):
         snapshot(source, target)
@@ -49,3 +51,18 @@ def test_serve_refuses_incomplete_acceptance_copy(tmp_path):
     )
     assert result.returncode == 1
     assert "缺少文件" in result.stderr
+
+
+def test_snapshot_preserves_collaboration_state(tmp_path):
+    source = tmp_path / 'source'
+    uploads = source / 'uploads'
+    states = uploads / '.collaboration'
+    states.mkdir(parents=True)
+    with sqlite3.connect(source / 'acceptance.db') as db:
+        for table in ('yt_resources', 'yt_resource_versions'):
+            db.execute(f'CREATE TABLE {table} (storage_name TEXT, size INTEGER)')
+    state = states / f'{uuid4()}.bin'
+    state.write_bytes(Doc().get_update())
+    target = tmp_path / 'target'
+    assert snapshot(source, target)['collaborationStates'] == 1
+    assert (target / 'uploads' / '.collaboration' / state.name).read_bytes() == state.read_bytes()
