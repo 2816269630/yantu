@@ -69,7 +69,7 @@ function driveRow(x,view){
 }
 function driveItem(id){return state.data.driveItems?.find(x=>x.id===id)||state.data.driveTree?.find(x=>x.id===id)||state.data.driveTreeFiles?.find(x=>x.id===id);}
 function driveMenuEntries(item){
-  if(!item)return [['cloud-create-document','新建文档','file'],['cloud-create-sheet','新建表格','file'],['cloud-create-slides','新建幻灯片','file'],['cloud-new','新建文件夹','folder'],['upload-resource','上传文件','upload']];
+  if(!item)return [['cloud-new','新建文件夹','folder'],['upload-resource','上传文件','upload']];
   const folder=item.kind==='folder'||('name' in item && !('title' in item));
   const own=!driveIsShared(item);
   const entries=[['cloud-open',folder?'打开文件夹':'查看文件',folder?'folder':'file']];
@@ -109,14 +109,17 @@ function showDriveMenu(item,point,returnFocus=null,entries=driveMenuEntries(item
 }
 document.addEventListener('contextmenu',event=>{
   if(state.page!=='resources')return;
-  const row=event.target.closest('[data-drive-id]');const root=event.target.closest('.drive-tree-root');
-  const surface=event.target.closest('.drive-list-panel,.drive-tree');
+  const treeRow=event.target.closest('.drive-tree-row'),treeNode=treeRow?.closest('.drive-tree-node');
+  const row=event.target.closest('.drive-row')||(treeNode?.dataset.driveId?treeNode:null);
+  const root=treeNode?.classList.contains('drive-tree-root')?treeRow:null;
+  const surface=event.target.closest('.drive-list-panel');
   if(!row&&!root&&!surface)return;
+  if(!row&&!root&&event.target.closest('thead,.drive-list-foot,.drive-search-state'))return;
   if(!row&&!root&&event.target.closest('input,button,a,select,textarea'))return;
   event.preventDefault();
   if(root&&!row)showDriveMenu(null,{x:event.clientX,y:event.clientY},null,driveMenuEntries(null),'root');
   else if(row)showDriveMenu(driveItem(row.dataset.driveId),{x:event.clientX,y:event.clientY});
-  else showDriveMenu(null,{x:event.clientX,y:event.clientY},null,driveMenuEntries(null),surface.classList.contains('drive-tree')?'root':'');
+  else showDriveMenu(null,{x:event.clientX,y:event.clientY});
 });
 document.addEventListener('click',event=>{if(!event.target.closest('#driveContextMenu,[data-action="cloud-menu"],[data-action="cloud-resource-more"],[data-action="cloud-create-menu"]'))closeDriveMenu();if(!event.target.closest('.drive-search-wrap'))closeDriveSearch();});
 document.addEventListener('keydown',event=>{
