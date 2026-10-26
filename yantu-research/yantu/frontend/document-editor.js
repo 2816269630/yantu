@@ -6797,20 +6797,20 @@
     return true;
   }
   function liftOutOfList(state2, dispatch, range) {
-    let tr2 = state2.tr, list = range.parent;
+    let tr2 = state2.tr, list2 = range.parent;
     for (let pos = range.end, i = range.endIndex - 1, e = range.startIndex; i > e; i--) {
-      pos -= list.child(i).nodeSize;
+      pos -= list2.child(i).nodeSize;
       tr2.delete(pos - 1, pos + 1);
     }
     let $start = tr2.doc.resolve(range.start), item = $start.nodeAfter;
     if (tr2.mapping.map(range.end) != range.start + $start.nodeAfter.nodeSize)
       return false;
-    let atStart = range.startIndex == 0, atEnd = range.endIndex == list.childCount;
+    let atStart = range.startIndex == 0, atEnd = range.endIndex == list2.childCount;
     let parent = $start.node(-1), indexBefore = $start.index(-1);
-    if (!parent.canReplace(indexBefore + (atStart ? 0 : 1), indexBefore + 1, item.content.append(atEnd ? Fragment.empty : Fragment.from(list))))
+    if (!parent.canReplace(indexBefore + (atStart ? 0 : 1), indexBefore + 1, item.content.append(atEnd ? Fragment.empty : Fragment.from(list2))))
       return false;
     let start = $start.pos, end = start + item.nodeSize;
-    tr2.step(new ReplaceAroundStep(start - (atStart ? 1 : 0), end + (atEnd ? 1 : 0), start + 1, end - 1, new Slice((atStart ? Fragment.empty : Fragment.from(list.copy(Fragment.empty))).append(atEnd ? Fragment.empty : Fragment.from(list.copy(Fragment.empty))), atStart ? 0 : 1, atEnd ? 0 : 1), atStart ? 0 : 1));
+    tr2.step(new ReplaceAroundStep(start - (atStart ? 1 : 0), end + (atEnd ? 1 : 0), start + 1, end - 1, new Slice((atStart ? Fragment.empty : Fragment.from(list2.copy(Fragment.empty))).append(atEnd ? Fragment.empty : Fragment.from(list2.copy(Fragment.empty))), atStart ? 0 : 1, atEnd ? 0 : 1), atStart ? 0 : 1));
     dispatch(tr2.scrollIntoView());
     return true;
   }
@@ -14962,33 +14962,33 @@
     return normalizeListType(typeA) === normalizeListType(typeB);
   }
   var joinListBackwards = (tr2, listType) => {
-    const list = findParentNode((node) => node.type === listType)(tr2.selection);
-    if (!list) return true;
-    const before = tr2.doc.resolve(Math.max(0, list.pos - 1)).before(list.depth);
+    const list2 = findParentNode((node) => node.type === listType)(tr2.selection);
+    if (!list2) return true;
+    const before = tr2.doc.resolve(Math.max(0, list2.pos - 1)).before(list2.depth);
     if (before === void 0) return true;
     const nodeBefore = tr2.doc.nodeAt(before);
-    if (!(list.node.type === (nodeBefore === null || nodeBefore === void 0 ? void 0 : nodeBefore.type) && canJoin(tr2.doc, list.pos))) return true;
-    if (!areListTypesCompatible(list.node.attrs.type, nodeBefore === null || nodeBefore === void 0 ? void 0 : nodeBefore.attrs.type)) return true;
-    tr2.join(list.pos);
+    if (!(list2.node.type === (nodeBefore === null || nodeBefore === void 0 ? void 0 : nodeBefore.type) && canJoin(tr2.doc, list2.pos))) return true;
+    if (!areListTypesCompatible(list2.node.attrs.type, nodeBefore === null || nodeBefore === void 0 ? void 0 : nodeBefore.attrs.type)) return true;
+    tr2.join(list2.pos);
     return true;
   };
   var joinListForwards = (tr2, listType) => {
-    const list = findParentNode((node) => node.type === listType)(tr2.selection);
-    if (!list) return true;
-    const after = tr2.doc.resolve(list.start).after(list.depth);
+    const list2 = findParentNode((node) => node.type === listType)(tr2.selection);
+    if (!list2) return true;
+    const after = tr2.doc.resolve(list2.start).after(list2.depth);
     if (after === void 0) return true;
     const nodeAfter = tr2.doc.nodeAt(after);
-    if (!(list.node.type === (nodeAfter === null || nodeAfter === void 0 ? void 0 : nodeAfter.type) && canJoin(tr2.doc, after))) return true;
-    if (!areListTypesCompatible(list.node.attrs.type, nodeAfter === null || nodeAfter === void 0 ? void 0 : nodeAfter.attrs.type)) return true;
+    if (!(list2.node.type === (nodeAfter === null || nodeAfter === void 0 ? void 0 : nodeAfter.type) && canJoin(tr2.doc, after))) return true;
+    if (!areListTypesCompatible(list2.node.attrs.type, nodeAfter === null || nodeAfter === void 0 ? void 0 : nodeAfter.attrs.type)) return true;
     tr2.join(after);
     return true;
   };
   function createInnerSelectionForWholeDocList(tr2) {
     const doc3 = tr2.doc;
-    const list = doc3.firstChild;
-    if (!list) return null;
+    const list2 = doc3.firstChild;
+    if (!list2) return null;
     const $start = doc3.resolve(1);
-    const $end = doc3.resolve(list.nodeSize - 1);
+    const $end = doc3.resolve(list2.nodeSize - 1);
     return TextSelection.between($start, $end);
   }
   var toggleList = (listTypeOrName, itemTypeOrName, keepMarks, attributes = {}) => ({ editor, tr: tr2, state: state2, dispatch, chain, commands, can }) => {
@@ -40440,23 +40440,23 @@ ${prefix}
             if (!transformPasted) return slice2;
             const { attributeName } = this.options;
             const removeId = (fragment) => {
-              const list = [];
+              const list2 = [];
               fragment.forEach((node) => {
                 if (node.isText) {
-                  list.push(node);
+                  list2.push(node);
                   return;
                 }
                 if (!types.includes(node.type.name)) {
-                  list.push(node.copy(removeId(node.content)));
+                  list2.push(node.copy(removeId(node.content)));
                   return;
                 }
                 const nodeWithoutId = node.type.create({
                   ...node.attrs,
                   [attributeName]: null
                 }, removeId(node.content), node.marks);
-                list.push(nodeWithoutId);
+                list2.push(nodeWithoutId);
               });
-              return Fragment.from(list);
+              return Fragment.from(list2);
             };
             transformPasted = false;
             return new Slice(removeId(slice2.content), slice2.openStart, slice2.openEnd);
@@ -43062,8 +43062,43 @@ Please report this to https://github.com/markedjs/marked.`, e) {
     "table",
     "tableRow",
     "tableCell",
-    "tableHeader"
+    "tableHeader",
+    "imageResource",
+    "fileResource"
   ];
+  var asset = (name, tag) => Node3.create({
+    name,
+    group: "block",
+    atom: true,
+    selectable: true,
+    draggable: true,
+    addOptions() {
+      return { documentId: "" };
+    },
+    addAttributes() {
+      return { id: { default: null }, resourceId: { default: null }, name: { default: "" } };
+    },
+    parseHTML() {
+      return [{ tag: `${tag}[data-resource-id]`, getAttrs: (element) => ({
+        id: element.getAttribute("data-block-id"),
+        resourceId: element.getAttribute("data-resource-id"),
+        name: element.getAttribute("data-name") || ""
+      }) }];
+    },
+    renderHTML({ node }) {
+      const { id, resourceId, name: label } = node.attrs;
+      const path2 = this.options.documentId ? `/api/v1/resources/${encodeURIComponent(this.options.documentId)}/assets/${encodeURIComponent(resourceId)}` : `/api/v1/resources/${encodeURIComponent(resourceId)}`;
+      const attributes = {
+        "data-block-id": id,
+        "data-resource-id": resourceId,
+        "data-name": label,
+        "data-document-asset": name === "imageResource" ? "image" : "file"
+      };
+      return name === "imageResource" ? ["figure", attributes, ["img", { src: `${path2}/preview`, alt: label, loading: "lazy" }], ["figcaption", {}, ["a", { href: `${path2}/download`, download: label }, label]]] : ["div", attributes, ["a", { href: `${path2}/download`, download: label }, "\u25A4  ", label]];
+    }
+  });
+  var ImageResource = asset("imageResource", "figure");
+  var FileResource = asset("fileResource", "div");
   var safeCellColor = (value) => typeof value === "string" && /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(value) ? value : null;
   var cellBackground = {
     default: null,
@@ -43080,13 +43115,15 @@ Please report this to https://github.com/markedjs/marked.`, e) {
     return { ...this.parent?.(), background: cellBackground };
   } });
   function createDocumentExtensions({ editable = true, onMathClick = () => {
-  } } = {}) {
+  }, documentId = "" } = {}) {
     return [
       src_default.configure({ heading: { levels: [1, 2, 3, 4, 5, 6] } }),
       UniqueID.configure({ types: documentBlockTypes, updateDocument: editable }),
       TableKit.configure({ tableCell: false, tableHeader: false }),
       BackgroundTableCell,
       BackgroundTableHeader,
+      ImageResource.configure({ documentId }),
+      FileResource.configure({ documentId }),
       Mathematics.configure({
         katexOptions: { throwOnError: false, trust: false, maxExpand: 1e3, maxSize: 20 },
         inlineOptions: { onClick: onMathClick },
@@ -43454,6 +43491,91 @@ Please report this to https://github.com/markedjs/marked.`, e) {
     dialog.showModal();
     dialog.querySelector("input").focus();
   }
+  var imageFile = (name) => /\.(png|jpe?g)$/i.test(name || "");
+  function hideAssetActions() {
+    const menu = document.querySelector("#documentAssetActions");
+    if (menu) menu.hidden = true;
+    document.querySelectorAll("#structuredEditor .document-asset-active").forEach((node) => node.classList.remove("document-asset-active"));
+    if (current) current.selectedAsset = null;
+  }
+  async function assetDialog(kind, selected = null) {
+    if (!current?.doc.canEdit) return;
+    const workspace = current;
+    const dialog = document.querySelector("#documentAssetDialog");
+    current.assetTarget = {
+      kind,
+      pos: selected?.pos ?? current.editor.state.selection.from,
+      oldSize: selected?.node?.nodeSize || 0
+    };
+    dialog.querySelector("strong").textContent = `${selected ? "\u66FF\u6362" : "\u63D2\u5165"}${kind === "imageResource" ? "\u56FE\u7247" : "\u9644\u4EF6"}`;
+    dialog.querySelector("input[type=file]").accept = kind === "imageResource" ? ".png,.jpg,.jpeg" : "";
+    dialog.querySelector("input[type=file]").value = "";
+    dialog.querySelector("input[type=search]").value = "";
+    dialog.querySelector(".document-asset-list").textContent = "\u6B63\u5728\u8BFB\u53D6\u6211\u7684\u6587\u4EF6\u2026";
+    hideAssetActions();
+    dialog.showModal();
+    try {
+      const items = await list("/me/drive/search?scope=mine");
+      if (!dialog.open || current !== workspace) return;
+      current.assetChoices = items.filter((item) => item.id !== current.resource.id && (kind === "imageResource" ? imageFile(item.fileName) : !imageFile(item.fileName)));
+      renderAssetChoices();
+    } catch (error) {
+      dialog.querySelector(".document-asset-list").textContent = error.message;
+    }
+  }
+  function renderAssetChoices() {
+    const dialog = document.querySelector("#documentAssetDialog");
+    const query = dialog.querySelector("input[type=search]").value.trim().toLowerCase();
+    const matches2 = (current?.assetChoices || []).filter((item) => (item.title || item.fileName).toLowerCase().includes(query));
+    const listNode = dialog.querySelector(".document-asset-list");
+    listNode.innerHTML = matches2.length ? matches2.slice(0, 100).map(
+      (item) => `<button type="button" data-asset-id="${esc(item.id)}" data-asset-name="${esc(item.fileName)}"><span>${current.assetTarget.kind === "imageResource" ? "\u25A7" : "\u25A4"}</span>${esc(item.title || item.fileName)}</button>`
+    ).join("") : "<p>\u6CA1\u6709\u53EF\u7528\u6587\u4EF6</p>";
+  }
+  async function insertAsset(item) {
+    const target = current?.assetTarget;
+    const dialog = document.querySelector("#documentAssetDialog");
+    if (!target || !dialog.open) return;
+    if (target.kind === "imageResource") {
+      try {
+        await api(`/resources/${enc(current.resource.id)}/assets/${enc(item.id)}/preview`, "GET", void 0, true);
+      } catch (error) {
+        status(`\u56FE\u7247\u4E0D\u53EF\u7528\uFF1A${error.message}`, true);
+        return;
+      }
+    }
+    const node = { type: target.kind, attrs: { id: randomBlockId(), resourceId: item.id, name: item.fileName } };
+    const chain = current.editor.chain().focus();
+    if (target.oldSize) chain.deleteRange({ from: target.pos, to: target.pos + target.oldSize });
+    chain.insertContentAt(target.pos, node).run();
+    dialog.close();
+    current.assetTarget = null;
+  }
+  async function uploadAsset(file) {
+    if (!file || !current?.assetTarget) return;
+    const kind = current.assetTarget.kind;
+    if (kind === "imageResource" && !imageFile(file.name)) {
+      status("\u8BF7\u9009\u62E9 PNG \u6216 JPEG \u56FE\u7247", true);
+      return;
+    }
+    const dialog = document.querySelector("#documentAssetDialog");
+    const button = dialog.querySelector('[data-structured-action="upload-asset"]');
+    button.disabled = true;
+    status("\u6B63\u5728\u4E0A\u4F20\u6587\u4EF6\u2026");
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      body.append("type", "other");
+      body.append("folderId", current.resource.folderId || "");
+      const item = await api("/me/drive/files", "POST", body);
+      await insertAsset(item);
+      status("\u5DF2\u63D2\u5165\uFF0C\u6B63\u5728\u4FDD\u5B58\u6587\u6863\u2026");
+    } catch (error) {
+      status(`\u4E0A\u4F20\u5931\u8D25\uFF1A${error.message}`, true);
+    } finally {
+      button.disabled = false;
+    }
+  }
   function saveLink() {
     const dialog = document.querySelector("#structuredLinkDialog");
     let href = dialog.querySelector("input").value.trim();
@@ -43492,7 +43614,7 @@ Please report this to https://github.com/markedjs/marked.`, e) {
     const selection = window.getSelection();
     const range = selection?.rangeCount ? selection.getRangeAt(0) : null;
     const rect = typeof range?.getBoundingClientRect === "function" ? range.getBoundingClientRect() : null;
-    tools.hidden = from2 === to;
+    tools.hidden = from2 === to || Boolean(current.editor.state.selection.node);
     if (!tools.hidden) positionMenu(tools, rect);
     const before = $from.parent.textBetween(0, $from.parentOffset, void 0, "\uFFFC");
     const match = from2 === to ? before.match(/(?:^|\s)\/([\w]*)$/) : null;
@@ -43513,6 +43635,10 @@ Please report this to https://github.com/markedjs/marked.`, e) {
     hideMenus();
     if (command2 === "formula") {
       formulaDialog();
+      return;
+    }
+    if (command2 === "image" || command2 === "attachment") {
+      assetDialog(command2 === "image" ? "imageResource" : "fileResource");
       return;
     }
     if (command2 === "link") {
@@ -43552,7 +43678,10 @@ Please report this to https://github.com/markedjs/marked.`, e) {
     pending = null;
     document.querySelector("#structuredSelectionTools").insertAdjacentHTML("beforeend", '<button type="button" data-editor-command="link" title="\u94FE\u63A5 Ctrl+K">\u94FE\u63A5</button>');
     document.querySelector("#structuredSlashMenu").insertAdjacentHTML("beforeend", '<button type="button" data-editor-command="table" data-alias="table bg"><span>\u25A6</span>\u8868\u683C</button>');
+    document.querySelector("#structuredSlashMenu").insertAdjacentHTML("beforeend", '<button type="button" data-editor-command="image" data-alias="image img tp"><span>\u25A7</span>\u56FE\u7247</button><button type="button" data-editor-command="attachment" data-alias="file attachment fj"><span>\u25A4</span>\u9644\u4EF6</button>');
+    if (doc3.canEdit) document.querySelector(".document-toolbar").insertAdjacentHTML("beforeend", '<button type="button" data-editor-command="image">\u63D2\u5165\u56FE\u7247</button><button type="button" data-editor-command="attachment">\u63D2\u5165\u9644\u4EF6</button>');
     host.closest(".structured-workspace").insertAdjacentHTML("beforeend", '<dialog id="structuredLinkDialog" class="document-link-dialog"><strong>\u94FE\u63A5</strong><input type="url" aria-label="\u94FE\u63A5\u5730\u5740" placeholder="https://example.com"><div><button type="button" class="btn" data-structured-action="cancel-link">\u53D6\u6D88</button><button type="button" class="btn primary" data-structured-action="save-link">\u5B8C\u6210</button></div></dialog>');
+    host.closest(".structured-workspace").insertAdjacentHTML("beforeend", '<dialog id="documentAssetDialog" class="document-asset-dialog"><strong>\u63D2\u5165\u8D44\u6E90</strong><input type="file" aria-label="\u9009\u62E9\u8981\u4E0A\u4F20\u7684\u6587\u4EF6" hidden><button type="button" class="btn" data-structured-action="upload-asset">\u9009\u62E9\u6587\u4EF6\u4E0A\u4F20</button><div class="document-asset-divider">\u6216\u4ECE\u6211\u7684\u4E91\u76D8\u9009\u62E9</div><input type="search" aria-label="\u641C\u7D22\u4E91\u76D8\u6587\u4EF6" placeholder="\u641C\u7D22\u6587\u4EF6"><div class="document-asset-list"></div><button type="button" class="btn" data-structured-action="close-asset">\u53D6\u6D88</button></dialog><div id="documentAssetActions" class="document-asset-actions" hidden><button type="button" data-structured-action="download-asset">\u4E0B\u8F7D</button><button type="button" data-structured-action="replace-asset">\u66FF\u6362</button><button type="button" data-structured-action="remove-asset">\u4ECE\u6587\u6863\u79FB\u9664</button></div>');
     const workspace = current = { resource, doc: doc3, dirty: false, titleDirty: false, saving: false, titleSaving: false, conflict: false, lastSaved: null, initializing: true };
     let editor;
     editor = new Editor({
@@ -43576,7 +43705,7 @@ Please report this to https://github.com/markedjs/marked.`, e) {
           return false;
         }
       },
-      extensions: createDocumentExtensions({ editable: doc3.canEdit, onMathClick: (node, pos) => formulaDialog(node, pos) }),
+      extensions: createDocumentExtensions({ editable: doc3.canEdit, documentId: resource.id, onMathClick: (node, pos) => formulaDialog(node, pos) }),
       content: typeof doc3.content === "string" ? doc3.content : doc3.content,
       contentType: typeof doc3.content === "string" ? "markdown" : "json",
       onUpdate: () => {
@@ -43653,12 +43782,38 @@ Please report this to https://github.com/markedjs/marked.`, e) {
     if (event.target.closest("#structuredSelectionTools button,#structuredSlashMenu button")) event.preventDefault();
   });
   document.addEventListener("input", (event) => {
+    if (event.target.matches?.("#documentAssetDialog input[type=search]")) {
+      renderAssetChoices();
+      return;
+    }
     if (!current || !event.target.matches?.(".structured-workspace [data-document-title]")) return;
     syncTitle(event.target.value, event.target);
     queueTitle();
   });
   document.addEventListener("click", (event) => {
     if (!current || !document.querySelector(".structured-workspace")) return;
+    const choice = event.target.closest?.("#documentAssetDialog [data-asset-id]");
+    if (choice) {
+      insertAsset({ id: choice.dataset.assetId, fileName: choice.dataset.assetName });
+      return;
+    }
+    const assetElement = event.target.closest?.("#structuredEditor [data-document-asset]");
+    if (assetElement && current.doc.canEdit) {
+      event.preventDefault();
+      hideAssetActions();
+      hideMenus();
+      const pos = current.editor.view.posAtDOM(assetElement, 0);
+      const node = current.editor.state.doc.nodeAt(pos);
+      if (node?.type.name === "imageResource" || node?.type.name === "fileResource") {
+        current.selectedAsset = { pos, node };
+        assetElement.classList.add("document-asset-active");
+        const rect = assetElement.getBoundingClientRect(), menu = document.querySelector("#documentAssetActions");
+        menu.style.left = `${Math.min(innerWidth - 200, Math.max(12, rect.left))}px`;
+        menu.style.top = `${Math.min(innerHeight - 52, rect.bottom + 5)}px`;
+        menu.hidden = false;
+      }
+      return;
+    }
     const command2 = event.target.closest("[data-editor-command]");
     if (command2) {
       runCommand(command2.dataset.editorCommand, Boolean(command2.closest("#structuredSlashMenu")));
@@ -43676,6 +43831,35 @@ Please report this to https://github.com/markedjs/marked.`, e) {
       return;
     }
     const action = event.target.closest("[data-structured-action]")?.dataset.structuredAction;
+    if (action === "upload-asset") {
+      document.querySelector("#documentAssetDialog input[type=file]").click();
+      return;
+    }
+    if (action === "close-asset") {
+      document.querySelector("#documentAssetDialog").close();
+      current.assetTarget = null;
+      return;
+    }
+    if (action === "replace-asset" && current.selectedAsset) {
+      const selected = current.selectedAsset;
+      assetDialog(selected.node.type.name, selected);
+      return;
+    }
+    if (action === "download-asset" && current.selectedAsset) {
+      const { resourceId, name } = current.selectedAsset.node.attrs;
+      const anchor = document.createElement("a");
+      anchor.href = `/api/v1/resources/${enc(current.resource.id)}/assets/${enc(resourceId)}/download`;
+      anchor.download = name;
+      anchor.click();
+      hideAssetActions();
+      return;
+    }
+    if (action === "remove-asset" && current.selectedAsset) {
+      const { pos, node } = current.selectedAsset;
+      current.editor.chain().focus().deleteRange({ from: pos, to: pos + node.nodeSize }).run();
+      hideAssetActions();
+      return;
+    }
     if (action === "convert-document") {
       convertDocument();
       return;
@@ -43727,6 +43911,9 @@ Please report this to https://github.com/markedjs/marked.`, e) {
       current.dirty = false;
       location.reload();
     }
+  });
+  document.addEventListener("change", (event) => {
+    if (event.target.matches?.("#documentAssetDialog input[type=file]")) uploadAsset(event.target.files?.[0]);
   });
   document.addEventListener("keydown", (event) => {
     if (!current || !document.querySelector(".structured-workspace")) return;

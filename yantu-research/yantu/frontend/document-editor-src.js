@@ -305,6 +305,72 @@ function linkDialog() {
   dialog.querySelector('input').value = current.editor.getAttributes('link').href || '';
   dialog.showModal(); dialog.querySelector('input').focus();
 }
+const imageFile = name => /\.(png|jpe?g)$/i.test(name || '');
+function hideAssetActions() {
+  const menu = document.querySelector('#documentAssetActions');
+  if (menu) menu.hidden = true;
+  document.querySelectorAll('#structuredEditor .document-asset-active').forEach(node => node.classList.remove('document-asset-active'));
+  if (current) current.selectedAsset = null;
+}
+async function assetDialog(kind, selected = null) {
+  if (!current?.doc.canEdit) return;
+  const workspace = current;
+  const dialog = document.querySelector('#documentAssetDialog');
+  current.assetTarget = { kind, pos: selected?.pos ?? current.editor.state.selection.from,
+    oldSize: selected?.node?.nodeSize || 0 };
+  dialog.querySelector('strong').textContent = `${selected ? '替换' : '插入'}${kind === 'imageResource' ? '图片' : '附件'}`;
+  dialog.querySelector('input[type=file]').accept = kind === 'imageResource' ? '.png,.jpg,.jpeg' : '';
+  dialog.querySelector('input[type=file]').value = '';
+  dialog.querySelector('input[type=search]').value = '';
+  dialog.querySelector('.document-asset-list').textContent = '正在读取我的文件…';
+  hideAssetActions(); dialog.showModal();
+  try {
+    const items = await list('/me/drive/search?scope=mine');
+    if (!dialog.open || current !== workspace) return;
+    current.assetChoices = items.filter(item => item.id !== current.resource.id &&
+      (kind === 'imageResource' ? imageFile(item.fileName) : !imageFile(item.fileName)));
+    renderAssetChoices();
+  } catch (error) { dialog.querySelector('.document-asset-list').textContent = error.message; }
+}
+function renderAssetChoices() {
+  const dialog = document.querySelector('#documentAssetDialog');
+  const query = dialog.querySelector('input[type=search]').value.trim().toLowerCase();
+  const matches = (current?.assetChoices || []).filter(item => (item.title || item.fileName).toLowerCase().includes(query));
+  const listNode = dialog.querySelector('.document-asset-list');
+  listNode.innerHTML = matches.length ? matches.slice(0, 100).map(item =>
+    `<button type="button" data-asset-id="${esc(item.id)}" data-asset-name="${esc(item.fileName)}"><span>${current.assetTarget.kind === 'imageResource' ? '▧' : '▤'}</span>${esc(item.title || item.fileName)}</button>`
+  ).join('') : '<p>没有可用文件</p>';
+}
+async function insertAsset(item) {
+  const target = current?.assetTarget;
+  const dialog = document.querySelector('#documentAssetDialog');
+  if (!target || !dialog.open) return;
+  if (target.kind === 'imageResource') {
+    try { await api(`/resources/${enc(current.resource.id)}/assets/${enc(item.id)}/preview`, 'GET', undefined, true); }
+    catch (error) { status(`图片不可用：${error.message}`, true); return; }
+  }
+  const node = { type: target.kind, attrs: { id: randomBlockId(), resourceId: item.id, name: item.fileName } };
+  const chain = current.editor.chain().focus();
+  if (target.oldSize) chain.deleteRange({ from: target.pos, to: target.pos + target.oldSize });
+  chain.insertContentAt(target.pos, node).run();
+  dialog.close(); current.assetTarget = null;
+}
+async function uploadAsset(file) {
+  if (!file || !current?.assetTarget) return;
+  const kind = current.assetTarget.kind;
+  if (kind === 'imageResource' && !imageFile(file.name)) { status('请选择 PNG 或 JPEG 图片', true); return; }
+  const dialog = document.querySelector('#documentAssetDialog');
+  const button = dialog.querySelector('[data-structured-action="upload-asset"]');
+  button.disabled = true; status('正在上传文件…');
+  try {
+    const body = new FormData(); body.append('file', file); body.append('type', 'other');
+    body.append('folderId', current.resource.folderId || '');
+    const item = await api('/me/drive/files', 'POST', body);
+    await insertAsset(item);
+    status('已插入，正在保存文档…');
+  } catch (error) { status(`上传失败：${error.message}`, true); }
+  finally { button.disabled = false; }
+}
 function saveLink() {
   const dialog = document.querySelector('#structuredLinkDialog');
   let href = dialog.querySelector('input').value.trim();
@@ -335,7 +401,7 @@ function updateMenus() {
   const selection = window.getSelection();
   const range = selection?.rangeCount ? selection.getRangeAt(0) : null;
   const rect = typeof range?.getBoundingClientRect === 'function' ? range.getBoundingClientRect() : null;
-  tools.hidden = from === to;
+  tools.hidden = from === to || Boolean(current.editor.state.selection.node);
   if (!tools.hidden) positionMenu(tools, rect);
   const before = $from.parent.textBetween(0, $from.parentOffset, undefined, '\ufffc');
   const match = from === to ? before.match(/(?:^|\s)\/([\w]*)$/) : null;
@@ -354,6 +420,9 @@ function runCommand(command, slash = false) {
   if (slash && current.slashRange) editor.chain().focus().deleteRange(current.slashRange).run();
   hideMenus();
   if (command === 'formula') { formulaDialog(); return; }
+  if (command === 'image' || command === 'attachment') {
+    assetDialog(command === 'image' ? 'imageResource' : 'fileResource'); return;
+  }
   if (command === 'link') { linkDialog(); return; }
   if (command === 'table') { editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(); return; }
   const chain = editor.chain().focus();
@@ -377,7 +446,10 @@ function mount() {
   const { resource, doc } = pending; pending = null;
   document.querySelector('#structuredSelectionTools').insertAdjacentHTML('beforeend', '<button type="button" data-editor-command="link" title="链接 Ctrl+K">链接</button>');
   document.querySelector('#structuredSlashMenu').insertAdjacentHTML('beforeend', '<button type="button" data-editor-command="table" data-alias="table bg"><span>▦</span>表格</button>');
+  document.querySelector('#structuredSlashMenu').insertAdjacentHTML('beforeend', '<button type="button" data-editor-command="image" data-alias="image img tp"><span>▧</span>图片</button><button type="button" data-editor-command="attachment" data-alias="file attachment fj"><span>▤</span>附件</button>');
+  if (doc.canEdit) document.querySelector('.document-toolbar').insertAdjacentHTML('beforeend', '<button type="button" data-editor-command="image">插入图片</button><button type="button" data-editor-command="attachment">插入附件</button>');
   host.closest('.structured-workspace').insertAdjacentHTML('beforeend', '<dialog id="structuredLinkDialog" class="document-link-dialog"><strong>链接</strong><input type="url" aria-label="链接地址" placeholder="https://example.com"><div><button type="button" class="btn" data-structured-action="cancel-link">取消</button><button type="button" class="btn primary" data-structured-action="save-link">完成</button></div></dialog>');
+  host.closest('.structured-workspace').insertAdjacentHTML('beforeend', '<dialog id="documentAssetDialog" class="document-asset-dialog"><strong>插入资源</strong><input type="file" aria-label="选择要上传的文件" hidden><button type="button" class="btn" data-structured-action="upload-asset">选择文件上传</button><div class="document-asset-divider">或从我的云盘选择</div><input type="search" aria-label="搜索云盘文件" placeholder="搜索文件"><div class="document-asset-list"></div><button type="button" class="btn" data-structured-action="close-asset">取消</button></dialog><div id="documentAssetActions" class="document-asset-actions" hidden><button type="button" data-structured-action="download-asset">下载</button><button type="button" data-structured-action="replace-asset">替换</button><button type="button" data-structured-action="remove-asset">从文档移除</button></div>');
   const workspace = current = { resource, doc, dirty: false, titleDirty: false, saving: false, titleSaving: false, conflict: false, lastSaved: null, initializing: true };
   let editor;
   editor = new Editor({
@@ -393,7 +465,7 @@ function mount() {
         return false;
       },
     },
-    extensions: createDocumentExtensions({ editable: doc.canEdit, onMathClick: (node, pos) => formulaDialog(node, pos) }),
+    extensions: createDocumentExtensions({ editable: doc.canEdit, documentId: resource.id, onMathClick: (node, pos) => formulaDialog(node, pos) }),
     content: typeof doc.content === 'string' ? doc.content : doc.content,
     contentType: typeof doc.content === 'string' ? 'markdown' : 'json',
     onUpdate: () => { if (current !== workspace || workspace.initializing || !workspace.editor || repairBlockIds(editor)) return; outlineRows(); queueSave(); updateMenus(); },
@@ -454,11 +526,29 @@ document.addEventListener('mousedown', event => {
   if (event.target.closest('#structuredSelectionTools button,#structuredSlashMenu button')) event.preventDefault();
 });
 document.addEventListener('input', event => {
+  if (event.target.matches?.('#documentAssetDialog input[type=search]')) { renderAssetChoices(); return; }
   if (!current || !event.target.matches?.('.structured-workspace [data-document-title]')) return;
   syncTitle(event.target.value, event.target); queueTitle();
 });
 document.addEventListener('click', event => {
   if (!current || !document.querySelector('.structured-workspace')) return;
+  const choice = event.target.closest?.('#documentAssetDialog [data-asset-id]');
+  if (choice) { insertAsset({ id: choice.dataset.assetId, fileName: choice.dataset.assetName }); return; }
+  const assetElement = event.target.closest?.('#structuredEditor [data-document-asset]');
+  if (assetElement && current.doc.canEdit) {
+    event.preventDefault(); hideAssetActions(); hideMenus();
+    const pos = current.editor.view.posAtDOM(assetElement, 0);
+    const node = current.editor.state.doc.nodeAt(pos);
+    if (node?.type.name === 'imageResource' || node?.type.name === 'fileResource') {
+      current.selectedAsset = { pos, node };
+      assetElement.classList.add('document-asset-active');
+      const rect = assetElement.getBoundingClientRect(), menu = document.querySelector('#documentAssetActions');
+      menu.style.left = `${Math.min(innerWidth - 200, Math.max(12, rect.left))}px`;
+      menu.style.top = `${Math.min(innerHeight - 52, rect.bottom + 5)}px`;
+      menu.hidden = false;
+    }
+    return;
+  }
   const command = event.target.closest('[data-editor-command]');
   if (command) { runCommand(command.dataset.editorCommand, Boolean(command.closest('#structuredSlashMenu'))); return; }
   const link = event.target.closest('[data-outline-pos]');
@@ -470,6 +560,23 @@ document.addEventListener('click', event => {
   }
   if (event.target.closest('[data-outline-top]')) { scrollTo({ top: 0, behavior: 'smooth' }); return; }
   const action = event.target.closest('[data-structured-action]')?.dataset.structuredAction;
+  if (action === 'upload-asset') { document.querySelector('#documentAssetDialog input[type=file]').click(); return; }
+  if (action === 'close-asset') { document.querySelector('#documentAssetDialog').close(); current.assetTarget = null; return; }
+  if (action === 'replace-asset' && current.selectedAsset) {
+    const selected = current.selectedAsset;
+    assetDialog(selected.node.type.name, selected); return;
+  }
+  if (action === 'download-asset' && current.selectedAsset) {
+    const { resourceId, name } = current.selectedAsset.node.attrs;
+    const anchor = document.createElement('a');
+    anchor.href = `/api/v1/resources/${enc(current.resource.id)}/assets/${enc(resourceId)}/download`;
+    anchor.download = name; anchor.click(); hideAssetActions(); return;
+  }
+  if (action === 'remove-asset' && current.selectedAsset) {
+    const { pos, node } = current.selectedAsset;
+    current.editor.chain().focus().deleteRange({ from: pos, to: pos + node.nodeSize }).run();
+    hideAssetActions(); return;
+  }
   if (action === 'convert-document') { convertDocument(); return; }
   if (action === 'outline') {
     const panel = document.querySelector('#documentOutlinePanel'); panel.classList.toggle('is-collapsed');
@@ -506,6 +613,9 @@ document.addEventListener('click', event => {
   if (action === 'reload-cloud' && confirm('重新读取云端会丢弃当前页面尚未保存的修改。请先下载本地记录。')) {
     current.dirty = false; location.reload();
   }
+});
+document.addEventListener('change', event => {
+  if (event.target.matches?.('#documentAssetDialog input[type=file]')) uploadAsset(event.target.files?.[0]);
 });
 document.addEventListener('keydown', event => {
   if (!current || !document.querySelector('.structured-workspace')) return;

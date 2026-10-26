@@ -4,6 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 from threading import Barrier
 from uuid import UUID, uuid4
 import json
+import base64
 
 import pytest
 from fastapi.testclient import TestClient
@@ -196,6 +197,51 @@ def test_native_documents_and_text_workspace(drive):
     assert c.put(text_endpoint, headers=owner, json={'version': 2, 'content': 42}).status_code == 400
     assert c.post('/api/v1/me/drive/documents', headers=owner,
                   json={'kind': 'unknown', 'title': '无效'}).status_code == 400
+
+
+def test_document_image_and_attachment_references(drive):
+    c, actors, team, _ = drive
+    owner_id, owner = actors[0]
+    reader_id, reader = actors[1]
+    outsider = actors[3][1]
+    doc = data(c.post('/api/v1/me/drive/documents', headers=owner,
+                      json={'kind': 'document', 'title': '图文验收'}), 201)
+    png = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/lXcAAAAASUVORK5CYII=')
+    picture = data(upload(c, owner, key='embedded-image', content=png, filename='实验图.png'), 201)
+    attachment = data(upload(c, owner, key='embedded-file', content=b'%PDF-1.4\nexample', filename='数据.pdf'), 201)
+    alien = data(upload(c, outsider, key='alien-file', filename='别人的.txt'), 201)
+    endpoint = f'/api/v1/resources/{doc["id"]}'
+    image_node = {'type': 'imageResource', 'attrs': {'id': str(uuid4()), 'resourceId': picture['id'], 'name': picture['fileName']}}
+    file_node = {'type': 'fileResource', 'attrs': {'id': str(uuid4()), 'resourceId': attachment['id'], 'name': attachment['fileName']}}
+    content = {'schemaVersion': 2, 'type': 'doc', 'content': [image_node, file_node]}
+    assert c.get(endpoint+'/assets/'+picture['id']+'/preview', headers=reader).status_code == 404
+    assert data(c.put(endpoint+'/document', headers=owner, json={'version': 1, 'content': content}))['version'] == 2
+    assert data(c.get(endpoint+'/document', headers=owner))['content'] == content
+    assert c.get(endpoint+'/assets/'+picture['id']+'/preview', headers=owner).content == png
+    assert c.get(endpoint+'/assets/'+attachment['id']+'/download', headers=owner).content == b'%PDF-1.4\nexample'
+    data(c.put(endpoint+'/shares/'+reader_id, headers=owner, json={'permission': 'read', 'teamId': team}))
+    assert c.get(endpoint+'/assets/'+picture['id']+'/preview', headers=reader).headers['content-type'] == 'image/png'
+    assert c.get(endpoint+'/assets/'+picture['id']+'/download', headers=reader).content == png
+    assert c.get(endpoint+'/assets/'+attachment['id']+'/download', headers=reader).status_code == 200
+    assert c.get(endpoint+'/assets/'+alien['id']+'/download', headers=reader).status_code == 404
+    assert c.get(endpoint+'/assets/'+attachment['id']+'/preview', headers=reader).status_code == 404
+    bad = {'schemaVersion': 2, 'type': 'doc', 'content': [
+        {'type': 'fileResource', 'attrs': {'id': str(uuid4()), 'resourceId': alien['id'], 'name': '别人的.txt'}}]}
+    assert c.put(endpoint+'/document', headers=owner, json={'version': 2, 'content': bad}).status_code == 404
+    assert c.put(endpoint+'/document', headers=owner, json={'version': 2, 'content': {
+        'schemaVersion': 2, 'type': 'doc', 'content': [
+            {'type': 'imageResource', 'attrs': {'id': str(uuid4()), 'resourceId': attachment['id'], 'name': '数据.pdf'}}]
+    }}).status_code == 415
+    assert c.put(endpoint+'/document', headers=owner, json={'version': 2, 'content': {
+        'schemaVersion': 2, 'type': 'doc', 'content': [
+            {'type': 'fileResource', 'attrs': {'id': str(uuid4()), 'resourceId': '../other', 'name': '错误引用'}}]
+    }}).status_code == 400
+    only_picture = {'schemaVersion': 2, 'type': 'doc', 'content': [image_node]}
+    assert data(c.put(endpoint+'/document', headers=owner, json={'version': 2, 'content': only_picture}))['version'] == 3
+    assert c.get(endpoint+'/assets/'+attachment['id']+'/download', headers=reader).status_code == 404
+    assert c.get('/api/v1/resources/'+attachment['id']+'/download', headers=owner).status_code == 200
+    data(c.delete(endpoint+'/shares/'+reader_id, headers=owner))
+    assert c.get(endpoint+'/assets/'+picture['id']+'/preview', headers=reader).status_code == 404
 
 
 def test_simultaneous_document_saves_keep_one_version(drive):

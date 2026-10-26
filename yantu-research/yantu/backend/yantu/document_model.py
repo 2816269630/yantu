@@ -15,11 +15,11 @@ from fastapi import HTTPException
 BLOCK_TYPES = {
     'paragraph', 'heading', 'bulletList', 'orderedList', 'listItem',
     'blockquote', 'codeBlock', 'horizontalRule', 'blockMath',
-    'table', 'tableRow', 'tableCell', 'tableHeader',
+    'table', 'tableRow', 'tableCell', 'tableHeader', 'imageResource', 'fileResource',
 }
 INLINE_TYPES = {'text', 'hardBreak', 'inlineMath'}
 CONTENT_BLOCKS = {'paragraph', 'heading', 'bulletList', 'orderedList', 'blockquote',
-                  'codeBlock', 'horizontalRule', 'blockMath', 'table'}
+                  'codeBlock', 'horizontalRule', 'blockMath', 'table', 'imageResource', 'fileResource'}
 CHILDREN = {
     'doc': CONTENT_BLOCKS,
     'paragraph': INLINE_TYPES,
@@ -35,6 +35,7 @@ CHILDREN = {
     'tableHeader': CONTENT_BLOCKS,
     'text': set(), 'hardBreak': set(), 'inlineMath': set(),
     'horizontalRule': set(), 'blockMath': set(),
+    'imageResource': set(), 'fileResource': set(),
 }
 MARKS = {'bold', 'italic', 'strike', 'code', 'underline', 'link'}
 NODE_ATTRS = {
@@ -46,6 +47,8 @@ NODE_ATTRS = {
     'tableCell': {'id', 'colspan', 'rowspan', 'colwidth', 'background', 'align'},
     'tableHeader': {'id', 'colspan', 'rowspan', 'colwidth', 'background', 'align'},
     'text': set(), 'hardBreak': set(), 'inlineMath': {'latex'},
+    'imageResource': {'id', 'resourceId', 'name'},
+    'fileResource': {'id', 'resourceId', 'name'},
 }
 
 
@@ -163,6 +166,20 @@ def validate_document(content, *, for_write=False, for_editor=False):
                 _invalid('公式内容无效')
             text_parts.append(latex)
             count += len(latex)
+        if kind in ('imageResource', 'fileResource'):
+            if version != 2:
+                _invalid('资源节点需要新版文档结构')
+            reference = attrs.get('resourceId')
+            label = attrs.get('name')
+            if not isinstance(reference, str) or not isinstance(label, str) or not label or len(label) > 255:
+                _invalid('文档资源引用无效')
+            try:
+                if str(UUID(reference)) != reference:
+                    _invalid('文档资源引用无效')
+            except ValueError:
+                _invalid('文档资源引用无效')
+            text_parts.append(label)
+            count += len(label)
         if kind == 'text':
             value = node.get('text')
             if not isinstance(value, str):
@@ -207,7 +224,7 @@ def validate_document(content, *, for_write=False, for_editor=False):
             _invalid()
         if version == 2 and strict and not children and 'content' in node:
             _invalid('空内容节点与编辑器结构不一致')
-        if kind in ('text', 'hardBreak', 'inlineMath', 'horizontalRule', 'blockMath') and children:
+        if kind in ('text', 'hardBreak', 'inlineMath', 'horizontalRule', 'blockMath', 'imageResource', 'fileResource') and children:
             _invalid()
         if kind in ('doc', 'bulletList', 'orderedList', 'listItem', 'table', 'tableRow', 'tableCell', 'tableHeader') and not children:
             _invalid()

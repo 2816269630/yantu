@@ -9,6 +9,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from fastapi import Body, Depends, File, Form, Header, HTTPException, Query, Request, UploadFile
+from fastapi.responses import FileResponse
 from sqlalchemy import or_, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -297,6 +298,68 @@ def register_cloud_drive(app, ctx):
             raise HTTPException(413, '文档超过大小限制')
         return payload, extracted
 
+    def asset_references(content):
+        def visit(node):
+            if node.get('type') in ('imageResource', 'fileResource'):
+                yield node['type'], node['attrs']['resourceId']
+            for child in node.get('content', []):
+                yield from visit(child)
+        return list(visit(content))
+
+    def asset_row(db, document, asset_id, kind):
+        row = db.get(Resource, asset_id)
+        if not row or row.archived or row.id == document.id or row.owner_id != document.owner_id:
+            raise HTTPException(404, '引用的文件不存在')
+        location = uploads / row.storage_name
+        if not location.is_file():
+            raise HTTPException(404, '引用的文件暂时不可用')
+        if kind == 'imageResource':
+            extension = Path(row.file_name).suffix.lower()
+            with location.open('rb') as image:
+                signature = image.read(8)
+            if extension == '.png' and signature == b'\x89PNG\r\n\x1a\n':
+                media_type = 'image/png'
+            elif extension in ('.jpg', '.jpeg') and signature[:3] == b'\xff\xd8\xff':
+                media_type = 'image/jpeg'
+            else:
+                raise HTTPException(415, '仅支持 PNG、JPEG 图片')
+            return row, location, media_type
+        return row, location, 'application/octet-stream'
+
+    def check_assets(db, document, content):
+        for kind, asset_id in set(asset_references(content)):
+            asset_row(db, document, asset_id, kind)
+
+    def document_has_asset(document, asset_id, kind):
+        try:
+            stored = json.loads((uploads / document.storage_name).read_text(encoding='utf-8'))
+            return stored.get('kind') == 'document' and (kind, asset_id) in asset_references(stored['content'])
+        except (OSError, ValueError, KeyError, TypeError, AttributeError, HTTPException):
+            return False
+
+    @app.get('/api/v1/resources/{resource_id}/assets/{asset_id}/preview')
+    @app.get('/api/v1/resources/{resource_id}/assets/{asset_id}/download')
+    def document_asset(resource_id: str, asset_id: str, request: Request,
+                       user: User = Depends(current_user), db: Session = Depends(get_db)):
+        document, _ = resource_for(db, resource_id, user)
+        if Path(document.file_name).suffix.lower() != '.ytdoc':
+            raise HTTPException(404, '文档不存在')
+        preview = request.url.path.endswith('/preview')
+        kind = 'imageResource' if preview else 'fileResource'
+        if user.id != document.owner_id and not (
+            document_has_asset(document, asset_id, kind) or
+            (not preview and document_has_asset(document, asset_id, 'imageResource'))
+        ):
+            raise HTTPException(404, '文档没有引用此文件')
+        row, location, media_type = asset_row(db, document, asset_id, kind)
+        if preview:
+            return FileResponse(location, media_type=media_type, headers={
+                'Content-Disposition': 'inline', 'X-Content-Type-Options': 'nosniff',
+                'Cache-Control': 'private, no-store',
+            })
+        return FileResponse(location, media_type=media_type, filename=row.file_name,
+                            headers={'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'private, no-store'})
+
     @app.post('/api/v1/me/drive/documents', status_code=201)
     def create_document(payload: dict = Body(), user: User = Depends(current_user), db: Session = Depends(get_db)):
         kind = payload.get('kind')
@@ -384,6 +447,8 @@ def register_cloud_drive(app, ctx):
         if expected_version != row.version:
             raise HTTPException(409, '文档已在其他页面更新，请刷新后再编辑')
         content, extracted = document_bytes(kind or 'text', payload.get('content'))
+        if kind == 'document':
+            check_assets(db, row, payload['content'])
         storage = str(uuid4())
         destination = uploads / storage
         destination.write_bytes(content)

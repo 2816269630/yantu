@@ -33,9 +33,19 @@ global.navigator = dom.window.navigator;
     node.marks.forEach(mark => marks.add(mark.type.name));
   });
   assert.equal(new Set(ids).size, ids.length);
-  assert.deepEqual([...blockTypes].sort(), [...documentBlockTypes].sort(), '每种受支持的块均有往返样本');
+  assert.deepEqual([...blockTypes].sort(), documentBlockTypes.filter(type => !['imageResource', 'fileResource'].includes(type)).sort(), '旧版块的往返样本保持一致');
   assert.deepEqual([...inlineTypes].sort(), ['hardBreak', 'inlineMath', 'text']);
   assert.deepEqual([...marks].sort(), ['bold', 'code', 'italic', 'link', 'strike', 'underline']);
   second.destroy();
+  const assets = { schemaVersion: 2, type: 'doc', content: [
+    { type: 'imageResource', attrs: { id: '00000000-0000-4000-8000-000000000031', resourceId: '00000000-0000-4000-8000-000000000041', name: '图像.png' } },
+    { type: 'fileResource', attrs: { id: '00000000-0000-4000-8000-000000000032', resourceId: '00000000-0000-4000-8000-000000000042', name: '附件.pdf' } },
+  ] };
+  const assetEditor = new Editor({ element: document.querySelector('#first'), extensions: createDocumentExtensions({ documentId: '00000000-0000-4000-8000-000000000050' }), content: assets });
+  assetEditor.state.doc.check();
+  assert.deepEqual(JSON.parse(JSON.stringify({ schemaVersion: 2, ...assetEditor.getJSON() })), assets, '图片与附件节点再次打开保持资源 ID 与名称');
+  assert.ok(assetEditor.view.dom.querySelector('img[src*="/assets/"]'), '图片指向文档授权的资源地址');
+  assert.ok(assetEditor.view.dom.querySelector('a[href*="/assets/"]'), '附件指向文档授权的下载地址');
+  assetEditor.destroy();
   console.log('文档模型往返契约通过。');
 })().catch(error => { console.error(error); process.exitCode = 1; });
