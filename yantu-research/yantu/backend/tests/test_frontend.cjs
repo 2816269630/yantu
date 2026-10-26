@@ -20,7 +20,7 @@ async function main(){
  const shared={...file,id:'shared1',title:'共享记录.txt',fileName:'共享记录.txt',ownerId:'other',owner:'共享成员',canEdit:false,folderId:null};
  const folders=[{id:'folder1',name:'验收资料',parentId:null,createdAt:'2026-10-22T09:00:00Z'},{id:'folder2',name:'右键子目录',parentId:'folder1',createdAt:'2026-10-22T09:30:00Z'}];
  w.fetch=async (url,options={})=>{requests.push({url,options});const u=new URL(url,'http://localhost');const p=u.pathname.replace('/api/v1','');let value;let status=200;
-  if(p==='/system/status')value={initialized:true,version:'0.3.7'};
+  if(p==='/system/status')value={initialized:true,version:'0.3.8'};
   else if(p==='/me')value={id:'me',displayName:'测试成员',email:'test@example.com'};
   else if(p==='/me/teams')value={items:team?[{id:'t1',name:'测试组',role:'student'}]:[]};
   else if(p==='/me/notifications')value={items:[]};
@@ -318,7 +318,7 @@ async function main(){
  assert.ok(w.document.querySelector('.task-empty'),'没有任务时显示完整空状态');
  assert.equal(w.document.querySelectorAll('.section-tabs a').length,3);
  assert.equal(requests.some(x=>x.url.includes('/me/review-queue')),false,'学生查看任务时不能被反馈权限错误阻断');
- assert.ok(w.document.querySelector('footer').textContent.includes('v0.3.7'),'页面展示后端版本');
+ assert.ok(w.document.querySelector('footer').textContent.includes('v0.3.8'),'页面展示后端版本');
  w.testApp.navigate('routes');await until(()=>w.document.querySelector('#routeCards'));
  const routeSearch=w.document.querySelector('[data-filter=routes]');
  routeSearch.value='论文';routeSearch.dispatchEvent(new w.Event('input',{bubbles:true}));

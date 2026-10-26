@@ -131,6 +131,17 @@ body.document-mode .content>footer{display:none}
 .document-asset-list button:hover{background:#f0f5ff;color:#2468d9}
 .document-asset-list button span{color:#3370ff;font-size:20px}
 .document-asset-list p{color:#8894a3;font-size:14px}
+.structured-workspace #structuredEditor .document-reference{display:inline-flex;max-width:min(100%,420px);vertical-align:baseline;align-items:center;border-radius:6px;background:#edf3ff;padding:1px 6px;margin:0 2px;line-height:1.5;white-space:nowrap}
+.structured-workspace #structuredEditor .document-reference a{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;color:#2468d9;text-decoration:none;font-size:.92em;font-weight:600}
+.structured-workspace #structuredEditor .document-reference:hover{background:#e2edff}
+.structured-workspace #structuredEditor .document-reference a:not([href]){color:#929baa;cursor:default}
+.document-reference-list{max-height:320px;overflow:auto;margin:12px 0 16px}
+.document-reference-list button{display:flex;align-items:center;gap:10px;width:100%;padding:10px 9px;border:0;border-radius:7px;background:transparent;text-align:left;color:#334155;font:inherit;cursor:pointer}
+.document-reference-list button:hover{background:#f0f5ff}
+.document-reference-list button span{color:#3370ff}
+.document-reference-list button strong{margin:0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:600}
+.document-reference-list button small{margin-left:auto;color:#8a96a6;white-space:nowrap;font-size:12px}
+.document-reference-list p{color:#8995a5;font-size:14px}
 .document-link-dialog{width:min(430px,calc(100vw - 32px));border:1px solid #dce3ed;border-radius:12px;padding:22px;background:#fff;color:#263244;box-shadow:0 18px 55px rgba(29,45,72,.2)}
 .document-link-dialog::backdrop{background:rgba(25,39,64,.28)}
 .document-link-dialog strong{display:block;font-size:18px;margin-bottom:14px}

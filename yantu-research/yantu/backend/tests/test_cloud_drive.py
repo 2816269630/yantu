@@ -215,6 +215,8 @@ def test_document_image_and_attachment_references(drive):
     file_node = {'type': 'fileResource', 'attrs': {'id': str(uuid4()), 'resourceId': attachment['id'], 'name': attachment['fileName']}}
     content = {'schemaVersion': 2, 'type': 'doc', 'content': [image_node, file_node]}
     assert c.get(endpoint+'/assets/'+picture['id']+'/preview', headers=reader).status_code == 404
+
+
     assert data(c.put(endpoint+'/document', headers=owner, json={'version': 1, 'content': content}))['version'] == 2
     assert data(c.get(endpoint+'/document', headers=owner))['content'] == content
     assert c.get(endpoint+'/assets/'+picture['id']+'/preview', headers=owner).content == png
@@ -242,6 +244,45 @@ def test_document_image_and_attachment_references(drive):
     assert c.get('/api/v1/resources/'+attachment['id']+'/download', headers=owner).status_code == 200
     data(c.delete(endpoint+'/shares/'+reader_id, headers=owner))
     assert c.get(endpoint+'/assets/'+picture['id']+'/preview', headers=reader).status_code == 404
+
+
+def test_document_reference_has_identity_without_granting_target_access(drive):
+    c, actors, team, _ = drive
+    aid, author = actors[0]
+    _, target_owner = actors[1]
+    cid, reader = actors[2]
+    source = data(c.post('/api/v1/me/drive/documents', headers=author,
+                         json={'kind': 'document', 'title': '引用来源'}), 201)
+    target = data(c.post('/api/v1/me/drive/documents', headers=target_owner,
+                         json={'kind': 'document', 'title': '被引用的研究记录'}), 201)
+    other = data(upload(c, author, key='not-native-document'), 201)
+    endpoint = f'/api/v1/resources/{source["id"]}/document'
+    paragraph = lambda reference: {'schemaVersion': 2, 'type': 'doc', 'content': [
+        {'type': 'paragraph', 'attrs': {'id': str(uuid4())}, 'content': [
+            {'type': 'text', 'text': '参见 '},
+            {'type': 'documentReference', 'attrs': {'resourceId': reference}},
+            {'type': 'text', 'text': ' 的结果。'},
+        ]},
+    ]}
+    assert c.put(endpoint, headers=author, json={'version': 1, 'content': paragraph(target['id'])}).status_code == 404
+    data(c.put(f'/api/v1/resources/{target["id"]}/shares/{aid}', headers=target_owner,
+               json={'permission': 'read', 'teamId': team}))
+    assert c.put(endpoint, headers=author, json={'version': 1, 'content': paragraph(other['id'])}).status_code == 400
+    assert c.put(endpoint, headers=author, json={'version': 1, 'content': paragraph(source['id'])}).status_code == 400
+    assert c.put(endpoint, headers=author, json={'version': 1, 'content': paragraph('../bad')}).status_code == 400
+    content = paragraph(target['id'])
+    assert data(c.put(endpoint, headers=author, json={'version': 1, 'content': content}))['version'] == 2
+    assert data(c.get(endpoint, headers=author))['content'] == content
+    data(c.put(f'/api/v1/resources/{source["id"]}/shares/{cid}', headers=author,
+               json={'permission': 'read', 'teamId': team}))
+    assert data(c.get(endpoint, headers=reader))['content'] == content
+    assert c.get(f'/api/v1/resources/{target["id"]}', headers=reader).status_code == 404
+    data(c.delete(f'/api/v1/resources/{target["id"]}/shares/{aid}', headers=target_owner))
+    edited = paragraph(target['id'])
+    edited['content'][0]['content'][0]['text'] = '撤销授权后仍能编辑原文：'
+    assert data(c.put(endpoint, headers=author, json={'version': 2, 'content': edited}))['version'] == 3
+    assert data(c.get(endpoint, headers=author))['content'] == edited
+    assert c.get(f'/api/v1/resources/{target["id"]}', headers=author).status_code == 404
 
 
 def test_simultaneous_document_saves_keep_one_version(drive):

@@ -17,7 +17,7 @@ BLOCK_TYPES = {
     'blockquote', 'codeBlock', 'horizontalRule', 'blockMath',
     'table', 'tableRow', 'tableCell', 'tableHeader', 'imageResource', 'fileResource',
 }
-INLINE_TYPES = {'text', 'hardBreak', 'inlineMath'}
+INLINE_TYPES = {'text', 'hardBreak', 'inlineMath', 'documentReference'}
 CONTENT_BLOCKS = {'paragraph', 'heading', 'bulletList', 'orderedList', 'blockquote',
                   'codeBlock', 'horizontalRule', 'blockMath', 'table', 'imageResource', 'fileResource'}
 CHILDREN = {
@@ -33,7 +33,7 @@ CHILDREN = {
     'tableRow': {'tableCell', 'tableHeader'},
     'tableCell': CONTENT_BLOCKS,
     'tableHeader': CONTENT_BLOCKS,
-    'text': set(), 'hardBreak': set(), 'inlineMath': set(),
+    'text': set(), 'hardBreak': set(), 'inlineMath': set(), 'documentReference': set(),
     'horizontalRule': set(), 'blockMath': set(),
     'imageResource': set(), 'fileResource': set(),
 }
@@ -49,6 +49,7 @@ NODE_ATTRS = {
     'text': set(), 'hardBreak': set(), 'inlineMath': {'latex'},
     'imageResource': {'id', 'resourceId', 'name'},
     'fileResource': {'id', 'resourceId', 'name'},
+    'documentReference': {'resourceId'},
 }
 
 
@@ -180,6 +181,17 @@ def validate_document(content, *, for_write=False, for_editor=False):
                 _invalid('文档资源引用无效')
             text_parts.append(label)
             count += len(label)
+        if kind == 'documentReference':
+            if version != 2:
+                _invalid('文档引用需要新版文档结构')
+            reference = attrs.get('resourceId')
+            if not isinstance(reference, str):
+                _invalid('文档引用无效')
+            try:
+                if str(UUID(reference)) != reference:
+                    _invalid('文档引用无效')
+            except ValueError:
+                _invalid('文档引用无效')
         if kind == 'text':
             value = node.get('text')
             if not isinstance(value, str):
@@ -198,6 +210,8 @@ def validate_document(content, *, for_write=False, for_editor=False):
                 _invalid('文档格式无效')
             if parent == 'codeBlock' and marks:
                 _invalid('代码块不能包含文字格式')
+            if kind == 'documentReference' and marks:
+                _invalid('文档引用不能包含文字格式')
             for mark in marks:
                 if not isinstance(mark, dict) or not isinstance(mark.get('type'), str) or mark['type'] not in MARKS:
                     _invalid('文档格式无效')
@@ -224,7 +238,7 @@ def validate_document(content, *, for_write=False, for_editor=False):
             _invalid()
         if version == 2 and strict and not children and 'content' in node:
             _invalid('空内容节点与编辑器结构不一致')
-        if kind in ('text', 'hardBreak', 'inlineMath', 'horizontalRule', 'blockMath', 'imageResource', 'fileResource') and children:
+        if kind in ('text', 'hardBreak', 'inlineMath', 'documentReference', 'horizontalRule', 'blockMath', 'imageResource', 'fileResource') and children:
             _invalid()
         if kind in ('doc', 'bulletList', 'orderedList', 'listItem', 'table', 'tableRow', 'tableCell', 'tableHeader') and not children:
             _invalid()

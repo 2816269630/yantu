@@ -43099,6 +43099,61 @@ Please report this to https://github.com/markedjs/marked.`, e) {
   });
   var ImageResource = asset("imageResource", "figure");
   var FileResource = asset("fileResource", "div");
+  var DocumentReference = Node3.create({
+    name: "documentReference",
+    group: "inline",
+    inline: true,
+    atom: true,
+    selectable: true,
+    marks: "",
+    addOptions() {
+      return { resolveReference: async () => null };
+    },
+    addAttributes() {
+      return { resourceId: { default: null } };
+    },
+    parseHTML() {
+      return [{ tag: "span[data-document-reference]", getAttrs: (element) => ({
+        resourceId: element.getAttribute("data-document-reference")
+      }) }];
+    },
+    renderHTML({ node }) {
+      return ["span", { "data-document-reference": node.attrs.resourceId }, "\u5F15\u7528\u6587\u6863"];
+    },
+    addNodeView() {
+      return ({ node }) => {
+        const dom = document.createElement("span");
+        dom.className = "document-reference";
+        dom.contentEditable = "false";
+        dom.dataset.documentReference = node.attrs.resourceId;
+        const link = document.createElement("a");
+        link.href = `/#resource/${encodeURIComponent(node.attrs.resourceId)}`;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = "\u25A4 \u6B63\u5728\u8BFB\u53D6\u6587\u6863\u2026";
+        dom.append(link);
+        let destroyed = false;
+        Promise.resolve(this.options.resolveReference(node.attrs.resourceId)).then((title2) => {
+          if (destroyed) return;
+          link.textContent = title2 ? `\u25A4 ${title2}` : "\u25A4 \u6587\u6863\u4E0D\u53EF\u7528";
+          if (!title2) link.removeAttribute("href");
+        }).catch(() => {
+          if (!destroyed) {
+            link.textContent = "\u25A4 \u6587\u6863\u4E0D\u53EF\u7528";
+            link.removeAttribute("href");
+          }
+        });
+        return {
+          dom,
+          ignoreMutation: () => true,
+          stopEvent: (event) => link.contains(event.target),
+          destroy: () => {
+            destroyed = true;
+          }
+        };
+      };
+    }
+  });
   var safeCellColor = (value) => typeof value === "string" && /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(value) ? value : null;
   var cellBackground = {
     default: null,
@@ -43115,7 +43170,7 @@ Please report this to https://github.com/markedjs/marked.`, e) {
     return { ...this.parent?.(), background: cellBackground };
   } });
   function createDocumentExtensions({ editable = true, onMathClick = () => {
-  }, documentId = "" } = {}) {
+  }, documentId = "", resolveReference = async () => null } = {}) {
     return [
       src_default.configure({ heading: { levels: [1, 2, 3, 4, 5, 6] } }),
       UniqueID.configure({ types: documentBlockTypes, updateDocument: editable }),
@@ -43124,6 +43179,7 @@ Please report this to https://github.com/markedjs/marked.`, e) {
       BackgroundTableHeader,
       ImageResource.configure({ documentId }),
       FileResource.configure({ documentId }),
+      DocumentReference.configure({ resolveReference }),
       Mathematics.configure({
         katexOptions: { throwOnError: false, trust: false, maxExpand: 1e3, maxSize: 20 },
         inlineOptions: { onClick: onMathClick },
@@ -43576,6 +43632,46 @@ Please report this to https://github.com/markedjs/marked.`, e) {
       button.disabled = false;
     }
   }
+  async function referenceDialog() {
+    if (!current?.doc.canEdit) return;
+    const workspace = current;
+    const selection = workspace.editor.state.selection;
+    workspace.referenceRange = {
+      from: selection.from,
+      to: selection.to,
+      inline: selection.$from.parent.isTextblock && selection.$to.parent === selection.$from.parent
+    };
+    const dialog = document.querySelector("#documentReferenceDialog");
+    dialog.querySelector("input").value = "";
+    dialog.querySelector(".document-reference-list").textContent = "\u6B63\u5728\u8BFB\u53D6\u6587\u6863\u2026";
+    hideMenus();
+    dialog.showModal();
+    dialog.querySelector("input").focus();
+    try {
+      const items = await list("/me/drive/search?scope=all");
+      if (!dialog.open || current !== workspace) return;
+      workspace.referenceChoices = items.filter((item) => item.id !== workspace.resource.id && /\.ytdoc$/i.test(item.fileName));
+      renderReferenceChoices();
+    } catch (error) {
+      dialog.querySelector(".document-reference-list").textContent = error.message;
+    }
+  }
+  function renderReferenceChoices() {
+    const dialog = document.querySelector("#documentReferenceDialog");
+    const query = dialog.querySelector("input").value.trim().toLowerCase();
+    const matches2 = (current?.referenceChoices || []).filter((item) => item.title.toLowerCase().includes(query));
+    dialog.querySelector(".document-reference-list").innerHTML = matches2.length ? matches2.slice(0, 100).map((item) => `<button type="button" data-reference-id="${esc(item.id)}"><span>\u25A4</span><strong>${esc(item.title)}</strong><small>${esc(item.owner || "")}</small></button>`).join("") : "<p>\u6CA1\u6709\u53EF\u5F15\u7528\u7684\u7814\u9014\u6587\u6863</p>";
+  }
+  function insertReference(resourceId) {
+    const range = current?.referenceRange;
+    const dialog = document.querySelector("#documentReferenceDialog");
+    if (!range || !dialog.open) return;
+    const node = { type: "documentReference", attrs: { resourceId } };
+    const fragment = range.inline ? node : { type: "paragraph", content: [node] };
+    current.editor.chain().focus().insertContentAt(range.inline ? { from: range.from, to: range.to } : range.to, fragment).run();
+    dialog.close();
+    current.referenceRange = null;
+  }
   function saveLink() {
     const dialog = document.querySelector("#structuredLinkDialog");
     let href = dialog.querySelector("input").value.trim();
@@ -43617,13 +43713,13 @@ Please report this to https://github.com/markedjs/marked.`, e) {
     tools.hidden = from2 === to || Boolean(current.editor.state.selection.node);
     if (!tools.hidden) positionMenu(tools, rect);
     const before = $from.parent.textBetween(0, $from.parentOffset, void 0, "\uFFFC");
-    const match = from2 === to ? before.match(/(?:^|\s)\/([\w]*)$/) : null;
+    const match = from2 === to ? before.match(/(?:^|\s)([/@])([\w]*)$/) : null;
     slash.hidden = !match;
     if (match) {
       current.slashRange = { from: from2 - match[0].trimStart().length, to: from2 };
-      const query = match[1].toLowerCase();
+      const query = match[2].toLowerCase();
       slash.querySelectorAll("[data-editor-command]").forEach((button) => {
-        button.hidden = Boolean(query && !button.dataset.alias.includes(query));
+        button.hidden = match[1] === "@" ? button.dataset.editorCommand !== "document-reference" : Boolean(query && !button.dataset.alias.includes(query));
       });
       positionMenu(slash, rect);
     }
@@ -43635,6 +43731,10 @@ Please report this to https://github.com/markedjs/marked.`, e) {
     hideMenus();
     if (command2 === "formula") {
       formulaDialog();
+      return;
+    }
+    if (command2 === "document-reference") {
+      referenceDialog();
       return;
     }
     if (command2 === "image" || command2 === "attachment") {
@@ -43679,9 +43779,11 @@ Please report this to https://github.com/markedjs/marked.`, e) {
     document.querySelector("#structuredSelectionTools").insertAdjacentHTML("beforeend", '<button type="button" data-editor-command="link" title="\u94FE\u63A5 Ctrl+K">\u94FE\u63A5</button>');
     document.querySelector("#structuredSlashMenu").insertAdjacentHTML("beforeend", '<button type="button" data-editor-command="table" data-alias="table bg"><span>\u25A6</span>\u8868\u683C</button>');
     document.querySelector("#structuredSlashMenu").insertAdjacentHTML("beforeend", '<button type="button" data-editor-command="image" data-alias="image img tp"><span>\u25A7</span>\u56FE\u7247</button><button type="button" data-editor-command="attachment" data-alias="file attachment fj"><span>\u25A4</span>\u9644\u4EF6</button>');
-    if (doc3.canEdit) document.querySelector(".document-toolbar").insertAdjacentHTML("beforeend", '<button type="button" data-editor-command="image">\u63D2\u5165\u56FE\u7247</button><button type="button" data-editor-command="attachment">\u63D2\u5165\u9644\u4EF6</button>');
+    document.querySelector("#structuredSlashMenu").insertAdjacentHTML("beforeend", '<button type="button" data-editor-command="document-reference" data-alias="reference doc yd"><span>@</span>\u5F15\u7528\u6587\u6863</button>');
+    if (doc3.canEdit) document.querySelector(".document-toolbar").insertAdjacentHTML("beforeend", '<button type="button" data-editor-command="image">\u63D2\u5165\u56FE\u7247</button><button type="button" data-editor-command="attachment">\u63D2\u5165\u9644\u4EF6</button><button type="button" data-editor-command="document-reference">\u5F15\u7528\u6587\u6863</button>');
     host.closest(".structured-workspace").insertAdjacentHTML("beforeend", '<dialog id="structuredLinkDialog" class="document-link-dialog"><strong>\u94FE\u63A5</strong><input type="url" aria-label="\u94FE\u63A5\u5730\u5740" placeholder="https://example.com"><div><button type="button" class="btn" data-structured-action="cancel-link">\u53D6\u6D88</button><button type="button" class="btn primary" data-structured-action="save-link">\u5B8C\u6210</button></div></dialog>');
     host.closest(".structured-workspace").insertAdjacentHTML("beforeend", '<dialog id="documentAssetDialog" class="document-asset-dialog"><strong>\u63D2\u5165\u8D44\u6E90</strong><input type="file" aria-label="\u9009\u62E9\u8981\u4E0A\u4F20\u7684\u6587\u4EF6" hidden><button type="button" class="btn" data-structured-action="upload-asset">\u9009\u62E9\u6587\u4EF6\u4E0A\u4F20</button><div class="document-asset-divider">\u6216\u4ECE\u6211\u7684\u4E91\u76D8\u9009\u62E9</div><input type="search" aria-label="\u641C\u7D22\u4E91\u76D8\u6587\u4EF6" placeholder="\u641C\u7D22\u6587\u4EF6"><div class="document-asset-list"></div><button type="button" class="btn" data-structured-action="close-asset">\u53D6\u6D88</button></dialog><div id="documentAssetActions" class="document-asset-actions" hidden><button type="button" data-structured-action="download-asset">\u4E0B\u8F7D</button><button type="button" data-structured-action="replace-asset">\u66FF\u6362</button><button type="button" data-structured-action="remove-asset">\u4ECE\u6587\u6863\u79FB\u9664</button></div>');
+    host.closest(".structured-workspace").insertAdjacentHTML("beforeend", '<dialog id="documentReferenceDialog" class="document-asset-dialog"><strong>\u5F15\u7528\u7814\u9014\u6587\u6863</strong><input type="search" aria-label="\u641C\u7D22\u8981\u5F15\u7528\u7684\u6587\u6863" placeholder="\u641C\u7D22\u6587\u6863\u6807\u9898"><div class="document-reference-list"></div><button type="button" class="btn" data-structured-action="close-reference">\u53D6\u6D88</button></dialog>');
     const workspace = current = { resource, doc: doc3, dirty: false, titleDirty: false, saving: false, titleSaving: false, conflict: false, lastSaved: null, initializing: true };
     let editor;
     editor = new Editor({
@@ -43705,7 +43807,19 @@ Please report this to https://github.com/markedjs/marked.`, e) {
           return false;
         }
       },
-      extensions: createDocumentExtensions({ editable: doc3.canEdit, documentId: resource.id, onMathClick: (node, pos) => formulaDialog(node, pos) }),
+      extensions: createDocumentExtensions({
+        editable: doc3.canEdit,
+        documentId: resource.id,
+        resolveReference: (id) => {
+          workspace.referenceCache ||= /* @__PURE__ */ new Map();
+          if (!workspace.referenceCache.has(id)) workspace.referenceCache.set(
+            id,
+            api(`/resources/${enc(id)}`).then((item) => /\.ytdoc$/i.test(item.fileName) ? item.title : null).catch(() => null)
+          );
+          return workspace.referenceCache.get(id);
+        },
+        onMathClick: (node, pos) => formulaDialog(node, pos)
+      }),
       content: typeof doc3.content === "string" ? doc3.content : doc3.content,
       contentType: typeof doc3.content === "string" ? "markdown" : "json",
       onUpdate: () => {
@@ -43786,6 +43900,10 @@ Please report this to https://github.com/markedjs/marked.`, e) {
       renderAssetChoices();
       return;
     }
+    if (event.target.matches?.("#documentReferenceDialog input[type=search]")) {
+      renderReferenceChoices();
+      return;
+    }
     if (!current || !event.target.matches?.(".structured-workspace [data-document-title]")) return;
     syncTitle(event.target.value, event.target);
     queueTitle();
@@ -43795,6 +43913,11 @@ Please report this to https://github.com/markedjs/marked.`, e) {
     const choice = event.target.closest?.("#documentAssetDialog [data-asset-id]");
     if (choice) {
       insertAsset({ id: choice.dataset.assetId, fileName: choice.dataset.assetName });
+      return;
+    }
+    const referenceChoice = event.target.closest?.("#documentReferenceDialog [data-reference-id]");
+    if (referenceChoice) {
+      insertReference(referenceChoice.dataset.referenceId);
       return;
     }
     const assetElement = event.target.closest?.("#structuredEditor [data-document-asset]");
@@ -43838,6 +43961,11 @@ Please report this to https://github.com/markedjs/marked.`, e) {
     if (action === "close-asset") {
       document.querySelector("#documentAssetDialog").close();
       current.assetTarget = null;
+      return;
+    }
+    if (action === "close-reference") {
+      document.querySelector("#documentReferenceDialog").close();
+      current.referenceRange = null;
       return;
     }
     if (action === "replace-asset" && current.selectedAsset) {

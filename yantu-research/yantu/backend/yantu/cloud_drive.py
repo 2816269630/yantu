@@ -330,6 +330,27 @@ def register_cloud_drive(app, ctx):
         for kind, asset_id in set(asset_references(content)):
             asset_row(db, document, asset_id, kind)
 
+    def document_reference_ids(content):
+        def visit(node):
+            if node.get('type') == 'documentReference':
+                yield node['attrs']['resourceId']
+            for child in node.get('content', []):
+                yield from visit(child)
+        return set(visit(content))
+
+    def check_document_references(db, document, user, content):
+        try:
+            stored = json.loads((uploads / document.storage_name).read_text(encoding='utf-8'))
+            previous = document_reference_ids(stored['content']) if stored.get('kind') == 'document' and isinstance(stored.get('content'), dict) else set()
+        except (OSError, ValueError, KeyError, TypeError, AttributeError):
+            previous = set()
+        for target_id in document_reference_ids(content) - previous:
+            if target_id == document.id:
+                raise HTTPException(400, '文档不能引用自身')
+            target, _ = resource_for(db, target_id, user)
+            if Path(target.file_name).suffix.lower() != '.ytdoc':
+                raise HTTPException(400, '只能引用研途文档')
+
     def document_has_asset(document, asset_id, kind):
         try:
             stored = json.loads((uploads / document.storage_name).read_text(encoding='utf-8'))
@@ -449,6 +470,7 @@ def register_cloud_drive(app, ctx):
         content, extracted = document_bytes(kind or 'text', payload.get('content'))
         if kind == 'document':
             check_assets(db, row, payload['content'])
+            check_document_references(db, row, user, payload['content'])
         storage = str(uuid4())
         destination = uploads / storage
         destination.write_bytes(content)

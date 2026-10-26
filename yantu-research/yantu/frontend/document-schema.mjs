@@ -34,6 +34,38 @@ const asset = (name, tag) => Node.create({
 const ImageResource = asset('imageResource', 'figure');
 const FileResource = asset('fileResource', 'div');
 
+const DocumentReference = Node.create({
+  name: 'documentReference', group: 'inline', inline: true, atom: true, selectable: true, marks: '',
+  addOptions() { return { resolveReference: async () => null }; },
+  addAttributes() { return { resourceId: { default: null } }; },
+  parseHTML() { return [{ tag: 'span[data-document-reference]', getAttrs: element => ({
+    resourceId: element.getAttribute('data-document-reference'),
+  }) }]; },
+  renderHTML({ node }) { return ['span', { 'data-document-reference': node.attrs.resourceId }, '引用文档']; },
+  addNodeView() {
+    return ({ node }) => {
+      const dom = document.createElement('span');
+      dom.className = 'document-reference'; dom.contentEditable = 'false';
+      dom.dataset.documentReference = node.attrs.resourceId;
+      const link = document.createElement('a');
+      link.href = `/#resource/${encodeURIComponent(node.attrs.resourceId)}`;
+      link.target = '_blank'; link.rel = 'noopener noreferrer';
+      link.textContent = '▤ 正在读取文档…'; dom.append(link);
+      let destroyed = false;
+      Promise.resolve(this.options.resolveReference(node.attrs.resourceId)).then(title => {
+        if (destroyed) return;
+        link.textContent = title ? `▤ ${title}` : '▤ 文档不可用';
+        if (!title) link.removeAttribute('href');
+      }).catch(() => {
+        if (!destroyed) { link.textContent = '▤ 文档不可用'; link.removeAttribute('href'); }
+      });
+      return { dom, ignoreMutation: () => true,
+        stopEvent: event => link.contains(event.target),
+        destroy: () => { destroyed = true; } };
+    };
+  },
+});
+
 const safeCellColor = value => typeof value === 'string' && /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(value) ? value : null;
 const cellBackground = {
   default: null,
@@ -46,13 +78,14 @@ const cellBackground = {
 const BackgroundTableCell = TableCell.extend({ addAttributes() { return { ...this.parent?.(), background: cellBackground }; } });
 const BackgroundTableHeader = TableHeader.extend({ addAttributes() { return { ...this.parent?.(), background: cellBackground }; } });
 
-export function createDocumentExtensions({ editable = true, onMathClick = () => {}, documentId = '' } = {}) {
+export function createDocumentExtensions({ editable = true, onMathClick = () => {}, documentId = '', resolveReference = async () => null } = {}) {
   return [
     StarterKit.configure({ heading: { levels: [1, 2, 3, 4, 5, 6] } }),
     UniqueID.configure({ types: documentBlockTypes, updateDocument: editable }),
     TableKit.configure({ tableCell: false, tableHeader: false }),
     BackgroundTableCell, BackgroundTableHeader,
     ImageResource.configure({ documentId }), FileResource.configure({ documentId }),
+    DocumentReference.configure({ resolveReference }),
     Mathematics.configure({
       katexOptions: { throwOnError: false, trust: false, maxExpand: 1000, maxSize: 20 },
       inlineOptions: { onClick: onMathClick },

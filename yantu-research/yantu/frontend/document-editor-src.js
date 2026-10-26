@@ -371,6 +371,40 @@ async function uploadAsset(file) {
   } catch (error) { status(`上传失败：${error.message}`, true); }
   finally { button.disabled = false; }
 }
+async function referenceDialog() {
+  if (!current?.doc.canEdit) return;
+  const workspace = current;
+  const selection = workspace.editor.state.selection;
+  workspace.referenceRange = { from: selection.from, to: selection.to,
+    inline: selection.$from.parent.isTextblock && selection.$to.parent === selection.$from.parent };
+  const dialog = document.querySelector('#documentReferenceDialog');
+  dialog.querySelector('input').value = '';
+  dialog.querySelector('.document-reference-list').textContent = '正在读取文档…';
+  hideMenus(); dialog.showModal(); dialog.querySelector('input').focus();
+  try {
+    const items = await list('/me/drive/search?scope=all');
+    if (!dialog.open || current !== workspace) return;
+    workspace.referenceChoices = items.filter(item => item.id !== workspace.resource.id && /\.ytdoc$/i.test(item.fileName));
+    renderReferenceChoices();
+  } catch (error) { dialog.querySelector('.document-reference-list').textContent = error.message; }
+}
+function renderReferenceChoices() {
+  const dialog = document.querySelector('#documentReferenceDialog');
+  const query = dialog.querySelector('input').value.trim().toLowerCase();
+  const matches = (current?.referenceChoices || []).filter(item => item.title.toLowerCase().includes(query));
+  dialog.querySelector('.document-reference-list').innerHTML = matches.length
+    ? matches.slice(0, 100).map(item => `<button type="button" data-reference-id="${esc(item.id)}"><span>▤</span><strong>${esc(item.title)}</strong><small>${esc(item.owner || '')}</small></button>`).join('')
+    : '<p>没有可引用的研途文档</p>';
+}
+function insertReference(resourceId) {
+  const range = current?.referenceRange;
+  const dialog = document.querySelector('#documentReferenceDialog');
+  if (!range || !dialog.open) return;
+  const node = { type: 'documentReference', attrs: { resourceId } };
+  const fragment = range.inline ? node : { type: 'paragraph', content: [node] };
+  current.editor.chain().focus().insertContentAt(range.inline ? { from: range.from, to: range.to } : range.to, fragment).run();
+  dialog.close(); current.referenceRange = null;
+}
 function saveLink() {
   const dialog = document.querySelector('#structuredLinkDialog');
   let href = dialog.querySelector('input').value.trim();
@@ -404,13 +438,14 @@ function updateMenus() {
   tools.hidden = from === to || Boolean(current.editor.state.selection.node);
   if (!tools.hidden) positionMenu(tools, rect);
   const before = $from.parent.textBetween(0, $from.parentOffset, undefined, '\ufffc');
-  const match = from === to ? before.match(/(?:^|\s)\/([\w]*)$/) : null;
+  const match = from === to ? before.match(/(?:^|\s)([/@])([\w]*)$/) : null;
   slash.hidden = !match;
   if (match) {
     current.slashRange = { from: from - match[0].trimStart().length, to: from };
-    const query = match[1].toLowerCase();
+    const query = match[2].toLowerCase();
     slash.querySelectorAll('[data-editor-command]').forEach(button => {
-      button.hidden = Boolean(query && !button.dataset.alias.includes(query));
+      button.hidden = match[1] === '@' ? button.dataset.editorCommand !== 'document-reference'
+        : Boolean(query && !button.dataset.alias.includes(query));
     });
     positionMenu(slash, rect);
   }
@@ -420,6 +455,7 @@ function runCommand(command, slash = false) {
   if (slash && current.slashRange) editor.chain().focus().deleteRange(current.slashRange).run();
   hideMenus();
   if (command === 'formula') { formulaDialog(); return; }
+  if (command === 'document-reference') { referenceDialog(); return; }
   if (command === 'image' || command === 'attachment') {
     assetDialog(command === 'image' ? 'imageResource' : 'fileResource'); return;
   }
@@ -447,9 +483,11 @@ function mount() {
   document.querySelector('#structuredSelectionTools').insertAdjacentHTML('beforeend', '<button type="button" data-editor-command="link" title="链接 Ctrl+K">链接</button>');
   document.querySelector('#structuredSlashMenu').insertAdjacentHTML('beforeend', '<button type="button" data-editor-command="table" data-alias="table bg"><span>▦</span>表格</button>');
   document.querySelector('#structuredSlashMenu').insertAdjacentHTML('beforeend', '<button type="button" data-editor-command="image" data-alias="image img tp"><span>▧</span>图片</button><button type="button" data-editor-command="attachment" data-alias="file attachment fj"><span>▤</span>附件</button>');
-  if (doc.canEdit) document.querySelector('.document-toolbar').insertAdjacentHTML('beforeend', '<button type="button" data-editor-command="image">插入图片</button><button type="button" data-editor-command="attachment">插入附件</button>');
+  document.querySelector('#structuredSlashMenu').insertAdjacentHTML('beforeend', '<button type="button" data-editor-command="document-reference" data-alias="reference doc yd"><span>@</span>引用文档</button>');
+  if (doc.canEdit) document.querySelector('.document-toolbar').insertAdjacentHTML('beforeend', '<button type="button" data-editor-command="image">插入图片</button><button type="button" data-editor-command="attachment">插入附件</button><button type="button" data-editor-command="document-reference">引用文档</button>');
   host.closest('.structured-workspace').insertAdjacentHTML('beforeend', '<dialog id="structuredLinkDialog" class="document-link-dialog"><strong>链接</strong><input type="url" aria-label="链接地址" placeholder="https://example.com"><div><button type="button" class="btn" data-structured-action="cancel-link">取消</button><button type="button" class="btn primary" data-structured-action="save-link">完成</button></div></dialog>');
   host.closest('.structured-workspace').insertAdjacentHTML('beforeend', '<dialog id="documentAssetDialog" class="document-asset-dialog"><strong>插入资源</strong><input type="file" aria-label="选择要上传的文件" hidden><button type="button" class="btn" data-structured-action="upload-asset">选择文件上传</button><div class="document-asset-divider">或从我的云盘选择</div><input type="search" aria-label="搜索云盘文件" placeholder="搜索文件"><div class="document-asset-list"></div><button type="button" class="btn" data-structured-action="close-asset">取消</button></dialog><div id="documentAssetActions" class="document-asset-actions" hidden><button type="button" data-structured-action="download-asset">下载</button><button type="button" data-structured-action="replace-asset">替换</button><button type="button" data-structured-action="remove-asset">从文档移除</button></div>');
+  host.closest('.structured-workspace').insertAdjacentHTML('beforeend', '<dialog id="documentReferenceDialog" class="document-asset-dialog"><strong>引用研途文档</strong><input type="search" aria-label="搜索要引用的文档" placeholder="搜索文档标题"><div class="document-reference-list"></div><button type="button" class="btn" data-structured-action="close-reference">取消</button></dialog>');
   const workspace = current = { resource, doc, dirty: false, titleDirty: false, saving: false, titleSaving: false, conflict: false, lastSaved: null, initializing: true };
   let editor;
   editor = new Editor({
@@ -465,7 +503,13 @@ function mount() {
         return false;
       },
     },
-    extensions: createDocumentExtensions({ editable: doc.canEdit, documentId: resource.id, onMathClick: (node, pos) => formulaDialog(node, pos) }),
+    extensions: createDocumentExtensions({ editable: doc.canEdit, documentId: resource.id,
+      resolveReference: id => {
+        workspace.referenceCache ||= new Map();
+        if (!workspace.referenceCache.has(id)) workspace.referenceCache.set(id,
+          api(`/resources/${enc(id)}`).then(item => /\.ytdoc$/i.test(item.fileName) ? item.title : null).catch(() => null));
+        return workspace.referenceCache.get(id);
+      }, onMathClick: (node, pos) => formulaDialog(node, pos) }),
     content: typeof doc.content === 'string' ? doc.content : doc.content,
     contentType: typeof doc.content === 'string' ? 'markdown' : 'json',
     onUpdate: () => { if (current !== workspace || workspace.initializing || !workspace.editor || repairBlockIds(editor)) return; outlineRows(); queueSave(); updateMenus(); },
@@ -527,6 +571,7 @@ document.addEventListener('mousedown', event => {
 });
 document.addEventListener('input', event => {
   if (event.target.matches?.('#documentAssetDialog input[type=search]')) { renderAssetChoices(); return; }
+  if (event.target.matches?.('#documentReferenceDialog input[type=search]')) { renderReferenceChoices(); return; }
   if (!current || !event.target.matches?.('.structured-workspace [data-document-title]')) return;
   syncTitle(event.target.value, event.target); queueTitle();
 });
@@ -534,6 +579,8 @@ document.addEventListener('click', event => {
   if (!current || !document.querySelector('.structured-workspace')) return;
   const choice = event.target.closest?.('#documentAssetDialog [data-asset-id]');
   if (choice) { insertAsset({ id: choice.dataset.assetId, fileName: choice.dataset.assetName }); return; }
+  const referenceChoice = event.target.closest?.('#documentReferenceDialog [data-reference-id]');
+  if (referenceChoice) { insertReference(referenceChoice.dataset.referenceId); return; }
   const assetElement = event.target.closest?.('#structuredEditor [data-document-asset]');
   if (assetElement && current.doc.canEdit) {
     event.preventDefault(); hideAssetActions(); hideMenus();
@@ -562,6 +609,7 @@ document.addEventListener('click', event => {
   const action = event.target.closest('[data-structured-action]')?.dataset.structuredAction;
   if (action === 'upload-asset') { document.querySelector('#documentAssetDialog input[type=file]').click(); return; }
   if (action === 'close-asset') { document.querySelector('#documentAssetDialog').close(); current.assetTarget = null; return; }
+  if (action === 'close-reference') { document.querySelector('#documentReferenceDialog').close(); current.referenceRange = null; return; }
   if (action === 'replace-asset' && current.selectedAsset) {
     const selected = current.selectedAsset;
     assetDialog(selected.node.type.name, selected); return;
