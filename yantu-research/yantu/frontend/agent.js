@@ -44,7 +44,7 @@ function agentEmpty() {
   ].map(([glyph, label, prompt]) => `<button data-action="agent-starter" data-id="${esc(prompt)}">${icon(glyph)}<span>${label}</span>${icon('arrow')}</button>`).join('')}</div></div>`;
 }
 function agentHistory() {
-  return `<div class="agent-history-head"><strong>对话</strong>${btn(icon('plus'),'agent-new','','iconbtn')}</div><button class="agent-new" data-action="agent-new">${icon('plus')}新对话</button><div class="agent-history-list">${agentState.history.length ? agentState.history.map(item => `<button class="${item.id === agentState.currentId ? 'active' : ''}" data-action="agent-open" data-id="${esc(item.id)}"><span>${esc(item.title)}</span></button>`).join('') : '<p class="small">你的研究对话会保存在这里。</p>'}</div><div class="agent-history-foot">${icon('lock')}仅自己可见</div>`;
+  return `<div class="agent-history-head"><strong>对话</strong></div><div class="agent-history-list">${agentState.history.length ? agentState.history.map(item => `<button class="${item.id === agentState.currentId ? 'active' : ''}" data-action="agent-open" data-id="${esc(item.id)}"><span>${esc(item.title)}</span></button>`).join('') : '<p class="small">你的研究对话会保存在这里。</p>'}</div><div class="agent-history-foot">${icon('lock')}仅自己可见</div>`;
 }
 pages.assistant = async () => {
   const [connections, history] = await Promise.all([api('/agent/connections'), api('/agent/conversations')]);

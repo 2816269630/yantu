@@ -353,7 +353,7 @@ async function main(){
  assert.ok(w.document.querySelector('.task-empty'),'没有任务时显示完整空状态');
  assert.equal(w.document.querySelectorAll('.section-tabs a').length,3);
  assert.equal(requests.some(x=>x.url.includes('/me/review-queue')),false,'学生查看任务时不能被反馈权限错误阻断');
- assert.ok(w.document.querySelector('footer').textContent.includes('v0.4.0'),'页面展示后端版本');
+ assert.ok(w.document.querySelector('#appStatus').textContent.includes('v0.4.0'),'侧栏展示后端版本');
  w.testApp.navigate('routes');await until(()=>w.document.querySelector('#routeCards'));
  const routeSearch=w.document.querySelector('[data-filter=routes]');
  routeSearch.value='论文';routeSearch.dispatchEvent(new w.Event('input',{bubbles:true}));

@@ -1,0 +1,50 @@
+/* Design tokens. Use these instead of literal colours so every module stays on one palette.
+   Structure and the blue accent follow Feishu; warm neutrals, hairlines and flat surfaces follow Claude Code. */
+:root {
+  /* Brand: Feishu blue for everyday actions */
+  --blue: #3370ff;
+  --blue-dark: #245bdb;
+  --blue-light: #edf2ff;
+  --blue-line: #d0ddff;
+  --blue-border: #aac2ff;
+  --focus: #8eadff;
+
+  /* Assistant: clay marks what the research assistant does */
+  --clay: #d97757;
+  --clay-dark: #c15f3c;
+  --clay-light: #f8ece6;
+
+  /* Text, from strongest to faintest (warm neutrals) */
+  --ink: #1f1e1c;
+  --ink-2: #3d3b37;
+  --muted: #6f6c66;
+  --sub: #9b9891;
+  --placeholder: #b8b5ae;
+
+  /* Surfaces and lines */
+  --surface: #fff;
+  --bg: #f9f8f5;
+  --sidebar: #f3f2ee;
+  --fill: #f2f1ed;
+  --fill-2: #e8e6e0;
+  --line: #e8e6e0;
+  --line-soft: #efede8;
+  --line-strong: #d9d6ce;
+
+  /* Status */
+  --green: #168665;
+  --green-bg: #e9f6ef;
+  --orange: #ad6500;
+  --orange-bg: #fdf3e1;
+  --red: #c2414c;
+  --red-bg: #fdf0f0;
+  --purple: #7651c4;
+  --purple-bg: #f1edfb;
+
+  /* Shape: flat surfaces, elevation only for floating layers */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius: 12px;
+  --shadow: none;
+  --shadow-pop: 0 12px 32px rgba(31,30,28,.14), 0 2px 6px rgba(31,30,28,.06);
+}
