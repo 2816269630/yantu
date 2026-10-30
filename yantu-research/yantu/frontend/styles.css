@@ -504,6 +504,7 @@ button.avatar {
 
 .breadcrumb a {
   color: var(--muted);
+  padding: 4px 0;
 }
 
 .breadcrumb a:hover {
@@ -610,6 +611,12 @@ button.avatar {
   width: 18px;
   height: 18px;
   color: var(--muted);
+}
+
+.panelhead .btn .i {
+  width: 16px;
+  height: 16px;
+  color: currentColor;
 }
 
 .grid2 {
@@ -1013,7 +1020,7 @@ button.avatar {
   height: 26px;
   border-radius: 50%;
   background: var(--fill);
-  color: var(--sub);
+  color: var(--muted);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1505,7 +1512,7 @@ td .filename:hover {
 }
 
 .modal::backdrop {
-  background: #17233960;
+  background: rgba(31,30,28,.32);
   backdrop-filter: blur(2px);
 }
 
@@ -1521,7 +1528,11 @@ td .filename:hover {
 }
 
 .modal-head h2 {
-  font-size: 19px;
+  font-size: 17px;
+}
+
+.modal-head .iconbtn {
+  color: var(--muted);
 }
 
 .modal-body {
@@ -1541,10 +1552,22 @@ td .filename:hover {
   margin-top: 16px;
 }
 
+.modal-body .form-stack > .field {
+  margin-top: 0;
+}
+
 .modal-body .field label {
   display: block;
   font-size: 13px;
-  margin-bottom: 6px;
+}
+
+.modal .form-actions {
+  position: sticky;
+  bottom: -24px;
+  margin: 4px -25px -24px;
+  padding: 14px 25px;
+  background: var(--surface);
+  border-top: 1px solid var(--line-soft);
 }
 
 .modal-foot {
@@ -1563,7 +1586,7 @@ td .filename:hover {
   padding: 11px 14px;
   border-radius: 6px;
   background: var(--orange-bg);
-  color: #99713c;
+  color: var(--orange);
   font-size: 13px;
   margin-bottom: 16px;
 }
@@ -1741,7 +1764,7 @@ td .filename:hover {
   .topright {
     gap: 8px;
   }
-  .breadcrumb > span:first-child, .breadcrumb > .slash {
+  .breadcrumb > #crumbSection, .breadcrumb > .slash {
     display: none;
   }
   .equal2 {
@@ -1941,7 +1964,7 @@ td .filename:hover {
 
 .space-caption {
   font-size: 12px;
-  color: var(--sub);
+  color: var(--muted);
   display: block;
   line-height: 1.4;
 }
@@ -1952,6 +1975,7 @@ td .filename:hover {
   color: var(--ink);
   font-weight: 550;
   width: 100%;
+  min-height: 24px;
   font-size: 13px;
   cursor: pointer;
 }
@@ -1961,7 +1985,7 @@ td .filename:hover {
   align-items: center;
   gap: 7px;
   font-size: 12px;
-  color: var(--sub);
+  color: var(--muted);
   padding: 2px 7px 14px;
 }
 
@@ -1991,6 +2015,11 @@ td .filename:hover {
 
 .notification-button {
   position: relative;
+}
+
+.topright > .iconbtn, #profileButton {
+  min-width: 32px;
+  min-height: 32px;
 }
 
 .unread-dot {
@@ -2548,7 +2577,7 @@ td .filename:hover {
 .empty-col {
   text-align: center;
   font-size: 12px;
-  color: var(--sub);
+  color: var(--muted);
   padding: 30px 10px;
 }
 
@@ -4100,6 +4129,7 @@ body {
   font-weight: 550;
   overflow-wrap: anywhere;
   line-height: 1.35;
+  padding: 3px 0;
 }
 
 .drive-name-main .filename:hover {

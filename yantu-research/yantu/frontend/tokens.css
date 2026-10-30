@@ -2,8 +2,9 @@
    Structure and the blue accent follow Feishu; warm neutrals, hairlines and flat surfaces follow Claude Code. */
 :root {
   /* Brand: Feishu blue for everyday actions */
-  --blue: #3370ff;
-  --blue-dark: #245bdb;
+  /* #2a62e6 keeps Feishu's hue but meets 4.5:1 for text and white-on-blue buttons. */
+  --blue: #2a62e6;
+  --blue-dark: #1f50c8;
   --blue-light: #edf2ff;
   --blue-line: #d0ddff;
   --blue-border: #aac2ff;
@@ -11,14 +12,14 @@
 
   /* Assistant: clay marks what the research assistant does */
   --clay: #d97757;
-  --clay-dark: #c15f3c;
+  --clay-dark: #ad4f2f;
   --clay-light: #f8ece6;
 
   /* Text, from strongest to faintest (warm neutrals) */
   --ink: #1f1e1c;
   --ink-2: #3d3b37;
-  --muted: #6f6c66;
-  --sub: #9b9891;
+  --muted: #66635d;
+  --sub: #75726b;
   --placeholder: #b8b5ae;
 
   /* Surfaces and lines */
@@ -32,9 +33,9 @@
   --line-strong: #d9d6ce;
 
   /* Status */
-  --green: #168665;
+  --green: #13795b;
   --green-bg: #e9f6ef;
-  --orange: #ad6500;
+  --orange: #9a5a00;
   --orange-bg: #fdf3e1;
   --red: #c2414c;
   --red-bg: #fdf0f0;

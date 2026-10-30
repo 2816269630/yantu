@@ -1,3 +1,3 @@
 """Application release identifier shared by API metadata and the frontend."""
 
-VERSION = "0.4.2"
+VERSION = "0.4.3"

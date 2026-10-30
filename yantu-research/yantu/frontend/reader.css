@@ -120,7 +120,7 @@ svg {
 
 .document-kicker,
 .panel-kicker {
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.2;
   font-weight: 700;
   letter-spacing: 0.15em;
@@ -153,7 +153,7 @@ svg {
   border-radius: 4px;
   color: var(--muted);
   background: var(--bg);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.05em;
 }
@@ -164,7 +164,7 @@ svg {
   gap: 7px;
   min-width: 0;
   color: var(--sub);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.4;
   white-space: nowrap;
 }
@@ -185,7 +185,7 @@ svg {
 .save-state {
   margin-right: 6px;
   color: var(--sub);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .save-state::before {
@@ -408,7 +408,7 @@ body.notes-closed .notes-panel {
 .paper-summary > div:last-child > strong {
   display: -webkit-box;
   overflow: hidden;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.55;
   font-weight: 600;
   -webkit-box-orient: vertical;
@@ -420,7 +420,7 @@ body.notes-closed .notes-panel {
   margin: 5px 0 0;
   overflow: hidden;
   color: var(--sub);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.5;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -441,7 +441,7 @@ body.notes-closed .notes-panel {
   border-radius: 6px;
   background: transparent;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   cursor: pointer;
 }
 
@@ -490,7 +490,7 @@ body.notes-closed .notes-panel {
   min-width: 17px;
   padding-top: 1px;
   color: var(--sub);
-  font-size: 11px;
+  font-size: 12px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -500,7 +500,7 @@ body.notes-closed .notes-panel {
 
 .outline-item span:last-child {
   overflow: hidden;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.45;
   text-overflow: ellipsis;
 }
@@ -558,7 +558,7 @@ body.notes-closed .notes-panel {
   display: block;
   padding: 5px 4px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   text-align: center;
 }
 
@@ -566,7 +566,7 @@ body.notes-closed .notes-panel {
 .panel-empty {
   padding: 28px 14px;
   color: var(--sub);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.8;
   text-align: center;
 }
@@ -579,14 +579,14 @@ body.notes-closed .notes-panel {
   gap: 7px;
   border-top: 1px solid var(--line);
   color: var(--sub);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .keyboard-hints strong {
   width: 100%;
   margin-bottom: 1px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
 }
 
@@ -652,7 +652,7 @@ kbd {
   border-radius: 7px;
   background: var(--surface);
   color: var(--sub);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .page-field input {
@@ -662,7 +662,7 @@ kbd {
   outline: 0;
   background: transparent;
   color: var(--ink-2);
-  font-size: 11px;
+  font-size: 12px;
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
@@ -677,7 +677,7 @@ kbd {
   padding: 0 4px;
   border-radius: 6px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -693,7 +693,7 @@ kbd {
   border-radius: 7px;
   background: var(--surface);
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .fit-button:hover {
@@ -725,8 +725,8 @@ kbd {
   justify-items: center;
   gap: 14px;
   background: var(--fill);
-  color: var(--sub);
-  font-size: 11px;
+  color: var(--muted);
+  font-size: 12px;
   transition: opacity 180ms ease;
 }
 
@@ -800,7 +800,7 @@ kbd {
   justify-content: space-between;
   gap: 10px;
   color: var(--sub);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .note-context {
@@ -821,7 +821,7 @@ kbd {
   border: 0;
   background: transparent;
   color: var(--blue);
-  font-size: 11px;
+  font-size: 12px;
   cursor: pointer;
 }
 
@@ -865,7 +865,7 @@ kbd {
   border-radius: 6px;
   background: var(--surface);
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   text-align: left;
   cursor: pointer;
 }
@@ -879,7 +879,7 @@ kbd {
   margin: 0 16px 15px;
   border-top: 1px solid var(--line);
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .document-details summary {
@@ -937,7 +937,7 @@ kbd {
   background: #2f3540;
   color: #fff;
   box-shadow: 0 10px 30px rgb(21 25 36 / 20%);
-  font-size: 11px;
+  font-size: 12px;
   opacity: 0;
   pointer-events: none;
   transform: translate(-50%, 8px);
@@ -1117,7 +1117,7 @@ body.focus-mode .stage-toolbar {
     display: none;
   }
   .document-meta {
-    font-size: 11px;
+    font-size: 12px;
   }
   .top-actions {
     gap: 2px;

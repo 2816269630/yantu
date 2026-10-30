@@ -784,7 +784,7 @@
     padding-right: 5px;
   }
   .agent-compose-note {
-    font-size: 11px;
+    font-size: 12px;
   }
   .agent-settings-grid {
     grid-template-columns: minmax(0,1fr);
