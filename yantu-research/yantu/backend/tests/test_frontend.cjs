@@ -1,320 +1,382 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const vm = require('node:vm');
 const { JSDOM } = require('jsdom');
 const root = path.resolve(__dirname, '../..');
-const until = async (predicate) => {
-  const start = Date.now();
-  while (!predicate()) {
-    if (Date.now() - start > 3000) throw new Error('页面未在预期时间内更新');
-    await new Promise((r) => setTimeout(r, 10));
+const until = async (predicate) => { const start=Date.now(); while(!predicate()){if(Date.now()-start>3000)throw new Error('页面未在预期时间内更新');await new Promise(r=>setTimeout(r,10));} };
+async function main(){
+ const dom=new JSDOM(fs.readFileSync(path.join(root,'frontend/index.html'),'utf8'),{url:'http://localhost/#resources',runScripts:'outside-only',pretendToBeVisual:true});
+ const w=dom.window;w.__disableCollaborationForTests=true;w.scrollTo=()=>{};w.HTMLElement.prototype.scrollIntoView=()=>{};
+ w.Range.prototype.getBoundingClientRect=()=>({left:0,right:0,top:0,bottom:0});w.Range.prototype.getClientRects=()=>[];
+ w.HTMLElement.prototype.getClientRects=()=>[];
+ w.HTMLDialogElement.prototype.showModal=function(){this.open=true;};w.HTMLDialogElement.prototype.close=function(){this.open=false;};
+ const opened=[];w.open=url=>{const popup={opener:w,location:{href:''},close(){}};opened.push({url,popup});return popup;};
+ let team=false,fail=false,showShared=false,folderCalls=0,conflictOnSave=false,nativeTitle='未命名文档',nativeUntitled=true,nativeVersion=1;
+ let holdNativeSave=false,releaseNativeSave,nativeSaveStarted=false;
+ let holdTitleSave=false,releaseTitleSave,titleSaveStarted=false;
+ let nativeContent='# 主线\n## 1. 乘法公式\n### 1.1 完全平方公式\n正文中有 $E=mc^2$ 和 [参考资料](https://example.org/paper)\n$$\\frac{a}{b}$$\n\n| 项目 | 结果 |\n| --- | --- |\n| 实验 A | 通过 |';const requests=[];
+ let legacyContent='# 旧标题\n正文',legacyVersion=1;
+ const file={id:'file1',title:'科研笔记.txt',fileName:'科研笔记.txt',type:'note',ownerId:'me',owner:'本人',version:1,size:10,createdAt:'2026-10-22T10:00:00Z',visibility:'private',canEdit:true,previewable:true,previewType:'text/plain',permissions:{canShare:true},kind:'file'};
+ const shared={...file,id:'shared1',title:'共享记录.txt',fileName:'共享记录.txt',ownerId:'other',owner:'共享成员',canEdit:false,folderId:null};
+ const folders=[{id:'folder1',name:'验收资料',parentId:null,createdAt:'2026-10-22T09:00:00Z'},{id:'folder2',name:'右键子目录',parentId:'folder1',createdAt:'2026-10-22T09:30:00Z'}];
+ w.fetch=async (url,options={})=>{requests.push({url,options});const u=new URL(url,'http://localhost');const p=u.pathname.replace('/api/v1','');let value;let status=200;
+  if(p==='/system/status')value={initialized:true,version:'0.4.0'};
+  else if(p==='/me')value={id:'me',displayName:'测试成员',email:'test@example.com'};
+  else if(p==='/me/teams')value={items:team?[{id:'t1',name:'测试组',role:'student'}]:[]};
+  else if(p==='/me/notifications')value={items:[]};
+  else if(p==='/teams/t1/members')value={items:[{id:'me',name:'测试成员',role:'student'}]};
+  else if(p==='/me/drive/folders/tree')value={items:folders,files:[file,...showShared?[shared]:[]]};
+  else if(p==='/me/drive/children'){if(fail){status=503;}const folderId=u.searchParams.get('folderId');const items=folderId==='folder1'?[{...folders[1],kind:'folder'}]:folderId==='folder2'?[]:[{...folders[0],kind:'folder'},file,...showShared?[shared]:[]];value={items,total:items.length,breadcrumbs:[{id:null,name:'我的文件'},...folderId?[folders.find(x=>x.id===folderId)]:[]]};}
+  else if(p==='/me/drive/search'){const items=[file,...showShared?[shared]:[]].filter(x=>x.title.includes(u.searchParams.get('q')||''));value={items,total:items.length};}
+  else if(p==='/me/drive/folders'&&options.method==='POST'){folderCalls++;await new Promise(r=>setTimeout(r,30));value={id:'folder1'};}
+  else if(p==='/me/drive/documents'&&options.method==='POST'){status=201;value={id:'native1',title:'未命名文档',isUntitled:true,fileName:'未命名文档.ytdoc',kind:'file'};}
+  else if(p==='/me/drive/available-resources')value={items:[file],total:1};
+  else if(p==='/me/tasks')value={items:[],total:0};
+  else if(p==='/teams/t1/routes')value={items:[{id:'r1',title:'论文阅读',enrolled:true,stages:[]},{id:'r2',title:'论文写作',enrolled:false,stages:[]}]};
+  else if(p==='/resources/file1')value={...file,canEdit:file.ownerId==='me'};
+  else if(p==='/resources/native1'&&options.method==='PATCH'){
+   if(holdTitleSave){titleSaveStarted=true;await new Promise(resolve=>{releaseTitleSave=resolve;});}
+   const request=JSON.parse(options.body);if(request.expectedTitle!==nativeTitle||request.expectedIsUntitled!==nativeUntitled)status=409;
+   else {nativeUntitled=request.title==='';nativeTitle=nativeUntitled?'未命名文档':request.title;value={...file,id:'native1',title:nativeTitle,isUntitled:nativeUntitled,fileName:nativeTitle+'.ytdoc'};}
   }
-};
-async function main() {
-  const dom = new JSDOM(fs.readFileSync(path.join(root, 'frontend/index.html'), 'utf8'), {
-    url: 'http://localhost/#resources',
-    runScripts: 'outside-only',
-    pretendToBeVisual: true,
-  });
-  const w = dom.window;
-  w.scrollTo = () => {};
-  w.HTMLDialogElement.prototype.showModal = function () {
-    this.open = true;
-  };
-  w.HTMLDialogElement.prototype.close = function () {
-    this.open = false;
-  };
-  let team = false,
-    fail = false,
-    unauthorized = false,
-    folderCalls = 0,
-    resolveAnswer,
-    createdHandover;
-  const requests = [];
-  const file = {
-    id: 'file1',
-    title: '科研笔记.txt',
-    fileName: '科研笔记.txt',
-    type: 'note',
-    ownerId: 'me',
-    owner: '本人',
-    version: 1,
-    size: 10,
-    visibility: 'private',
-    canEdit: true,
-    permissions: { canShare: true },
-    kind: 'file',
-  };
-  w.fetch = async (url, options = {}) => {
-    requests.push({ url, options });
-    const u = new URL(url, 'http://localhost');
-    const p = u.pathname.replace('/api/v1', '');
-    let value;
-    let status = 200;
-    if (p === '/system/status') value = { initialized: true };
-    else if (p === '/me') value = { id: 'me', displayName: '测试成员', email: 'test@example.com' };
-    else if (p === '/me/teams')
-      value = { items: team ? [{ id: 't1', name: '测试组', role: 'student' }] : [] };
-    else if (p === '/me/notifications') value = { items: [] };
-    else if (p === '/teams/t1/members')
-      value = {
-        items: [
-          { id: 'me', name: '测试成员', role: 'student' },
-          { id: 'peer', name: '接收成员', role: 'student' },
-        ],
-      };
-    else if (p === '/teams/t1/tasks')
-      value = {
-        items: [
-          { id: 'handover-task1', title: '复现实验' },
-          { id: 'handover-task2', title: '整理结果' },
-        ],
-        total: 2,
-      };
-    else if (p === '/teams/t1/handovers') {
-      if (options.method === 'POST') {
-        createdHandover = {
-          ...JSON.parse(options.body),
-          id: 'handover1',
-          fromUserName: '测试成员',
-          toUserName: '接收成员',
-          status: 'pending',
-          createdAt: '2026-10-19T00:00:00Z',
-        };
-        value = { id: 'handover1' };
-      } else
-        value = { items: createdHandover ? [createdHandover] : [], total: createdHandover ? 1 : 0 };
-    } else if (p === '/me/drive/folders/tree') value = { items: [] };
-    else if (p === '/me/drive/children') {
-      if (unauthorized) {
-        status = 401;
-      } else if (fail) {
-        status = 503;
-      }
-      value = { items: [file], total: 1, breadcrumbs: [{ id: null, name: '我的文件' }] };
-    } else if (p === '/me/drive/folders' && options.method === 'POST') {
-      folderCalls++;
-      await new Promise((r) => setTimeout(r, 30));
-      value = { id: 'folder1' };
-    } else if (p === '/me/drive/available-resources') value = { items: [file], total: 1 };
-    else if (p === '/me/drive/questions')
-      value = await new Promise((resolve) => {
-        resolveAnswer = resolve;
-      });
-    else if (p === '/auth/logout') value = {};
-    else if (p === '/me/tasks') value = { items: [], total: 0 };
-    else if (p === '/resources/file1') value = { ...file, canEdit: false, ownerId: 'other' };
-    else if (p === '/resources/file1/versions') value = { items: [] };
-    else if (p === '/resources/file1/reading-progress') value = {};
-    else {
-      status = 404;
-    }
-    return {
-      ok: status === 200,
-      status,
-      json: async () => (status === 200 ? { data: value } : { message: '测试服务暂时不可用' }),
-    };
-  };
-  const modules = new Map();
-  const context = dom.getInternalVMContext();
-  const loadModule = (filename) => {
-    if (!modules.has(filename))
-      modules.set(
-        filename,
-        new vm.SourceTextModule(fs.readFileSync(filename, 'utf8'), {
-          context,
-          identifier: filename,
-        }),
-      );
-    return modules.get(filename);
-  };
-  const entry = new vm.SourceTextModule(
-    `
-  import './frontend/app.js';
-  import {state} from './frontend/core/state.js';
-  import {navigate} from './frontend/core/router.js';
-  import {refreshTeams} from './frontend/core/session.js';
-  import {api} from './frontend/core/api.js';
-  import {handleSessionAction} from './frontend/core/session-actions.js';
-  import {saveReadingProgress} from './frontend/pages/drive/reading.js';
-  import {uploadQueue} from './frontend/pages/drive/upload.js';
-  window.testApp={state,navigate,refreshTeams,api,handleSessionAction,saveReadingProgress,getUploadQueue:()=>uploadQueue};
- `,
-    { context, identifier: path.join(root, 'test-entry.js') },
-  );
-  await entry.link((specifier, referencing) =>
-    loadModule(path.resolve(path.dirname(referencing.identifier), specifier)),
-  );
-  await entry.evaluate();
-  await until(() => w.document.querySelector('.drive-layout'));
-  assert.equal(w.document.querySelectorAll('#nav .navitem').length, 5);
-  assert.equal(w.document.querySelector('#nav .active').textContent.trim(), '我的云盘');
-  assert.ok(w.document.querySelector('[data-action=upload-resource]'), '无课题组用户仍可上传');
-  w.document.querySelector('[data-action=cloud-new]').click();
-  await until(() => w.document.querySelector('[data-form=cloud-folder]'));
-  const form = w.document.querySelector('[data-form=cloud-folder]');
-  form.querySelector('[name=name]').value = '测试目录';
-  form.dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true }));
-  form.dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true }));
-  await until(() => folderCalls === 1 && !w.document.querySelector('#modal').open);
-  assert.equal(folderCalls, 1, '重复提交只写入一次');
-  w.testApp.navigate('resource/file1');
-  await until(() => w.document.querySelector('.pagehead h1')?.textContent === '科研笔记.txt');
-  assert.equal(
-    w.document.querySelector('[data-action=edit-resource]'),
-    null,
-    '接收人不能编辑共享文件',
-  );
-  assert.equal(w.document.querySelector('[data-action=cloud-shares]'), null, '接收人不能再次共享');
-  team = true;
-  await w.testApp.refreshTeams();
-  w.testApp.navigate('tasks');
-  await until(() => w.document.querySelector('#taskBoard'));
-  assert.equal(w.document.querySelectorAll('.section-tabs a').length, 3);
-  assert.equal(
-    requests.some((x) => x.url.includes('/me/review-queue')),
-    false,
-    '学生查看任务时不能被反馈权限错误阻断',
-  );
-  w.testApp.navigate('assistant');
-  await until(() => w.document.querySelector('#assistantSourceSearch'));
-  const checkbox = w.document.querySelector('input[name=source]');
-  checkbox.checked = true;
-  checkbox.dispatchEvent(new w.Event('change', { bubbles: true }));
-  assert.ok(w.document.querySelector('#assistantSelected').textContent.includes('1 份'));
-  const search = w.document.querySelector('#assistantSourceSearch');
-  search.value = '无匹配';
-  search.dispatchEvent(new w.Event('input', { bubbles: true }));
-  assert.ok(w.document.querySelector('.source-check').hidden);
-  const questionForm = w.document.querySelector('[data-form=assistant]');
-  questionForm.querySelector('[name=question]').value = '测试异步回答';
-  questionForm.dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true }));
-  await until(() => resolveAnswer);
-  w.testApp.navigate('resources');
-  await until(() => w.document.querySelector('.drive-layout'));
-  resolveAnswer({ mode: 'retrieval', answer: '已经离开的页面回答', sources: [] });
-  await until(() => !questionForm.dataset.busy);
-  assert.equal(
-    questionForm.querySelector('.form-error').hidden,
-    true,
-    '离开助手后返回的回答不应造成报错',
-  );
-  assert.equal(w.document.querySelector('.assistant-response'), null, '旧回答不能出现在新页面');
-  fail = true;
-  w.testApp.navigate('resources');
-  await until(() => w.document.querySelector('#content .errorbox'));
-  assert.equal(w.document.querySelector('#content .empty'), null, '加载错误不能伪装为空列表');
-  fail = false;
-  w.document.querySelector('#content [data-action=refresh]').click();
-  await until(() => w.document.querySelector('.drive-layout'));
-  w.testApp.state.settingsTab = 'handover';
-  w.testApp.navigate('settings');
-  await until(() => w.document.querySelector('[data-action=create-handover]'));
-  w.document.querySelector('[data-action=create-handover]').click();
-  await until(() => w.document.querySelector('[data-form=handover]'));
-  const handoverForm = w.document.querySelector('[data-form=handover]');
-  handoverForm.querySelector('[name=title]').value = '实验资料交接';
-  handoverForm.querySelector('[name=content]').value = '保留实验过程和待办';
-  handoverForm.querySelectorAll('[name=taskIds]').forEach((input) => (input.checked = true));
-  handoverForm.querySelector('[name=resourceIds]').checked = true;
-  handoverForm.dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true }));
-  await until(() => createdHandover && !w.document.querySelector('#modal').open);
-  assert.deepEqual(
-    createdHandover.taskIds,
-    ['handover-task1', 'handover-task2'],
-    '交接保留所有勾选任务',
-  );
-  assert.deepEqual(createdHandover.resourceIds, ['file1'], '交接保留勾选资料');
-  assert.equal(createdHandover.toUserId, 'peer', '只选择其他有效成员作为接收人');
-  await until(() => w.document.querySelector('.handover-record'));
-  assert.ok(w.document.querySelector('.handover-record').textContent.includes('2 项关联任务'));
-  w.document.querySelector('[data-action=create-handover]').click();
-  await until(() => w.document.querySelector('[data-form=handover]'));
-  const staleForm = w.document.querySelector('[data-form=handover]');
-  const originalTeam = w.testApp.state.team;
-  w.testApp.state.team = { ...originalTeam, id: 'another-team' };
-  staleForm.dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true }));
-  await until(() => staleForm.querySelector('.form-error').textContent.includes('课题组已切换'));
-  assert.equal(
-    requests.filter(
-      (request) => request.url.includes('/handovers') && request.options.method === 'POST',
-    ).length,
-    1,
-    '旧表单不能提交到新课题组',
-  );
-  w.testApp.state.team = originalTeam;
-  w.document.querySelector('#closeModal').click();
-  for (const mode of ['logout', 'expired']) {
-    const app = w.testApp;
-    app.state.user = { id: 'me', displayName: '测试成员' };
-    await app.refreshTeams();
-    app.navigate('resources');
-    await until(() => w.document.querySelector('.drive-layout'));
-    w.document.querySelector('[data-action=cloud-new]').click();
-    await until(() => w.document.querySelector('#modal').open);
-    Object.assign(app.state, {
-      driveFolder: 'previous-folder',
-      driveReturn: 'resources/old',
-      referenceTarget: { id: 'previous-task' },
-      uploadTarget: { id: 'previous-task' },
-      searchQuery: 'previous-query',
-    });
-    app.state.data.privateContent = 'previous-user';
-    w.document.querySelector('#searchInput').value = 'previous-query';
-    let aborted = 0;
-    app.getUploadQueue().push({ xhr: { abort: () => aborted++ } });
-    app.saveReadingProgress('file1', { ratio: 0.5 });
-    const savesBefore = requests.filter(
-      (x) => x.url.includes('/reading-progress') && x.options.method === 'PATCH',
-    ).length;
-    const sequence = app.state.sequence;
-    if (mode === 'logout') await app.handleSessionAction('logout');
-    else {
-      unauthorized = true;
-      await assert.rejects(app.api('/me/drive/children'), (error) => error.status === 401);
-      unauthorized = false;
-    }
-    assert.equal(app.state.user, null, mode + ' clears user');
-    assert.equal(app.state.team, null, mode + ' clears team');
-    assert.equal(app.state.teams.length, 0, mode + ' clears teams');
-    assert.equal(app.state.members.length, 0, mode + ' clears members');
-    assert.equal(Object.keys(app.state.data).length, 0, mode + ' clears page cache');
-    assert.equal(app.state.renderedHash, null, mode + ' clears last rendered page');
-    assert.equal(app.state.driveFolder, undefined, mode + ' clears old cloud folder');
-    assert.equal(app.state.referenceTarget, undefined, mode + ' clears old reference target');
-    assert.equal(app.state.uploadTarget, undefined, mode + ' clears old upload target');
-    assert.equal(app.state.sequence, sequence + 1, mode + ' invalidates pending renders');
-    assert.equal(aborted, 1, mode + ' aborts active uploads');
-    assert.equal(app.getUploadQueue().length, 0, mode + ' clears upload queue');
-    assert.equal(w.document.querySelector('#modal').open, false, mode + ' closes dialogs');
-    assert.equal(
-      w.document.querySelector('#modalBody').childElementCount,
-      0,
-      mode + ' clears dialog content',
-    );
-    assert.equal(
-      w.document.querySelector('#content').childElementCount,
-      0,
-      mode + ' clears previous page',
-    );
-    assert.equal(w.document.querySelector('#searchInput').value, '', mode + ' clears search input');
-    assert.ok(w.document.querySelector('[data-form=login]'), mode + ' displays login');
-    app.saveReadingProgress('file1', { ratio: 0.9 });
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    assert.equal(
-      requests.filter((x) => x.url.includes('/reading-progress') && x.options.method === 'PATCH')
-        .length,
-      savesBefore,
-      mode + ' cancels delayed reading saves and ignores signed-out events',
-    );
+  else if(p==='/resources/native1')value={...file,id:'native1',title:nativeTitle,isUntitled:nativeUntitled,fileName:nativeTitle+'.ytdoc'};
+  else if(p==='/resources/native1/document'&&options.method==='PUT'){
+   if(holdNativeSave){nativeSaveStarted=true;await new Promise(resolve=>{releaseNativeSave=resolve;});}
+   const request=JSON.parse(options.body);
+   if(request.version!==nativeVersion)status=409;
+   else {nativeContent=request.content;nativeVersion++;value={id:'native1',version:nativeVersion,modifiedAt:new Date().toISOString()};}
   }
-  dom.window.close();
-  console.log(
-    '前端回归通过：导航、云盘、只读共享、助手、交接多选提交、切组保护、退出及登录失效清理。',
-  );
+  else if(p==='/resources/native1/document')value={id:'native1',title:nativeTitle,isUntitled:nativeUntitled,kind:'document',content:nativeContent,version:nativeVersion,canEdit:true,owner:'本人',modifiedAt:new Date().toISOString()};
+  else if(p==='/resources/legacy1')value={...file,id:'legacy1',title:'旧文档',fileName:'旧文档.ytdoc'};
+  else if(p==='/resources/legacy1/document'&&options.method==='PUT'){
+   const request=JSON.parse(options.body);legacyContent=request.content;legacyVersion++;value={id:'legacy1',version:legacyVersion,modifiedAt:new Date().toISOString()};
+  }
+  else if(p==='/resources/legacy1/document'){
+   const needsReview=typeof legacyContent==='string';
+   value={id:'legacy1',title:'旧文档',kind:'document',content:legacyContent,version:legacyVersion,canEdit:!needsReview,canConvert:needsReview,compatibilityIssue:needsReview?'旧版 Markdown 文档需要确认转换后才能继续编辑':'',owner:'本人'};
+  }
+  else if(p==='/resources/file1/document'&&options.method==='PUT'&&conflictOnSave)status=409;
+  else if(p==='/resources/file1/document')value={id:'file1',title:file.title,kind:'text',content:'初始正文',version:1,canEdit:file.ownerId==='me',owner:'本人'};
+  else if(p==='/resources/file1/versions')value={items:[]};
+  else if(p==='/resources/file1/reading-progress')value={};
+  else if(p==='/resources/shared1')value=shared;
+  else if(p==='/resources/shared1/document')value={id:'shared1',title:shared.title,kind:'text',content:'共享正文',version:1,canEdit:false,owner:'共享成员'};
+  else if(p==='/resources/shared1/versions')value={items:[]};
+  else if(p==='/resources/shared1/reading-progress')value={};
+  else {status=404;}
+  return {ok:status>=200&&status<300,status,json:async()=>status>=200&&status<300?{data:value}:{message:'测试服务暂时不可用'}};
+ };
+ w.eval(fs.readFileSync(path.join(root,'frontend/vendor/katex/katex.min.js'),'utf8'));
+ const source=['app.js','cloud-upload.js','cloud-drive.js','document-preview.js','document-workspace.js','document-editor.js'].map(f=>fs.readFileSync(path.join(root,'frontend',f),'utf8')).join('\n');
+ w.eval(source+'\nwindow.testApp={state,navigate,refreshTeams};');
+ await until(()=>w.document.querySelector('.drive-layout'));
+ assert.equal(w.document.querySelectorAll('#nav .navitem').length,5);
+ assert.equal(w.document.querySelector('#nav .active').textContent.trim(),'我的云盘');
+ assert.equal(w.document.querySelector('.drive-scope'),null,'共享来源不再单独占用标签');
+ assert.ok(w.document.querySelector('.drive-main-grid .drive-inspector'),'列表右侧显示目录信息');
+ assert.equal(w.document.querySelector('.drive-breadcrumb strong').textContent,'我的文件','当前位置显示在工作区顶部');
+ assert.equal(w.document.querySelector('.drive-page .pagehead'),null,'云盘不重复显示大标题');
+ assert.equal(w.document.querySelector('.drive-list-toolbar'),null,'文件检索不占用列表栏位');
+ w.document.querySelector('[data-action="cloud-create-menu"]').click();
+ await until(()=>w.document.querySelector('#driveContextMenu [data-menu-action="cloud-create-document"]'));
+ assert.ok(w.document.querySelector('#driveContextMenu [data-menu-action="cloud-create-sheet"]'),'新建菜单包含表格');
+ assert.ok(w.document.querySelector('#driveContextMenu [data-menu-action="cloud-create-slides"]'),'新建菜单包含幻灯片');
+ w.document.querySelector('#driveContextMenu [data-menu-action="cloud-create-document"]').click();
+ await until(()=>opened[0]?.url.startsWith('#newdocument/'));
+ assert.equal(w.location.hash.startsWith('#resources'),true,'新建文档不改变原文件列表标签页');
+ w.testApp.navigate(opened[0].url.slice(1));
+ await until(()=>w.document.querySelector('.document-workspace')&&w.location.hash==='#resource/native1');
+ assert.equal(Object.hasOwn(JSON.parse(requests.find(x=>x.url.includes('/me/drive/documents')&&x.options.method==='POST').options.body),'title'),false,'新建空白文档由服务端标记未命名');
+ assert.equal(w.document.querySelector('#documentTitle').value,'未命名文档','新标签页完成创建后进入文档工作区');
+ assert.equal(w.document.querySelector('.document-paper-title input').value,'','新文档正文标题保持空白');
+ assert.equal(w.document.querySelector('.document-paper-title input').placeholder,'请输入标题','新文档以灰色占位提示输入标题');
+ assert.equal(w.document.querySelector('[data-outline-top]'),null,'未输入标题时目录没有占位项');
+ const nativeEditor=w.structuredDocumentEditor();
+ assert.ok(nativeEditor,'文档载入结构化编辑器');
+ assert.equal(w.document.querySelector('#structuredEditor .tiptap').getAttribute('contenteditable'),'true','正文始终在同一个编辑器中');
+ assert.equal(w.document.querySelector('[data-document-preview]'),null,'没有独立预览层');
+ assert.ok(w.document.querySelector('#structuredEditor .katex'),'旧 Markdown 公式迁移后仍由 KaTeX 排版');
+ assert.equal(nativeEditor.getJSON().content[0].type,'heading','旧 Markdown 标题迁移为结构化节点');
+ assert.ok(JSON.stringify(nativeEditor.getJSON()).includes('inlineMath'),'旧文档行内公式迁移为公式节点');
+ assert.ok(JSON.stringify(nativeEditor.getJSON()).includes('"type":"table"'),'旧 Markdown 表格迁移为表格节点');
+ assert.ok(JSON.stringify(nativeEditor.getJSON()).includes('"type":"link"'),'旧 Markdown 链接迁移为链接标记');
+ nativeEditor.commands.setTextSelection({from:1,to:3});
+ nativeEditor.chain().focus().toggleBold().run();
+ assert.ok(w.document.querySelector('#structuredEditor h1 strong'),'加粗直接作用于编辑器内容');
+ assert.ok([...Array(w.localStorage.length)].some((_,i)=>w.localStorage.key(i).startsWith('yantu:document-draft:native1:')&&w.localStorage.getItem(w.localStorage.key(i)).includes('schemaVersion')),'输入时保存结构化本机记录');
+ await until(()=>nativeVersion===2);
+ assert.equal(typeof nativeContent,'object','自动保存为结构化 JSON 而非 Markdown 字符串');
+ assert.equal(nativeContent.schemaVersion,2);
+ assert.ok(nativeContent.content[0].attrs.id,'旧 Markdown 转换后的标题获得稳定块 ID');
+ assert.ok(w.document.querySelector('#structuredEditor .tiptap').getAttribute('contenteditable')==='true','保存后仍在原位置编辑');
+ assert.ok(w.document.querySelector('.document-paper-byline').textContent.includes('本人'),'标题下显示文档作者');
+ assert.ok(w.document.querySelector('.document-paper-byline').textContent.includes('今天修改'),'标题下显示修改时间');
+ assert.equal(w.document.querySelectorAll('#documentOutline [data-outline-pos]').length,3,'目录由结构化标题节点生成');
+ const originalId=nativeEditor.getJSON().content[0].attrs.id;
+ assert.ok(originalId && nativeContent.content[0].attrs.id===originalId,'保存后块 ID 保持不变');
+ nativeEditor.chain().focus().insertContentAt(nativeEditor.state.doc.content.size,{type:'paragraph',content:[{type:'text',text:'/h1'}]}).run();
+ nativeEditor.commands.setTextSelection(nativeEditor.state.doc.content.size-1);
+ nativeEditor.view.dom.dispatchEvent(new w.KeyboardEvent('keyup',{key:'1',bubbles:true}));
+ assert.equal(w.document.querySelector('#structuredSlashMenu').hidden,false,'输入 /h1 显示标题命令');
+ nativeEditor.view.dom.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true}));
+ assert.ok(nativeEditor.getJSON().content.slice(-3).some(node=>node.type==='heading'),'回车将当前段落直接转为标题节点');
+ assert.ok(!JSON.stringify(nativeEditor.getJSON().content.slice(-3)).includes('/h1'),'命令文本不会留在标题中');
+ assert.equal([...w.document.querySelectorAll('#documentOutline button')].some(button=>button.textContent==='无标题'),false,'空标题不出现在目录中');
+ nativeEditor.chain().focus().insertContentAt(nativeEditor.state.doc.content.size,{type:'paragraph',content:[{type:'text',text:'/table'}]}).run();
+ nativeEditor.commands.setTextSelection(nativeEditor.state.doc.content.size-1);
+ nativeEditor.view.dom.dispatchEvent(new w.KeyboardEvent('keyup',{key:'e',bubbles:true}));
+ assert.equal(w.document.querySelector('#structuredSlashMenu').hidden,false,'输入 /table 显示表格命令');
+ nativeEditor.view.dom.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true}));
+ assert.ok(nativeEditor.getJSON().content.some(node=>node.type==='table'),'回车插入可编辑表格节点');
+ let coloredCellPos=null;
+ nativeEditor.state.doc.descendants((node,pos)=>{if(coloredCellPos===null&&node.type.name==='tableHeader') coloredCellPos=pos;});
+ assert.notEqual(coloredCellPos,null);
+ const coloredCell=nativeEditor.state.doc.nodeAt(coloredCellPos);
+ nativeEditor.view.dispatch(nativeEditor.state.tr.setNodeMarkup(coloredCellPos,undefined,{...coloredCell.attrs,background:'#eef1ff'}));
+ assert.ok(JSON.stringify(nativeEditor.getJSON()).includes('"background":"#eef1ff"'),'表格背景色保留在结构化内容中');
+ assert.ok(w.document.querySelector('#structuredEditor th[data-background="#eef1ff"]'),'表格背景色在编辑器中渲染');
+ nativeEditor.commands.setTextSelection({from:1,to:3});
+ w.document.querySelector('#structuredSelectionTools [data-editor-command="link"]').click();
+ const linkDialog=w.document.querySelector('#structuredLinkDialog');
+ assert.equal(linkDialog.open,true,'选中文字可以添加链接');
+ linkDialog.querySelector('input').value='https://example.org/section';
+ linkDialog.querySelector('[data-structured-action="save-link"]').click();
+ assert.ok(nativeEditor.getJSON().content[0].content.some(node=>node.marks?.some(mark=>mark.type==='link'&&mark.attrs.href==='https://example.org/section')),'链接作为文字标记保存');
+ nativeEditor.commands.insertContentAt(nativeEditor.state.doc.content.size,nativeEditor.getJSON().content[0]);
+ const beforeIds=[];nativeEditor.state.doc.descendants(node=>{if(node.attrs.id)beforeIds.push(node.attrs.id);});
+ assert.equal(new Set(beforeIds).size,beforeIds.length,'复制内容后所有可编辑块 ID 仍唯一');
+ const titleInput=w.document.querySelector('.document-paper-title input');titleInput.value='研究计划';titleInput.dispatchEvent(new w.Event('input',{bubbles:true}));
+ assert.equal(w.document.querySelector('#documentTitle').value,'研究计划','大标题输入同步顶部标题');
+ titleInput.dispatchEvent(new w.FocusEvent('focusout',{bubbles:true}));
+ await until(()=>nativeTitle==='研究计划'&&w.document.querySelector('#documentTitle').value==='研究计划');
+ assert.equal(w.document.querySelector('[data-outline-top]').textContent,'研究计划','目录根节点同步标题');
+ await until(()=>w.document.querySelector('#documentSaveStatus')?.textContent==='已保存到云端');
+ titleInput.value='';titleInput.dispatchEvent(new w.Event('input',{bubbles:true}));
+ titleInput.dispatchEvent(new w.FocusEvent('focusout',{bubbles:true}));
+ await until(()=>nativeTitle==='未命名文档'&&nativeUntitled);
+ assert.equal(titleInput.value,'','清空标题后显示正文占位提示');
+ assert.equal(w.document.querySelector('#documentTitle').value,'未命名文档','清空标题后顶部显示未命名文档');
+ assert.equal(w.document.querySelector('[data-outline-top]'),null,'清空标题后目录移除标题项');
+ const topTitle=w.document.querySelector('#documentTitle');
+ topTitle.value='未命名文档';topTitle.dispatchEvent(new w.Event('input',{bubbles:true}));
+ topTitle.dispatchEvent(new w.FocusEvent('focusout',{bubbles:true}));
+ await until(()=>nativeTitle==='未命名文档'&&!nativeUntitled);
+ assert.equal(titleInput.value,'未命名文档','同名真实标题在正文中显示文字');
+ assert.equal(w.document.querySelector('[data-outline-top]').textContent,'未命名文档','同名真实标题进入目录');
+ w.testApp.navigate('resources');await until(()=>w.document.querySelector('.drive-layout'));
+ w.testApp.navigate('resource/native1');await until(()=>w.document.querySelector('.document-workspace'));
+ assert.equal(w.document.querySelector('.document-paper-title input').value,'未命名文档','重开后真实同名标题不变成占位提示');
+ const literalTitle=w.document.querySelector('.document-paper-title input');
+ literalTitle.value='';literalTitle.dispatchEvent(new w.Event('input',{bubbles:true}));
+ literalTitle.dispatchEvent(new w.FocusEvent('focusout',{bubbles:true}));
+ await until(()=>nativeUntitled);
+ w.testApp.navigate('resources');await until(()=>w.document.querySelector('.drive-layout'));
+ w.testApp.navigate('resource/native1');await until(()=>w.document.querySelector('.document-workspace'));
+ assert.equal(w.document.querySelector('.document-paper-title input').value,'','重新打开后仍显示标题占位提示');
+ assert.equal(w.document.querySelector('[data-outline-top]'),null,'重新打开后目录仍没有未命名占位项');
+ const resumedEditor=w.structuredDocumentEditor();
+ holdNativeSave=true;
+ resumedEditor.chain().focus().insertContentAt(resumedEditor.state.doc.content.size,{type:'paragraph',content:[{type:'text',text:'NAV_A'}]}).run();
+ await until(()=>nativeSaveStarted);
+ resumedEditor.chain().focus().insertContentAt(resumedEditor.state.doc.content.size,{type:'paragraph',content:[{type:'text',text:'NAV_B'}]}).run();
+ w.testApp.navigate('resources');await until(()=>w.document.querySelector('.drive-layout'));
+ holdNativeSave=false;releaseNativeSave();
+ await until(()=>JSON.stringify(nativeContent).includes('NAV_B'));
+ assert.ok(JSON.stringify(nativeContent).includes('NAV_A'),'离开页面时等待中的保存不丢失首次输入');
+ assert.ok(JSON.stringify(nativeContent).includes('NAV_B'),'保存中继续输入并离开页面，后续修改仍进入云端');
+ w.testApp.navigate('resource/native1');await until(()=>w.document.querySelector('.document-workspace'));
+ assert.ok(w.document.querySelector('#structuredEditor th[data-background="#eef1ff"]'),'重新打开后表格背景色保持');
+ const quickEditor=w.structuredDocumentEditor();
+ quickEditor.chain().focus().insertContentAt(quickEditor.state.doc.content.size,{type:'paragraph',content:[{type:'text',text:'NAV_FAST'}]}).run();
+ w.testApp.navigate('resources');await until(()=>w.document.querySelector('.drive-layout'));
+ await until(()=>JSON.stringify(nativeContent).includes('NAV_FAST'));
+ assert.ok(JSON.stringify(nativeContent).includes('NAV_FAST'),'自动保存定时器尚未触发就离开页面，修改仍进入云端');
+ w.testApp.navigate('resource/native1');await until(()=>w.document.querySelector('.document-workspace'));
+ const racingTitle=w.document.querySelector('.document-paper-title input');
+ holdTitleSave=true;racingTitle.value='计划 A';racingTitle.dispatchEvent(new w.Event('input',{bubbles:true}));
+ await until(()=>titleSaveStarted);
+ racingTitle.value='计划 B';racingTitle.dispatchEvent(new w.Event('input',{bubbles:true}));
+ w.testApp.navigate('resources');await until(()=>w.document.querySelector('.drive-layout'));
+ holdTitleSave=false;releaseTitleSave();
+ await until(()=>nativeTitle==='计划 B');
+ assert.equal(nativeTitle,'计划 B','标题保存中再次修改并离开页面，最新标题仍进入云端');
+ w.localStorage.setItem('yantu:document-draft:native1',JSON.stringify({title:'本地标题',content:{schemaVersion:1,type:'doc',content:[{type:'paragraph',content:[{type:'text',text:'本地草稿'}]}]},baseTitle:'旧标题',version:0,savedAt:new Date().toISOString()}));
+ w.testApp.navigate('resource/native1');await until(()=>w.document.querySelector('#structuredRecovery')?.hidden===false);
+ w.document.querySelector('[data-structured-action="view-draft"]').click();
+ assert.ok(w.document.querySelector('#structuredDraftDialog textarea').value.includes('本地草稿'),'可查看结构化本机记录');
+ w.document.querySelector('[data-structured-action="close-draft"]').click();
+ w.document.querySelector('[data-structured-action="restore-draft"]').click();
+ assert.equal(w.document.querySelector('#documentConflict').hidden,false,'旧版本记录恢复后暂停自动保存');
+ assert.ok(w.document.querySelector('#documentConflict [data-structured-action="download-draft"]'),'原生文档冲突可下载本地记录');
+ w.confirm=()=>true;
+ w.testApp.navigate('resources');await until(()=>w.document.querySelector('.drive-layout'));
+ w.testApp.navigate('resource/legacy1');await until(()=>w.document.querySelector('.document-compatibility'));
+ assert.equal(w.document.querySelector('#structuredEditor .tiptap').getAttribute('contenteditable'),'false','旧版文档确认转换前只读');
+ assert.equal(legacyVersion,1,'仅查看旧文档不触发写入');
+ w.document.querySelector('[data-structured-action="convert-document"]').click();
+ await until(()=>legacyVersion===2&&w.document.querySelector('#structuredEditor .tiptap').getAttribute('contenteditable')==='true');
+ assert.equal(legacyContent.schemaVersion,2,'确认后才保存结构化内容');
+ assert.equal(w.document.querySelector('.document-compatibility'),null,'转换成功后提示消失');
+ w.testApp.navigate('resources');await until(()=>w.document.querySelector('.drive-layout'));
+ w.testApp.navigate('resource/legacy1');await until(()=>w.document.querySelector('.document-workspace'));
+ assert.equal(w.document.querySelector('.document-compatibility'),null,'转换后的文档重开可直接编辑');
+ w.testApp.navigate('resources');await until(()=>w.document.querySelector('.drive-layout'));
+ w.document.dispatchEvent(new w.KeyboardEvent('keydown',{key:'f',ctrlKey:true,bubbles:true,cancelable:true}));
+ const searchPopover=w.document.querySelector('#driveSearchPopover');
+ assert.equal(searchPopover.hidden,false,'Ctrl+F 打开文件搜索');
+ assert.equal(w.document.activeElement.id,'driveSearchInput','搜索框获得焦点');
+ w.document.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));
+ assert.equal(searchPopover.hidden,true,'Escape 关闭文件搜索');
+ w.document.querySelector('.drive-search-trigger').click();
+ assert.equal(searchPopover.hidden,false,'搜索按钮也能打开文件搜索');
+ searchPopover.querySelector('[name=q]').value='科研';
+ searchPopover.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));
+ await until(()=>w.document.querySelector('.drive-search-state strong')?.textContent==='搜索结果');
+ assert.ok(w.document.querySelector('.drive-query').textContent.includes('科研'),'搜索词留在结果标题旁');
+ assert.equal(w.document.querySelectorAll('.drive-row').length,1,'文件搜索返回匹配项');
+ w.document.querySelector('.drive-query-clear').click();
+ await until(()=>!w.document.querySelector('.drive-search-state'));
+ assert.ok(w.document.querySelector('[data-action=upload-resource]'),'无课题组用户仍可上传');
+ assert.ok(w.document.querySelector('.drive-tree-root .drive-tree-file').textContent.includes('科研笔记.txt'),'根目录文件出现在左侧目录树');
+ const nested=w.document.querySelector('.drive-tree-node[data-drive-id="folder1"]');
+ assert.ok(nested.querySelector('.drive-tree-node[data-drive-id="folder2"]'),'子目录嵌套在父文件夹下');
+ const folderToggle=nested.querySelector('[data-action=cloud-tree-toggle]');folderToggle.click();
+ assert.equal(folderToggle.getAttribute('aria-expanded'),'false','文件夹可以收起');
+ assert.equal(nested.querySelector(':scope > .drive-tree-children').hidden,true);
+ folderToggle.click();assert.equal(folderToggle.getAttribute('aria-expanded'),'true','文件夹可以展开');
+ const rootToggle=w.document.querySelector('.drive-tree-root [data-action=cloud-tree-toggle]');rootToggle.click();
+ assert.equal(w.document.querySelector('.drive-tree-root > .drive-tree-children').hidden,true,'根目录可以收起');
+ rootToggle.click();assert.equal(rootToggle.getAttribute('aria-expanded'),'true','根目录可以展开');
+ w.document.querySelector('.drive-row[data-drive-id="folder1"] .filename').click();
+ await until(()=>w.document.querySelector('.drive-inspector h2')?.textContent==='验收资料');
+ assert.equal(w.document.querySelector('.drive-breadcrumb strong').textContent,'验收资料','点击文件夹进入下一级列表');
+ assert.ok(w.document.querySelector('.drive-row[data-drive-id="folder2"]'),'展示文件夹中的项目');
+ w.document.querySelector('.drive-tree-root .drive-tree-link').click();
+ await until(()=>w.document.querySelector('.drive-row[data-drive-id="file1"]'));
+ assert.equal(w.document.querySelector('.drive-row[data-drive-id="file1"] .filename').target,'_blank','点击文件应在新标签页打开');
+ assert.equal(w.document.querySelector('.drive-tree-file').target,'_blank','目录树文件也在新标签页打开');
+ w.testApp.navigate('resource/file1');
+ await until(()=>w.document.querySelector('.document-workspace'));
+ assert.equal(w.document.querySelector('#documentTitle').value,'科研笔记.txt','文本文件进入文档工作区');
+ assert.ok(w.document.body.classList.contains('document-mode'),'文档使用独立全页布局');
+ assert.ok(w.document.querySelector('[data-document-editor]').textContent.includes('初始正文'),'正文直接显示在文档页');
+ w.document.querySelector('[data-action="cloud-resource-more"]').click();
+ assert.ok(w.document.querySelector('#driveContextMenu [data-menu-action="resource-version"]'),'文件页将版本操作收进菜单');
+ assert.ok(w.document.querySelector('#driveContextMenu [data-menu-action="cloud-shares"]'),'文件页将共享操作收进菜单');
+ w.document.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+ w.document.querySelector('.document-home').click();
+ await until(()=>w.document.querySelector('.drive-list-panel'));
+ showShared=true;w.testApp.navigate('resources');await until(()=>w.document.querySelector('.drive-row[data-drive-id="shared1"]'));
+ assert.ok(w.document.querySelector('.drive-row[data-drive-id="shared1"] .drive-source-badge'),'共享文件列表带云朵标记');
+ assert.ok(w.document.querySelector('.drive-tree-node[data-drive-id="shared1"] .drive-source-badge'),'共享文件目录树带云朵标记');
+ assert.equal(w.document.querySelector('.drive-row[data-drive-id="shared1"] .filename').target,'_blank','共享文件也在新标签页打开');
+ w.testApp.navigate('resource/shared1');
+ await until(()=>w.document.querySelector('.document-workspace'));
+ assert.equal(w.document.querySelector('[data-action="edit-resource"]'),null,'共享文件保持只读');
+ assert.equal(w.document.querySelector('[data-document-editor]').getAttribute('contenteditable'),'false','共享文件正文不可编辑');
+ w.document.querySelector('[data-action="cloud-resource-more"]').click();
+ assert.equal(w.document.querySelector('#driveContextMenu [data-menu-action="cloud-shares"]'),null,'共享文件菜单不提供授权操作');
+ assert.ok(w.document.querySelector('#driveContextMenu [data-menu-action="download-resource"]'),'共享文件菜单仍提供下载');
+ w.document.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+ showShared=false;w.testApp.navigate('resources');await until(()=>w.document.querySelector('.drive-row[data-drive-id="file1"]'));
+ const row=w.document.querySelector('.drive-row[data-drive-id="file1"]');
+ row.dispatchEvent(new w.MouseEvent('contextmenu',{bubbles:true,cancelable:true,clientX:100,clientY:100}));
+ assert.ok(w.document.querySelector('#driveContextMenu [data-menu-action=cloud-rename]'),'自有文件右键包含重命名');
+ assert.ok(w.document.querySelector('#driveContextMenu [data-menu-action=cloud-shares]'),'自有文件右键包含共享');
+ w.document.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+ assert.equal(w.document.querySelector('#driveContextMenu'),null,'Escape 关闭菜单');
+ row.dispatchEvent(new w.KeyboardEvent('keydown',{key:'F10',shiftKey:true,bubbles:true,cancelable:true}));
+ assert.ok(w.document.querySelector('#driveContextMenu [data-menu-action=cloud-move]'),'Shift+F10 可打开文件操作');
+ w.document.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+ w.document.querySelector('.drive-list-panel').dispatchEvent(new w.MouseEvent('contextmenu',{bubbles:true,cancelable:true,clientX:120,clientY:150}));
+ assert.ok(w.document.querySelector('#driveContextMenu [data-menu-action=cloud-new]'),'空白区域可新建');
+ assert.ok(w.document.querySelector('#driveContextMenu [data-menu-action=upload-resource]'),'空白区域可上传');
+ assert.equal(w.document.querySelector('#driveContextMenu [data-menu-action=cloud-create-document]'),null,'空白区域不提供文档创建');
+ w.document.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+ w.document.querySelector('.drive-table thead').dispatchEvent(new w.MouseEvent('contextmenu',{bubbles:true,cancelable:true,clientX:120,clientY:150}));
+ assert.equal(w.document.querySelector('#driveContextMenu'),null,'列表表头不弹出创建菜单');
+ w.document.querySelector('.drive-row[data-drive-id="folder1"] .filename').click();
+ await until(()=>w.document.querySelector('.drive-inspector h2')?.textContent==='验收资料');
+ const rootLink=w.document.querySelector('.drive-tree-root .drive-tree-link');
+ assert.equal(rootLink.dispatchEvent(new w.MouseEvent('contextmenu',{bubbles:true,cancelable:true,clientX:100,clientY:100})),false,'左侧根目录右键阻止浏览器菜单');
+ assert.ok(w.document.querySelector('#driveContextMenu [data-menu-action="cloud-new"][data-id="root"]'),'根目录有新建文件夹操作');
+ assert.equal(w.document.querySelector('#driveContextMenu [data-menu-action="cloud-create-document"]'),null,'根目录右键不重复顶部的新建文档入口');
+ w.document.querySelector('#driveContextMenu [data-menu-action="cloud-new"]').click();
+ await until(()=>w.document.querySelector('[data-form=cloud-folder]'));
+ let folderForm=w.document.querySelector('[data-form=cloud-folder]');
+ assert.equal(folderForm.dataset.id,'','根目录操作不误用当前文件夹');
+ assert.ok(folderForm.textContent.includes('我的文件 / 根目录'));
+ folderForm.querySelector('[name=name]').value='根目录新建';folderForm.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));
+ await until(()=>folderCalls===1&&!w.document.querySelector('#modal').open);
+ assert.equal(JSON.parse(requests.filter(x=>x.url.includes('/me/drive/folders')&&x.options.method==='POST').at(-1).options.body).parentId,null);
+ const folderLink=w.document.querySelector('.drive-tree-node[data-drive-id="folder1"] .drive-tree-link');
+ assert.equal(folderLink.dispatchEvent(new w.MouseEvent('contextmenu',{bubbles:true,cancelable:true,clientX:100,clientY:100})),false,'左侧文件夹右键阻止浏览器菜单');
+ assert.ok(w.document.querySelector('#driveContextMenu [data-menu-action="cloud-new"][data-id="folder1"]'),'文件夹菜单可新建子文件夹');
+ w.document.querySelector('#driveContextMenu [data-menu-action="cloud-new"]').click();
+ await until(()=>w.document.querySelector('[data-form=cloud-folder]'));
+ folderForm=w.document.querySelector('[data-form=cloud-folder]');
+ assert.equal(folderForm.dataset.id,'folder1');
+ assert.ok(folderForm.textContent.includes('我的文件 / 验收资料'));
+ folderForm.querySelector('[name=name]').value='子目录新建';folderForm.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));
+ await until(()=>folderCalls===2&&!w.document.querySelector('#modal').open);
+ assert.equal(JSON.parse(requests.filter(x=>x.url.includes('/me/drive/folders')&&x.options.method==='POST').at(-1).options.body).parentId,'folder1');
+ const treeBlank=w.document.querySelector('.drive-tree');
+ treeBlank.dispatchEvent(new w.MouseEvent('contextmenu',{bubbles:true,cancelable:true,clientX:100,clientY:100}));
+ assert.equal(w.document.querySelector('#driveContextMenu'),null,'左侧面板空白处不弹创建菜单');
+ w.document.querySelector('.drive-tree-root > .drive-tree-children').dispatchEvent(new w.MouseEvent('contextmenu',{bubbles:true,cancelable:true,clientX:100,clientY:100}));
+ assert.equal(w.document.querySelector('#driveContextMenu'),null,'目录树节点间空白不误判为根目录');
+ w.document.querySelector('.drive-tree summary').dispatchEvent(new w.MouseEvent('contextmenu',{bubbles:true,cancelable:true,clientX:100,clientY:100}));
+ assert.equal(w.document.querySelector('#driveContextMenu'),null,'文件目录标题不弹创建菜单');
+ file.ownerId='other';w.testApp.navigate('resources');await until(()=>w.document.querySelector('.drive-row[data-drive-id="file1"]'));
+ w.document.querySelector('.drive-row[data-drive-id="file1"]').dispatchEvent(new w.MouseEvent('contextmenu',{bubbles:true,cancelable:true,clientX:100,clientY:100}));
+ assert.equal(w.document.querySelector('#driveContextMenu [data-menu-action=cloud-rename]'),null,'共享文件菜单不能重命名');
+ assert.equal(w.document.querySelector('#driveContextMenu [data-menu-action=cloud-shares]'),null,'共享文件菜单不能再共享');
+ file.ownerId='me';w.document.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+ w.document.querySelector('[data-action=cloud-create-menu]').click();
+ await until(()=>w.document.querySelector('#driveContextMenu [data-menu-action=cloud-new]'));
+ w.document.querySelector('#driveContextMenu [data-menu-action=cloud-new]').click();
+ await until(()=>w.document.querySelector('[data-form=cloud-folder]'));
+ const form=w.document.querySelector('[data-form=cloud-folder]');form.querySelector('[name=name]').value='测试目录';
+ form.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));form.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));
+ await until(()=>folderCalls===3&&!w.document.querySelector('#modal').open);assert.equal(folderCalls,3,'重复提交只写入一次');
+ w.testApp.navigate('resource/file1');await until(()=>w.document.querySelector('.document-workspace'));
+ assert.equal(w.document.querySelector('[data-document-editor]').getAttribute('contenteditable'),'plaintext-only','自有文本文件可在线编辑');
+ assert.ok(w.document.querySelector('[data-action=cloud-shares]'),'所有者可管理文档共享');
+ conflictOnSave=true;
+ const editor=w.document.querySelector('[data-document-editor]');editor.textContent='本地未保存草稿';editor.dispatchEvent(new w.Event('input',{bubbles:true}));
+ w.document.querySelector('[data-doc-action=save]').click();
+ await until(()=>!w.document.querySelector('#documentConflict').hidden);
+ assert.ok(w.document.querySelector('#documentConflict').textContent.includes('下载本地草稿'),'文本文件冲突仍可下载草稿');
+ assert.equal(w.document.querySelector('[data-doc-action=save]').disabled,true,'冲突后停止重复保存');
+ assert.equal(editor.textContent,'本地未保存草稿','冲突不清除当前编辑内容');
+ team=true;await w.testApp.refreshTeams();w.testApp.navigate('tasks');await until(()=>w.document.querySelector('#taskBoard'));
+ assert.ok(w.document.querySelector('.task-empty'),'没有任务时显示完整空状态');
+ assert.equal(w.document.querySelectorAll('.section-tabs a').length,3);
+ assert.equal(requests.some(x=>x.url.includes('/me/review-queue')),false,'学生查看任务时不能被反馈权限错误阻断');
+ assert.ok(w.document.querySelector('footer').textContent.includes('v0.4.0'),'页面展示后端版本');
+ w.testApp.navigate('routes');await until(()=>w.document.querySelector('#routeCards'));
+ const routeSearch=w.document.querySelector('[data-filter=routes]');
+ routeSearch.value='论文';routeSearch.dispatchEvent(new w.Event('input',{bubbles:true}));
+ w.document.querySelector('[data-action=route-filter][data-id=mine]').click();
+ assert.equal(w.document.querySelectorAll('#routeCards a[href^="#route/"]').length,1,'搜索后分类仍生效');
+ routeSearch.value='写作';routeSearch.dispatchEvent(new w.Event('input',{bubbles:true}));
+ assert.ok(w.document.querySelector('#routeCards').textContent.includes('没有符合条件'),'分类后搜索仍生效且提示无结果');
+ w.testApp.navigate('tasks');await until(()=>w.document.querySelector('#taskBoard'));
+ w.testApp.navigate('routes');await until(()=>w.document.querySelector('#routeCards'));
+ assert.equal(w.document.querySelector('[data-filter=routes]').value,'写作','返回列表恢复关键词');
+ assert.equal(w.document.querySelector('[data-action=route-filter].active').dataset.id,'mine','返回列表恢复分类');
+ w.document.querySelector('[data-action=clear-list-filters]').click();
+ assert.equal(w.document.querySelectorAll('#routeCards a[href^="#route/"]').length,2,'一键清除筛选');
+ w.testApp.navigate('assistant');await until(()=>w.document.querySelector('#assistantSourceSearch'));
+ const checkbox=w.document.querySelector('input[name=source]');checkbox.checked=true;checkbox.dispatchEvent(new w.Event('change',{bubbles:true}));
+ assert.ok(w.document.querySelector('#assistantSelected').textContent.includes('1 份'));
+ const search=w.document.querySelector('#assistantSourceSearch');search.value='无匹配';search.dispatchEvent(new w.Event('input',{bubbles:true}));assert.ok(w.document.querySelector('.source-check').hidden);
+ fail=true;w.testApp.navigate('resources');await until(()=>w.document.querySelector('#content .errorbox'));assert.equal(w.document.querySelector('#content .empty'),null,'加载错误不能伪装为空列表');
+ fail=false;w.document.querySelector('#content [data-action=refresh]').click();await until(()=>w.document.querySelector('.drive-layout'));
+ w.fetch=async()=>{throw new TypeError('Failed to fetch');};
+ w.testApp.navigate('routes');await until(()=>w.document.querySelector('#content .errorbox'));
+ assert.ok(w.document.querySelector('#content .errorbox').textContent.includes('无法连接科研服务'),'断网错误可理解且可重试');
+ assert.ok(w.document.querySelector('#content [data-action=refresh]'));
+ dom.window.close();console.log('前端回归通过：导航、无课题组云盘、重复提交、只读共享、学生任务、资料选择及错误重试。');
 }
-main().catch((e) => {
-  console.error(e);
-  process.exitCode = 1;
-});
+main().catch(e=>{console.error(e);process.exitCode=1;});

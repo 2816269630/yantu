@@ -1,92 +1,42 @@
 <!doctype html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#3370ff" />
-    <meta
-      name="description"
-      content="研途科研系统：学习路线、课题组协作、任务反馈、组会、研究记录与科研资料。"
-    />
-    <title>研途 · 科研工作台</title>
-    <link rel="stylesheet" href="/styles/index.css" />
-    <script type="module" src="/app.js"></script>
-  </head>
-  <body>
-    <a class="skip-link" href="#content">跳至主要内容</a>
-    <div id="authRoot" class="auth-root" hidden></div>
-    <div id="appShell" hidden>
-      <div id="overlay" class="overlay"></div>
-      <aside id="sidebar" class="sidebar" aria-label="主导航">
-        <a href="#home" class="brand"
-          ><span class="brandmark">R</span>
-          <div><strong>研途</strong><span>RESEARCHPATH</span></div></a
-        >
-        <div class="space">
-          <span class="spacemark" id="spaceIcon"></span
-          ><label class="team-label" for="teamSelect"
-            ><span class="space-caption">当前课题组</span
-            ><select id="teamSelect" aria-label="切换课题组"></select></label
-          ><a
-            class="iconbtn"
-            href="#settings"
-            data-action="open-team-settings"
-            aria-label="课题组设置"
-            >⚙</a
-          >
-        </div>
-        <nav id="nav" class="nav"></nav>
-        <div class="sidebottom">
-          <div class="integration">
-            <span class="connection-dot"></span><span>科研协作服务正常</span>
-          </div>
-          <div id="profile" class="profile"></div>
-        </div>
-      </aside>
-      <div class="main">
-        <header class="topbar">
-          <button
-            id="menuToggle"
-            class="iconbtn mobile-toggle"
-            aria-label="打开导航"
-            aria-expanded="false"
-          ></button>
-          <div class="breadcrumb">
-            <span>课题组空间</span><span class="slash">/</span
-            ><strong id="crumb">今日工作台</strong>
-          </div>
-          <div class="topright">
-            <form id="globalSearch" class="searchbox" role="search">
-              <span id="searchIcon"></span
-              ><input
-                name="q"
-                id="searchInput"
-                aria-label="搜索资料、路线、任务和组会"
-                placeholder="搜索资料、路线、组会…"
-              /><kbd class="key">Ctrl K</kbd>
-            </form>
-            <button
-              class="iconbtn notification-button"
-              id="notificationsButton"
-              aria-label="查看通知"
-            ></button
-            ><button id="profileButton" class="avatar" aria-label="个人设置"></button>
-          </div>
-        </header>
-        <main class="content" id="content" tabindex="-1">
-          <div class="loading" role="status">正在连接科研工作台…</div>
-        </main>
-      </div>
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#3370ff">
+  <meta name="description" content="研途科研系统：学习路线、课题组协作、任务反馈、组会、研究记录与科研资料。">
+  <title>研途 · 科研工作台</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/refinement.css?v=0.4.0-auth1">
+  <link rel="stylesheet" href="/vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="/document-workspace.css?v=0.4.0">
+  <link rel="stylesheet" href="/agent.css?v=1">
+  <script src="/app.js?v=0.4.0-auth1" defer></script>
+  <script src="/cloud-upload.js?v=0.4.0" defer></script>
+  <script src="/cloud-drive.js?v=0.4.0" defer></script>
+  <script src="/agent.js?v=1" defer></script>
+  <script src="/vendor/katex/katex.min.js" defer></script>
+  <script src="/document-preview.js?v=0.4.0" defer></script>
+  <script src="/document-workspace.js?v=0.4.0" defer></script>
+  <script src="/document-editor.js?v=0.4.0" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#content">跳至主要内容</a>
+  <div id="authRoot" class="auth-root" hidden></div>
+  <div id="appShell" hidden>
+    <div id="overlay" class="overlay"></div>
+    <aside id="sidebar" class="sidebar" aria-label="主导航">
+      <a href="#home" class="brand"><span class="brandmark">R</span><div><strong>研途</strong><span>RESEARCHPATH</span></div></a>
+      <div class="space"><span class="spacemark" id="spaceIcon"></span><label class="team-label" for="teamSelect"><span class="space-caption">当前课题组</span><select id="teamSelect" aria-label="切换课题组"></select></label><a class="iconbtn" href="#settings" onclick="state.settingsTab='team'" aria-label="课题组设置">⚙</a></div>
+      <nav id="nav" class="nav"></nav>
+      <div class="sidebottom"><div class="integration"><span class="connection-dot"></span><span>科研协作服务正常</span></div><div id="profile" class="profile"></div></div>
+    </aside>
+    <div class="main">
+      <header class="topbar"><button id="menuToggle" class="iconbtn mobile-toggle" aria-label="打开导航" aria-expanded="false"></button><div class="breadcrumb"><span>课题组空间</span><span class="slash">/</span><strong id="crumb">今日工作台</strong></div><div class="topright"><form id="globalSearch" class="searchbox" role="search"><span id="searchIcon"></span><input name="q" id="searchInput" aria-label="搜索资料、路线、任务和组会" placeholder="搜索资料、路线、组会…"><kbd class="key">Ctrl K</kbd></form><button class="iconbtn notification-button" id="notificationsButton" aria-label="查看通知"></button><button id="profileButton" class="avatar" aria-label="个人设置"></button></div></header>
+      <main class="content" id="content" tabindex="-1"><div class="loading" role="status">正在连接科研工作台…</div></main>
     </div>
-    <dialog id="modal" class="modal" aria-labelledby="modalTitle">
-      <div class="modal-head">
-        <h2 id="modalTitle"></h2>
-        <button id="closeModal" class="iconbtn" aria-label="关闭弹窗">✕</button>
-      </div>
-      <div id="modalBody" class="modal-body"></div>
-      <div id="modalFoot" class="modal-foot"></div>
-    </dialog>
-    <div id="toast" class="toast" role="status" aria-live="polite"></div>
-    <noscript><p class="noscript">请启用 JavaScript，以使用科研工作台。</p></noscript>
-  </body>
+  </div>
+  <dialog id="modal" class="modal" aria-labelledby="modalTitle"><div class="modal-head"><h2 id="modalTitle"></h2><button id="closeModal" class="iconbtn" aria-label="关闭弹窗">✕</button></div><div id="modalBody" class="modal-body"></div><div id="modalFoot" class="modal-foot"></div></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <noscript><p class="noscript">请启用 JavaScript，以使用科研工作台。</p></noscript>
+</body>
 </html>

@@ -10,7 +10,9 @@
 .\Start-Research.ps1
 ```
 
-也可以直接运行 `start.cmd`。容器启动完成后打开 `http://localhost:8088`。首次访问会引导创建管理员和第一个课题组，后续成员可通过负责人生成的邀请链接注册。
+也可以直接运行 `start.cmd`。容器启动完成后打开 `http://localhost:8088`。首次访问会引导创建管理员和第一个课题组。后续用户可在登录页点击“创建账号”，使用姓名、邮箱和密码直接注册，注册后自动登录并获得个人空间。邀请码为选填项，用于加入对应课题组；普通注册不会自动加入任何已有课题组。
+
+默认开放账号注册。如需仅允许受邀成员注册，可在本地 `.env.research` 中设置 `ALLOW_PUBLIC_SIGNUP=0` 后重新启动。
 
 ## 供局域网成员使用
 
@@ -37,19 +39,20 @@ docker compose --env-file .env.research -f compose.local.yaml down
 
 `down` 不会删除数据库和附件。不要附加 `-v`，除非明确要清空本地数据。
 
+## 科研 Agent 与模型配置
+
+在“设置 → 模型与连接”添加 OpenAI Responses、兼容 Chat Completions 或 Ollama API，也可以使用 ChatGPT 账号登录 Codex。科研助手输入框可切换模型和 Agent / 对话模式，保留历史会话，并展示工具执行过程。笔记草稿由用户确认后保存。
+
+连接、工具范围与备份说明见 [科研 Agent 文档](yantu/docs/RESEARCH_AGENT.md)。
+
 ## 数据与备份
 
 科研业务数据保存在 PostgreSQL Docker 卷，上传文件保存在独立附件卷。系统内“空间与权限 → 导出与备份”可以导出当前账号有权读取的结构化科研记录；完整恢复还需备份数据库卷和附件卷。
 
 ## 开发验证
 
-模块说明见 [模块开发指南](yantu/README.md)。测试使用独立临时数据，不访问日常业务数据库。
-
 ```powershell
-cd yantu
-python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r backend/requirements-dev.txt
-.\.venv\Scripts\python.exe -m pytest -q
-npm ci
-npm run test:ui
+cd yantu\backend
+..\..\.venv\Scripts\python.exe -m pytest -q
+C:\Users\33518\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe --check ..\frontend\app.js
 ```

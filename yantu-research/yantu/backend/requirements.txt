@@ -6,3 +6,6 @@ SQLAlchemy==2.0.54
 psycopg[binary]==3.3.6
 pypdf==6.19.0
 python-docx==1.2.0
+pycrdt==0.14.10
+websockets==15.0.1
+cryptography==46.0.3

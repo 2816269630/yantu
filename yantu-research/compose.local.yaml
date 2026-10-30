@@ -16,7 +16,7 @@ services:
       PLANE_ALLOWED_PROJECTS: ${PLANE_ALLOWED_PROJECTS:-}
       AI_BASE_URL: ${AI_BASE_URL:-}
       AI_MODEL: ${AI_MODEL:-}
-      ALLOW_PUBLIC_SIGNUP: "0"
+      ALLOW_PUBLIC_SIGNUP: ${ALLOW_PUBLIC_SIGNUP:-1}
       MAX_UPLOAD_BYTES: "20971520"
     volumes:
       - research_uploads:/app/uploads
